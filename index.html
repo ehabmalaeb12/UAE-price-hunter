@@ -2,31 +2,54 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UAE Price Hunter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- App Theme -->
+  <meta name="theme-color" content="#0ea5e9">
+
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <header>
+
+  <!-- HEADER -->
+  <header class="app-header">
     <h1>UAE Price Hunter</h1>
-    <p>Find the cheapest prices in UAE instantly</p>
+    <p>Find the best prices & biggest deals in UAE</p>
   </header>
 
-  <section id="big-deals">
+  <!-- BIG DEALS -->
+  <section>
     <h2>🔥 Big Deals</h2>
-    <div id="big-deals-list"></div>
+    <div id="big-deals" class="card-container"></div>
   </section>
 
-  <section id="search">
-    <input type="text" id="search-input" placeholder="Search product...">
-    <div id="search-results"></div>
+  <!-- SEARCH -->
+  <section class="search-section">
+    <input type="text" id="searchInput" placeholder="Search products (phone, creatine...)">
   </section>
 
-  <section id="rewards">
+  <!-- SEARCH RESULTS -->
+  <section>
+    <div id="results" class="card-container"></div>
+  </section>
+
+  <!-- REWARDS -->
+  <section class="rewards">
     <h2>💰 Your Rewards</h2>
-    <p>Available AED: <span id="available-aed">0</span></p>
-    <p>Pending AED: <span id="pending-aed">0</span></p>
-    <p class="note">Rewards are earned when you shop via our partner stores.</p>
+    <div class="reward-box">
+      <div>
+        <span>Available</span>
+        <strong>AED <span id="available">0</span></strong>
+      </div>
+      <div>
+        <span>Pending</span>
+        <strong>AED <span id="pending">0</span></strong>
+      </div>
+    </div>
+    <p class="note">Rewards are earned when you shop via partner stores.</p>
   </section>
 
   <script src="app.js"></script>
