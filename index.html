@@ -1,62 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UAE Price Hunter</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- App Theme -->
-  <meta name="theme-color" content="#0ea5e9">
-  <link rel="manifest" href="manifest.json">
-  <!-- Styles -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
   <!-- HEADER -->
-  <header class="app-header">
+  <header class="header">
     <h1>UAE Price Hunter</h1>
     <p>Find the best prices & biggest deals in UAE</p>
   </header>
 
   <!-- BIG DEALS -->
-  <section>
+  <section class="section">
     <h2>🔥 Big Deals</h2>
-    <div id="big-deals" class="card-container"></div>
+    <div class="products" id="products"></div>
   </section>
 
   <!-- SEARCH -->
-  <section class="search-section">
-    <input type="text" id="searchInput" placeholder="Search products (phone, creatine...)">
-  </section>
-
-  <!-- SEARCH RESULTS -->
-  <section>
-    <div id="results" class="card-container"></div>
+  <section class="section">
+    <input
+      type="text"
+      id="search"
+      placeholder="Search for a product..."
+      class="search-input"
+    />
   </section>
 
   <!-- REWARDS -->
-  <section class="rewards">
+  <section class="section rewards">
     <h2>💰 Your Rewards</h2>
-    <div class="reward-box">
-      <div>
-        <span>Available</span>
-        <strong>AED <span id="available">0</span></strong>
-      </div>
-      <div>
-        <span>Pending</span>
-        <strong>AED <span id="pending">0</span></strong>
-      </div>
-    </div>
-    <p class="note">Rewards are earned when you shop via partner stores.</p>
+    <p>Pending AED: <strong>0.00</strong></p>
   </section>
 
-  <script src="app.js"></script>
-  <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
-}
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
