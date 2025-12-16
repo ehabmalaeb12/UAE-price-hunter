@@ -1,7 +1,7 @@
 const products = [
   {
     name: "iPhone 14",
-    image: "https://m.media-amazon.com/images/I/61bK6PMOC3L._AC_SL1500_.jpg",
+    image: "https://via.placeholder.com/300x200?text=iPhone+14",
     deals: [
       { store: "Noon", price: 3200, link: "https://www.noon.com" },
       { store: "Amazon", price: 3150, link: "https://www.amazon.ae" },
@@ -11,7 +11,7 @@ const products = [
   },
   {
     name: "Sony Headphones",
-    image: "https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SL1500_.jpg",
+    image: "https://via.placeholder.com/300x200?text=Sony+Headphones",
     deals: [
       { store: "Carrefour", price: 200, link: "https://www.carrefouruae.com" },
       { store: "Amazon", price: 220, link: "https://www.amazon.ae" },
@@ -21,7 +21,7 @@ const products = [
   },
   {
     name: "Creatine Monohydrate",
-    image: "https://m.media-amazon.com/images/I/71Zf9uUp+GL._AC_SL1500_.jpg",
+    image: "https://via.placeholder.com/300x200?text=Creatine",
     deals: [
       { store: "Amazon", price: 89, link: "https://www.amazon.ae" },
       { store: "Noon", price: 95, link: "https://www.noon.com" },
@@ -47,23 +47,17 @@ function renderProducts(list, container) {
     card.className = "card";
 
     if (product.hot) {
-      const badge = document.createElement("div");
-      badge.className = "badge";
-      badge.textContent = "HOT";
-      card.appendChild(badge);
+      card.innerHTML += `<div class="badge">HOT</div>`;
     }
 
     card.innerHTML += `
-      <img src="${product.image}" />
+      <img src="${product.image}" alt="${product.name}">
       <h3>${product.name}</h3>
-      ${product.deals
-        .map(
-          d =>
-            `<div class="store ${d === bestDeal ? "best" : ""}">
-              ${d.store}: AED ${d.price}
-            </div>`
-        )
-        .join("")}
+      ${product.deals.map(d =>
+        `<div class="store ${d === bestDeal ? "best" : ""}">
+          ${d.store}: AED ${d.price}
+        </div>`
+      ).join("")}
       <a class="btn" href="${bestDeal.link}" target="_blank">
         Best Price → ${bestDeal.store}
       </a>
