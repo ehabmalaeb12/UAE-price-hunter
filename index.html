@@ -2,39 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UAE Price Hunter</title>
-
-  <!-- LINK CSS -->
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+  <!-- HEADER -->
   <header class="header">
     <h1>UAE Price Hunter</h1>
-    <p>Find the best prices & biggest deals in UAE</p>
+    <p>Compare prices across UAE stores & get the best deal</p>
   </header>
 
-  <section class="section">
-    <h2>🔥 Big Deals</h2>
-    <div class="products" id="products"></div>
-  </section>
-
-  <section class="section">
+  <!-- SEARCH -->
+  <section class="search-section">
     <input
       type="text"
-      id="search"
-      placeholder="Search for a product..."
-      class="search-input"
+      id="searchInput"
+      placeholder="Search for any product (e.g. iPhone, Creatine...)"
     />
   </section>
 
-  <section class="section rewards">
-    <h2>💰 Your Rewards</h2>
-    <p>Pending AED: <strong>0.00</strong></p>
+  <!-- ALL PRODUCTS -->
+  <section class="section">
+    <h2>🛒 All Products</h2>
+    <div id="productGrid" class="grid"></div>
   </section>
 
-  <!-- LINK JS -->
-  <script src="./script.js"></script>
+  <!-- HOT DEALS -->
+  <section class="section">
+    <h2>🔥 Hot Deals</h2>
+    <div id="hotDealsGrid" class="grid"></div>
+  </section>
+
+  <script src="script.js"></script>
 </body>
 </html>
