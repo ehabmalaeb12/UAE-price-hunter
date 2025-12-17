@@ -4,71 +4,86 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UAE Price Hunter</title>
+
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
 <header>
-  <div class="basket" onclick="showBasket()">
+  <div class="basket-btn" onclick="openBasket()">
     <i class="fa-solid fa-basket-shopping"></i>
     <span id="basketCount">0</span>
   </div>
   <h1>UAE Price Hunter</h1>
-  <p>Smart shopping. Real rewards.</p>
+  <p>Compare prices. Earn rewards.</p>
 </header>
 
-<div class="container">
+<main>
 
-  <!-- HOME -->
-  <div id="homePage">
-    <div class="search-box">
-      <input id="searchInput" placeholder="Search any product..." oninput="handleSearch()">
-      <div id="suggestions"></div>
-    </div>
+  <!-- SEARCH -->
+  <div class="search-container">
+    <input id="searchInput" placeholder="Search any product…" oninput="handleSearch()">
+    <div id="suggestions"></div>
+  </div>
 
-    <div id="results"></div>
+  <!-- RESULTS -->
+  <div id="results"></div>
 
-    <section id="hotDeals">
-      <h2>🔥 Hot Deals</h2>
-      <div class="deals">
-        <div onclick="openProduct('iphone')">iPhone — 50% OFF</div>
-        <div onclick="openProduct('airfryer')">Air Fryer — 60% OFF</div>
-        <div onclick="openProduct('creatine')">Creatine — 70% OFF</div>
+  <!-- HOT DEALS -->
+  <section id="hotDeals">
+    <h2>🔥 Hot Deals</h2>
+    <div class="deals-grid">
+      <div class="deal-card" onclick="openProduct('iphone')">
+        <img src="images/iphone.jpg">
+        <span>-50%</span>
+        <p>iPhone 15 Pro</p>
       </div>
-    </section>
-  </div>
-
-  <!-- REWARDS -->
-  <div id="rewardsPage" class="page">
-    <h2>🎁 Rewards</h2>
-    <div class="card">
-      <p><strong>Total Earned:</strong> 1,250 points</p>
-      <p><strong>Pending:</strong> 350 points</p>
-      <p><strong>Value:</strong> AED 12.50</p>
-      <p>Minimum redeem: AED 30</p>
+      <div class="deal-card" onclick="openProduct('airfryer')">
+        <img src="images/airfryer.jpg">
+        <span>-60%</span>
+        <p>Philips Air Fryer</p>
+      </div>
+      <div class="deal-card" onclick="openProduct('creatine')">
+        <img src="images/creatine.jpg">
+        <span>-70%</span>
+        <p>Creatine</p>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- PROFILE -->
-  <div id="profilePage" class="page">
-    <h2>👤 Profile</h2>
-    <div class="card">
-      <label>Your Name</label>
-      <input id="usernameInput" placeholder="Enter your name">
-      <button onclick="saveName()">Save</button>
-      <p id="savedName"></p>
-    </div>
-  </div>
+</main>
 
-  <!-- BASKET -->
-  <div id="basketPage" class="page">
-    <h2>🧺 Basket</h2>
-    <div id="basketItems"></div>
-  </div>
-
+<!-- BASKET -->
+<div id="basketPage" class="page">
+  <h2>🧺 Your Basket</h2>
+  <div id="basketItems"></div>
 </div>
 
+<!-- REWARDS -->
+<div id="rewardsPage" class="page">
+  <h2>🎁 Rewards</h2>
+  <div class="card">
+    <p><strong>Total earned:</strong> 1,250 points</p>
+    <p><strong>Pending:</strong> 350 points</p>
+    <p><strong>Value:</strong> AED 12.50</p>
+    <p>Minimum redeem: AED 30</p>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="profilePage" class="page">
+  <h2>👤 Profile</h2>
+  <div class="card">
+    <input id="nameInput" placeholder="Name">
+    <input id="emailInput" placeholder="Email">
+    <input id="phoneInput" placeholder="Phone">
+    <button onclick="saveProfile()">Save</button>
+    <p id="profileSaved"></p>
+  </div>
+</div>
+
+<!-- NAV -->
 <nav>
   <button onclick="showHome()"><i class="fa-solid fa-house"></i></button>
   <button onclick="showRewards()"><i class="fa-solid fa-gift"></i></button>
