@@ -5,130 +5,172 @@
 
 body {
   margin: 0;
-  background: #f4f6fa;
+  background: #f4f6fb;
+  color: #0f172a;
 }
 
-.app-header {
-  background: linear-gradient(135deg, #0a66ff, #00c2ff);
+header {
+  background: linear-gradient(135deg, #0a84ff, #38bdf8);
   color: white;
-  padding: 28px 16px;
+  padding: 24px 16px 32px;
   text-align: center;
+  position: relative;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+header p {
+  margin-top: 6px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.basket {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.basket span {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: red;
+  color: white;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .container {
-  padding: 16px;
   max-width: 480px;
   margin: auto;
+  padding: 16px;
 }
 
 .search-box input {
   width: 100%;
   padding: 16px;
-  border-radius: 14px;
-  border: 2px solid #000;
-  font-size: 16px;
+  border-radius: 16px;
+  border: none;
+  font-size: 15px;
 }
 
-.suggestions {
+#suggestions {
   background: white;
   border-radius: 14px;
-  margin-top: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,.1);
+  margin-top: 6px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   display: none;
 }
 
-.suggestions div {
+#suggestions div {
   padding: 12px;
   cursor: pointer;
 }
 
-.suggestions div:hover {
-  background: #eef3ff;
-}
-
-.hot-deals {
-  margin-top: 24px;
-  background: #fff7e6;
-  padding: 16px;
-  border-radius: 16px;
-}
-
-.deals-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-
-.deal {
-  background: white;
-  padding: 14px;
-  border-radius: 12px;
-  font-weight: bold;
-  text-align: center;
-  cursor: pointer;
+#suggestions div:hover {
+  background: #eef2ff;
 }
 
 .product-card {
   background: white;
-  margin-top: 20px;
+  margin-top: 16px;
   padding: 16px;
   border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
 .product-card img {
   width: 100%;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
-.store-row {
+.store {
   display: flex;
   justify-content: space-between;
-  margin-top: 12px;
+  align-items: center;
+  margin-top: 10px;
 }
 
-.store-row button {
-  background: #0a66ff;
+.store button {
+  background: #0a84ff;
   color: white;
   border: none;
   padding: 8px 14px;
   border-radius: 10px;
 }
 
-footer {
-  text-align: center;
+#hotDeals {
+  margin-top: 24px;
+  background: #fff7e6;
   padding: 16px;
-  font-size: 14px;
-  color: #0a66ff;
+  border-radius: 18px;
 }
 
-footer span {
+.deals div {
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 8px;
+  font-weight: 600;
+  text-align: center;
   cursor: pointer;
 }
 
-/* MODAL */
-.modal {
+nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+}
+
+nav button {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #0a84ff;
+}
+
+nav i {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+#rewardsModal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.5);
+  background: rgba(0,0,0,0.5);
 }
 
-.modal-content {
+.modal-box {
   background: white;
   padding: 20px;
-  margin: 20% auto;
-  width: 90%;
+  border-radius: 18px;
+  width: 85%;
   max-width: 320px;
-  border-radius: 16px;
+  margin: 25% auto;
   text-align: center;
-}
-
-.modal-content button {
-  margin-top: 12px;
-  padding: 10px 16px;
-  border: none;
-  background: #0a66ff;
-  color: white;
-  border-radius: 10px;
 }
