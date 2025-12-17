@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UAE Price Hunter</title>
 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#fde047">
+<link rel="apple-touch-icon" href="images/icon-192.png">
+
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -21,16 +25,13 @@
 
 <main>
 
-  <!-- SEARCH -->
   <div class="search-container">
     <input id="searchInput" placeholder="Search any product…" oninput="handleSearch()">
     <div id="suggestions"></div>
   </div>
 
-  <!-- RESULTS -->
   <div id="results"></div>
 
-  <!-- HOT DEALS -->
   <section id="hotDeals">
     <h2>🔥 Hot Deals</h2>
     <div class="deals-grid">
@@ -54,13 +55,11 @@
 
 </main>
 
-<!-- BASKET -->
 <div id="basketPage" class="page">
   <h2>🧺 Your Basket</h2>
   <div id="basketItems"></div>
 </div>
 
-<!-- REWARDS -->
 <div id="rewardsPage" class="page">
   <h2>🎁 Rewards</h2>
   <div class="card">
@@ -71,7 +70,6 @@
   </div>
 </div>
 
-<!-- PROFILE -->
 <div id="profilePage" class="page">
   <h2>👤 Profile</h2>
   <div class="card">
@@ -83,7 +81,6 @@
   </div>
 </div>
 
-<!-- NAV -->
 <nav>
   <button onclick="showHome()"><i class="fa-solid fa-house"></i></button>
   <button onclick="showRewards()"><i class="fa-solid fa-gift"></i></button>
@@ -91,5 +88,15 @@
 </nav>
 
 <script src="script.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => console.log("App Registered"))
+      .catch(err => console.log("App Error", err));
+  }
+</script>
+
 </body>
 </html>
+
