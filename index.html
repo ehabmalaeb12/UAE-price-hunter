@@ -2,43 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UAE Price Hunter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="header">
+<header class="app-header">
   <h1>UAE Price Hunter</h1>
   <p>Compare prices across UAE stores & earn rewards</p>
 </header>
 
-<section class="search-section">
-  <input
-    type="text"
-    id="searchInput"
-    placeholder="Search products across Amazon, Noon & Carrefour"
-    onkeyup="showSuggestions()"
-  />
-  <div id="suggestions" class="suggestions"></div>
-</section>
+<div class="container">
 
-<section class="hot-deals">
-  <h2>🔥 Hot Deals</h2>
-  <div class="hot-deals-grid">
-    <button onclick="openDeal('iphone')">iPhone 14 — 50% OFF</button>
-    <button onclick="openDeal('airfryer')">Air Fryer — 60% OFF</button>
-    <button onclick="openDeal('creatine')">Creatine — 70% OFF</button>
+  <!-- SEARCH -->
+  <div class="search-box">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search any product (iPhone, Creatine, Air Fryer...)"
+      oninput="handleSearch()"
+    />
+    <div id="suggestions" class="suggestions"></div>
   </div>
-</section>
 
-<main id="result"></main>
+  <!-- HOT DEALS -->
+  <section class="hot-deals">
+    <h2>🔥 Hot Deals</h2>
+    <div class="deals-grid">
+      <div onclick="openDeal('iphone')" class="deal">iPhone 14 — 50% OFF</div>
+      <div onclick="openDeal('airfryer')" class="deal">Air Fryer — 60% OFF</div>
+      <div onclick="openDeal('creatine')" class="deal">Creatine — 70% OFF</div>
+    </div>
+  </section>
 
+  <!-- RESULTS -->
+  <div id="results"></div>
+
+</div>
+
+<!-- FOOTER -->
 <footer>
-  <a href="rewards.html">Rewards</a> |
-  <a href="privacy.html">Privacy</a> |
-  <a href="disclaimer.html">Disclaimer</a>
+  <span onclick="openRewards()">💰 Rewards</span> |
+  <span onclick="alert('Privacy policy placeholder')">Privacy</span> |
+  <span onclick="alert('Disclaimer placeholder')">Disclaimer</span>
 </footer>
+
+<!-- REWARDS MODAL -->
+<div id="rewardsModal" class="modal">
+  <div class="modal-content">
+    <h3>💰 Rewards System</h3>
+    <p>
+      • Minimum order: <strong>30 AED</strong><br>
+      • You earn cashback points on eligible purchases<br>
+      • Points = real money usable inside UAE Price Hunter<br>
+      • Rewards come from store commissions (up to 40%)
+    </p>
+    <button onclick="closeRewards()">Got it</button>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
