@@ -4,66 +4,62 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UAE Price Hunter</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#005bea">
-
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<header class="header">
-  <h1>UAE Price Hunter</h1>
-  <p>Compare prices. Earn real cashback points.</p>
-</header>
+  <!-- HEADER -->
+  <header class="header">
+    <h1>UAE Price Hunter</h1>
+    <p>Compare prices across major UAE stores & earn rewards</p>
+  </header>
 
-<section class="search-section">
-  <input
-    type="text"
-    id="searchInput"
-    placeholder="Search any product (Creatine, iPhone, TV...)"
-  />
-</section>
+  <!-- SEARCH -->
+  <section class="search-section">
+    <input 
+      type="text" 
+      id="searchInput" 
+      placeholder="Search products across Amazon, Noon & Carrefour"
+      onkeyup="searchProducts()"
+    />
+  </section>
 
-<section class="rewards-info">
-  <h3>💰 Cashback Points</h3>
-  <p>
-    Pending Balance:
-    <strong>AED <span id="points">0.00</span></strong>
-  </p>
-  <p class="note">
-    • Minimum order AED 30<br>
-    • Earn 2% cashback as points<br>
-    • Points are pending until store confirms order<br>
-    • Points usable inside UAE Price Hunter only
-  </p>
-</section>
+  <!-- INFO STRIP -->
+  <section class="info-strip">
+    <div>🔍 Smart price comparison</div>
+    <div>🎁 Earn in-app reward points</div>
+    <div>🇦🇪 Trusted UAE stores</div>
+  </section>
 
-<section class="section">
-  <h2>🛒 All Products</h2>
-  <div id="productGrid" class="grid"></div>
-</section>
+  <!-- PRODUCTS -->
+  <main>
+    <h2 class="section-title">All Products</h2>
+    <div id="products" class="products-grid"></div>
+  </main>
 
-<section class="section">
-  <h2>🔥 Hot Deals</h2>
-  <div id="hotDealsGrid" class="grid"></div>
-</section>
+  <!-- HOT DEALS -->
+  <section class="hot-deals">
+    <h2>🔥 Hot Deals</h2>
+    <div class="hot-deals-grid">
+      <div class="hot-card">iPhone 14 — 50% OFF</div>
+      <div class="hot-card">Air Fryer — 60% OFF</div>
+      <div class="hot-card">Creatine — 70% OFF</div>
+    </div>
+  </section>
 
-<script src="script.js"></script>
+  <!-- SHOPPING LIST -->
+  <section class="shopping-list">
+    <h2>🛒 Shopping List</h2>
+    <p><strong>Coming soon</strong> — plan multiple purchases and see the best store for each item.</p>
+  </section>
 
-<!-- Service Worker Registration -->
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js');
-  }
-</script>
-  
-  <footer style="text-align:center; padding:16px; font-size:12px; color:#666;">
-  <a href="about.html">About</a> ·
-  <a href="legal.html">Legal</a> ·
-  <a href="contact.html">Contact</a>
+  <!-- FOOTER -->
+  <footer>
+    <a href="rewards.html">Rewards</a> |
+    <a href="privacy.html">Privacy Policy</a> |
+    <a href="disclaimer.html">Disclaimer</a>
   </footer>
 
+  <script src="script.js"></script>
 </body>
 </html>
