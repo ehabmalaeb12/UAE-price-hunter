@@ -1,37 +1,19 @@
 const products = [
-  {
-    key:"iphone",
-    name:"iPhone 15 Pro",
-    image:"https://upload.wikimedia.org/wikipedia/commons/f/fa/IPhone_15_Pro.png",
-    stores:[
-      {name:"Amazon",price:4299,link:"https://amazon.ae"},
-      {name:"Noon",price:4250,link:"https://noon.com"},
-      {name:"Carrefour",price:4399,link:"https://carrefouruae.com"}
-    ]
-  },
-  {
-    key:"airfryer",
-    name:"Philips Air Fryer",
-    image:"https://upload.wikimedia.org/wikipedia/commons/6/6b/Air_fryer.jpg",
-    stores:[
-      {name:"Amazon",price:399,link:"https://amazon.ae"},
-      {name:"Noon",price:379,link:"https://noon.com"},
-      {name:"Carrefour",price:420,link:"https://carrefouruae.com"}
-    ]
-  },
-  {
-    key:"creatine",
-    name:"Creatine Monohydrate",
-    image:"https://upload.wikimedia.org/wikipedia/commons/5/5b/Creatine.png",
-    stores:[
-      {name:"Amazon",price:119,link:"https://amazon.ae"},
-      {name:"Noon",price:115,link:"https://noon.com"},
-      {name:"Carrefour",price:129,link:"https://carrefouruae.com"}
-    ]
-  }
+  {key:"iphone",name:"iPhone 15 Pro",stores:[{n:"Amazon",p:4299,l:"https://amazon.ae"},{n:"Noon",p:4250,l:"https://noon.com"},{n:"Carrefour",p:4399,l:"https://carrefouruae.com"}]},
+  {key:"airfryer",name:"Philips Air Fryer",stores:[{n:"Amazon",p:399,l:"https://amazon.ae"},{n:"Noon",p:379,l:"https://noon.com"},{n:"Carrefour",p:420,l:"https://carrefouruae.com"}]},
+  {key:"creatine",name:"Creatine Monohydrate",stores:[{n:"Amazon",p:119,l:"https://amazon.ae"},{n:"Noon",p:115,l:"https://noon.com"},{n:"Carrefour",p:129,l:"https://carrefouruae.com"}]},
+  {key:"tv",name:"Samsung Smart TV"},
+  {key:"ps5",name:"PlayStation 5"},
+  {key:"ipad",name:"iPad Pro"},
+  {key:"watch",name:"Apple Watch"},
+  {key:"laptop",name:"Gaming Laptop"},
+  {key:"headphones",name:"Sony Headphones"},
+  {key:"coffee",name:"Coffee Machine"}
 ];
 
 let basket = JSON.parse(localStorage.getItem("basket")) || [];
+
+basketCount.textContent = basket.length;
 
 function handleSearch(){
   const q = searchInput.value.toLowerCase();
@@ -52,19 +34,18 @@ function handleSearch(){
 
 function openProduct(key){
   const p = products.find(x=>x.key===key);
-  const min = Math.min(...p.stores.map(s=>s.price));
-  let html=`<div class="product-card"><h3>${p.name}</h3>
-  <img src="${p.image}" width="100%">`;
+  if(!p.stores){ results.innerHTML=`<div class="product-card">Coming soon</div>`; return;}
+  const min = Math.min(...p.stores.map(s=>s.p));
 
+  let html=`<div class="product-card"><h3>${p.name}</h3>`;
   p.stores.forEach(s=>{
     html+=`
-    <div class="store ${s.price===min?'best':''}">
-      <span>${s.name}: ${s.price} AED ${s.price===min?'🏆':''}</span>
-      <button onclick="window.open('${s.link}')">Buy</button>
+    <div class="store ${s.p===min?'best':''}">
+      <span>${s.n}: ${s.p} AED ${s.p===min?'🏆':''}</span>
+      <button onclick="window.open('${s.l}')">Buy</button>
     </div>`;
   });
-
-  html+=`<button onclick="addToBasket('${p.key}')">Add to Basket</button></div>`;
+  html+=`<button onclick="addToBasket('${key}')">Add to Basket</button></div>`;
   results.innerHTML=html;
 }
 
@@ -76,10 +57,21 @@ function addToBasket(key){
 
 function showBasket(){
   showPage("basketPage");
-  basketItems.innerHTML = basket.map(k=>{
+  const grouped={};
+  basket.forEach(k=>{
     const p=products.find(x=>x.key===k);
-    return `<div>${p.name}</div>`;
-  }).join("");
+    p.stores.forEach(s=>{
+      grouped[s.n]=(grouped[s.n]||0)+s.p;
+    });
+  });
+  basketItems.innerHTML = Object.entries(grouped).map(([s,t])=>`
+    <div class="card">${s}: <strong>${t} AED</strong></div>
+  `).join("");
+}
+
+function saveName(){
+  localStorage.setItem("username",usernameInput.value);
+  savedName.textContent="Saved: "+usernameInput.value;
 }
 
 function showHome(){ showPage("homePage"); }
