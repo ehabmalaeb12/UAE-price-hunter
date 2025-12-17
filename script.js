@@ -1,145 +1,103 @@
-/* ===============================
-   CONFIG (AFFILIATE READY)
-================================ */
-
-const affiliateLinks = {
-  amazon: "https://www.amazon.ae",     // replace later
-  noon: "https://www.noon.com",
-  carrefour: "https://www.carrefouruae.com"
-};
-
-const MIN_ORDER = 30;
-const CASHBACK_RATE = 0.02;
-
-/* ===============================
-   STATE
-================================ */
-
-let points = 0;
-const pointsEl = document.getElementById("points");
-
-/* ===============================
-   PRODUCT DATA (DEMO)
-================================ */
-
 const products = [
+  {
+    name: "iPhone 15 Pro",
+    image: "https://via.placeholder.com/300x200?text=iPhone+15+Pro",
+    prices: { amazon: 4299, noon: 4250, carrefour: 4399 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
+  },
+  {
+    name: "Samsung Galaxy S23",
+    image: "https://via.placeholder.com/300x200?text=Galaxy+S23",
+    prices: { amazon: 3099, noon: 3050, carrefour: 3150 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
+  },
+  {
+    name: "AirPods Pro",
+    image: "https://via.placeholder.com/300x200?text=AirPods+Pro",
+    prices: { amazon: 899, noon: 879, carrefour: 929 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
+  },
   {
     name: "Creatine Monohydrate",
     image: "https://via.placeholder.com/300x200?text=Creatine",
-    hot: false,
-    deals: [
-      { store: "Amazon", price: 89, key: "amazon" },
-      { store: "Noon", price: 95, key: "noon" },
-      { store: "Carrefour", price: 99, key: "carrefour" }
-    ]
+    prices: { amazon: 119, noon: 115, carrefour: 129 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
   },
   {
-    name: "iPhone 14",
-    image: "https://via.placeholder.com/300x200?text=iPhone+14",
-    hot: true,
-    deals: [
-      { store: "Amazon", price: 3150, key: "amazon" },
-      { store: "Noon", price: 3200, key: "noon" },
-      { store: "Carrefour", price: 3300, key: "carrefour" }
-    ]
+    name: "Whey Protein",
+    image: "https://via.placeholder.com/300x200?text=Whey+Protein",
+    prices: { amazon: 289, noon: 279, carrefour: 299 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
+  },
+  {
+    name: "Omega 3 Capsules",
+    image: "https://via.placeholder.com/300x200?text=Omega+3",
+    prices: { amazon: 79, noon: 75, carrefour: 85 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
+  },
+  {
+    name: "Philips Air Fryer",
+    image: "https://via.placeholder.com/300x200?text=Air+Fryer",
+    prices: { amazon: 499, noon: 479, carrefour: 529 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
+  },
+  {
+    name: "Xiaomi Power Bank",
+    image: "https://via.placeholder.com/300x200?text=Power+Bank",
+    prices: { amazon: 129, noon: 125, carrefour: 139 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
+  },
+  {
+    name: "Nespresso Capsules",
+    image: "https://via.placeholder.com/300x200?text=Nespresso",
+    prices: { amazon: 149, noon: 145, carrefour: 155 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
+  },
+  {
+    name: "Extra Virgin Olive Oil",
+    image: "https://via.placeholder.com/300x200?text=Olive+Oil",
+    prices: { amazon: 39, noon: 37, carrefour: 42 },
+    links: { amazon: "#", noon: "#", carrefour: "#" }
   }
 ];
 
-/* ===============================
-   RENDERING
-================================ */
-
-const productGrid = document.getElementById("productGrid");
-const hotDealsGrid = document.getElementById("hotDealsGrid");
-const searchInput = document.getElementById("searchInput");
-
-function renderProducts(list, container) {
+function renderProducts(list) {
+  const container = document.getElementById("products");
   container.innerHTML = "";
 
-  list.forEach(product => {
-    const bestDeal = product.deals.reduce((a, b) =>
-      a.price < b.price ? a : b
-    );
+  if (list.length === 0) {
+    container.innerHTML = "<p style='padding:16px;'>Product not found yet — we’re adding more daily.</p>";
+    return;
+  }
 
-    const cashback =
-      bestDeal.price >= MIN_ORDER
-        ? (bestDeal.price * CASHBACK_RATE).toFixed(2)
-        : "0.00";
+  list.forEach(product => {
+    const bestStore = Object.keys(product.prices)
+      .reduce((a, b) => product.prices[a] < product.prices[b] ? a : b);
 
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "product-card";
 
-    if (product.hot) {
-      card.innerHTML += `<div class="badge">HOT</div>`;
-    }
-
-    card.innerHTML += `
+    card.innerHTML = `
       <img src="${product.image}">
       <h3>${product.name}</h3>
-
-      ${product.deals.map(d =>
-        `<div class="store ${d === bestDeal ? "best" : ""}">
-          ${d.store}: AED ${d.price}
-        </div>`
-      ).join("")}
-
-      <small>Earn up to AED ${cashback}</small>
-
-      <a class="btn"
-         href="#"
-         onclick="handleAffiliateClick(
-           '${product.name}',
-           '${bestDeal.store}',
-           ${bestDeal.price},
-           '${affiliateLinks[bestDeal.key]}',
-           ${cashback}
-         )">
-        Best Price → ${bestDeal.store}
+      <p><strong>${product.prices[bestStore]} AED</strong></p>
+      <p class="store">Best store: ${bestStore.toUpperCase()}</p>
+      <a href="${product.links[bestStore]}" class="buy-btn" target="_blank">
+        Go to ${bestStore.toUpperCase()}
       </a>
+      <div class="reward-hint">
+        Earn reward points on eligible purchases
+      </div>
     `;
 
     container.appendChild(card);
   });
 }
 
-/* ===============================
-   AFFILIATE CLICK LOGIC
-================================ */
-
-function handleAffiliateClick(product, store, price, url, cashback) {
-  console.log("Affiliate Click:", {
-    product,
-    store,
-    price,
-    time: new Date().toISOString()
-  });
-
-  if (price >= MIN_ORDER) {
-    points += parseFloat(cashback);
-    pointsEl.textContent = points.toFixed(2);
-    alert("Cashback added as pending. Will be confirmed after order.");
-  } else {
-    alert("Minimum order AED 30 required to earn cashback.");
-  }
-
-  window.open(url, "_blank");
+function searchProducts() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  const filtered = products.filter(p => p.name.toLowerCase().includes(q));
+  renderProducts(filtered);
 }
 
-/* ===============================
-   SEARCH
-================================ */
-
-searchInput.addEventListener("input", () => {
-  const q = searchInput.value.toLowerCase();
-  const filtered = products.filter(p =>
-    p.name.toLowerCase().includes(q)
-  );
-  renderProducts(filtered, productGrid);
-});
-
-/* ===============================
-   INIT
-================================ */
-
-renderProducts(products, productGrid);
-renderProducts(products.filter(p => p.hot), hotDealsGrid);
+renderProducts(products);
