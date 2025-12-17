@@ -1,37 +1,39 @@
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
   background: #f4f6fa;
 }
 
-.header {
+.app-header {
   background: linear-gradient(135deg, #0a66ff, #00c2ff);
   color: white;
-  padding: 24px;
+  padding: 28px 16px;
   text-align: center;
 }
 
-.search-section {
+.container {
   padding: 16px;
-  background: white;
-  position: relative;
+  max-width: 480px;
+  margin: auto;
 }
 
-.search-section input {
+.search-box input {
   width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px solid #000;
   font-size: 16px;
 }
 
 .suggestions {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,.1);
-  position: absolute;
-  width: calc(100% - 32px);
+  border-radius: 14px;
   margin-top: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.1);
   display: none;
 }
 
@@ -41,44 +43,92 @@ body {
 }
 
 .suggestions div:hover {
-  background: #f0f4ff;
+  background: #eef3ff;
 }
 
 .hot-deals {
-  padding: 16px;
+  margin-top: 24px;
   background: #fff7e6;
+  padding: 16px;
+  border-radius: 16px;
 }
 
-.hot-deals-grid button {
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
+.deals-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.deal {
   background: white;
+  padding: 14px;
+  border-radius: 12px;
   font-weight: bold;
+  text-align: center;
   cursor: pointer;
 }
 
-.product {
+.product-card {
   background: white;
-  margin: 16px;
+  margin-top: 20px;
   padding: 16px;
   border-radius: 18px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+
+.product-card img {
+  width: 100%;
+  border-radius: 12px;
 }
 
 .store-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .store-row button {
   background: #0a66ff;
   color: white;
   border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+}
+
+footer {
+  text-align: center;
+  padding: 16px;
+  font-size: 14px;
+  color: #0a66ff;
+}
+
+footer span {
+  cursor: pointer;
+}
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  margin: 20% auto;
+  width: 90%;
+  max-width: 320px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.modal-content button {
+  margin-top: 12px;
+  padding: 10px 16px;
+  border: none;
+  background: #0a66ff;
+  color: white;
+  border-radius: 10px;
 }
