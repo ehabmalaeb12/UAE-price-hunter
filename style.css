@@ -1,176 +1,65 @@
-* {
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
-}
-
-body {
-  margin: 0;
-  background: #f4f6fb;
-  color: #0f172a;
-}
+body { margin:0; font-family:system-ui; background:#f4f6fb; }
 
 header {
-  background: linear-gradient(135deg, #0a84ff, #38bdf8);
-  color: white;
-  padding: 24px 16px 32px;
-  text-align: center;
-  position: relative;
-  border-bottom-left-radius: 28px;
-  border-bottom-right-radius: 28px;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 22px;
-}
-
-header p {
-  margin-top: 6px;
-  font-size: 13px;
-  opacity: 0.9;
+  background: linear-gradient(135deg,#0a84ff,#38bdf8);
+  color:#fff;
+  padding:24px;
+  text-align:center;
+  position:relative;
+  border-radius:0 0 28px 28px;
 }
 
 .basket {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position:absolute;
+  top:18px;
+  left:18px;
+  background:rgba(255,255,255,.2);
+  width:42px;height:42px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .basket span {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: red;
-  color: white;
-  width: 18px;
-  height: 18px;
-  font-size: 11px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position:absolute;
+  top:-5px;right:-5px;
+  background:red;color:#fff;
+  width:18px;height:18px;
+  font-size:11px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-.container {
-  max-width: 480px;
-  margin: auto;
-  padding: 16px;
-}
+.container { max-width:480px;margin:auto;padding:16px; }
 
 .search-box input {
-  width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  border: none;
-  font-size: 15px;
+  width:100%;padding:14px;border-radius:16px;border:none;
 }
 
-#suggestions {
-  background: white;
-  border-radius: 14px;
-  margin-top: 6px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  display: none;
-}
+#suggestions { background:#fff;border-radius:12px;display:none; }
 
-#suggestions div {
-  padding: 12px;
-  cursor: pointer;
-}
-
-#suggestions div:hover {
-  background: #eef2ff;
-}
+#suggestions div { padding:10px;cursor:pointer; }
 
 .product-card {
-  background: white;
-  margin-top: 16px;
-  padding: 16px;
-  border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  background:#fff;padding:16px;border-radius:18px;
+  margin-top:16px;box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
-.product-card img {
-  width: 100%;
-  border-radius: 14px;
+.store { display:flex;justify-content:space-between;margin-top:8px; }
+
+.store.best {
+  background:#dcfce7;padding:8px;border-radius:10px;
 }
 
-.store {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-}
+button { border:none;border-radius:10px;padding:8px 12px;background:#0a84ff;color:#fff; }
 
-.store button {
-  background: #0a84ff;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 10px;
-}
-
-#hotDeals {
-  margin-top: 24px;
-  background: #fff7e6;
-  padding: 16px;
-  border-radius: 18px;
-}
-
-.deals div {
-  background: white;
-  padding: 12px;
-  border-radius: 12px;
-  margin-top: 8px;
-  font-weight: 600;
-  text-align: center;
-  cursor: pointer;
-}
+.page { display:none; }
 
 nav {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: white;
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
-  box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
-}
-
-nav button {
-  background: none;
-  border: none;
-  font-size: 12px;
-  color: #0a84ff;
-}
-
-nav i {
-  display: block;
-  font-size: 18px;
-  margin-bottom: 4px;
-}
-
-#rewardsModal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-}
-
-.modal-box {
-  background: white;
-  padding: 20px;
-  border-radius: 18px;
-  width: 85%;
-  max-width: 320px;
-  margin: 25% auto;
-  text-align: center;
+  position:fixed;bottom:0;width:100%;
+  background:#fff;display:flex;justify-content:space-around;
+  padding:10px 0;box-shadow:0 -5px 15px rgba(0,0,0,.1);
 }
