@@ -1,15 +1,9 @@
-* {
-  box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
 body {
   margin: 0;
+  font-family: system-ui, sans-serif;
   background: #f4f6fa;
-  color: #222;
 }
 
-/* HEADER */
 .header {
   background: linear-gradient(135deg, #0a66ff, #00c2ff);
   color: white;
@@ -17,144 +11,74 @@ body {
   text-align: center;
 }
 
-.header h1 {
-  margin: 0;
-  font-size: 26px;
-}
-
-.header p {
-  margin-top: 8px;
-  opacity: 0.9;
-}
-
-/* SEARCH */
 .search-section {
   padding: 16px;
   background: white;
+  position: relative;
 }
 
 .search-section input {
   width: 100%;
   padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
   font-size: 16px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
 }
 
-/* INFO STRIP */
-.info-strip {
-  display: flex;
-  justify-content: space-around;
-  background: #ffffff;
-  padding: 12px;
-  font-size: 13px;
-  border-bottom: 1px solid #eee;
-}
-
-/* SECTIONS */
-.section-title {
-  padding: 16px;
-  margin: 0;
-}
-
-/* PRODUCTS GRID */
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
-  padding: 16px;
-}
-
-.product-card {
+.suggestions {
   background: white;
-  border-radius: 18px;
-  padding: 14px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-  transition: transform 0.2s ease;
-}
-
-.product-card:hover {
-  transform: translateY(-4px);
-}
-
-.product-card img {
-  width: 100%;
   border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.1);
+  position: absolute;
+  width: calc(100% - 32px);
+  margin-top: 8px;
+  display: none;
 }
 
-.product-card h3 {
-  font-size: 15px;
-  margin: 10px 0 6px;
+.suggestions div {
+  padding: 12px;
+  cursor: pointer;
 }
 
-.product-card p {
-  margin: 4px 0;
-  font-size: 14px;
+.suggestions div:hover {
+  background: #f0f4ff;
 }
 
-.store {
-  font-size: 12px;
-  color: #555;
+.hot-deals {
+  padding: 16px;
+  background: #fff7e6;
 }
 
-.buy-btn {
-  display: block;
+.hot-deals-grid button {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.product {
+  background: white;
+  margin: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+}
+
+.store-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 10px;
-  text-align: center;
+}
+
+.store-row button {
   background: #0a66ff;
   color: white;
-  padding: 10px;
-  border-radius: 10px;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.buy-btn:hover {
-  background: #004ecc;
-}
-
-.reward-hint {
-  font-size: 11px;
-  margin-top: 6px;
-  color: #666;
-}
-
-/* HOT DEALS */
-.hot-deals {
-  background: #fff7e6;
-  padding: 16px;
-}
-
-.hot-deals-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.hot-card {
-  background: white;
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-  font-weight: bold;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-/* SHOPPING LIST */
-.shopping-list {
-  padding: 16px;
-  background: white;
-}
-
-/* FOOTER */
-footer {
-  text-align: center;
-  padding: 14px;
-  font-size: 13px;
-  background: #f0f0f0;
-}
-
-footer a {
-  color: #0a66ff;
-  text-decoration: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
 }
