@@ -1,103 +1,74 @@
 const products = [
   {
+    key: "iphone",
     name: "iPhone 15 Pro",
-    image: "https://via.placeholder.com/300x200?text=iPhone+15+Pro",
-    prices: { amazon: 4299, noon: 4250, carrefour: 4399 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/IPhone_15_Pro.png/300px-IPhone_15_Pro.png",
+    stores: [
+      { name: "Amazon", price: 4299, link: "https://amazon.ae" },
+      { name: "Noon", price: 4250, link: "https://noon.com" },
+      { name: "Carrefour", price: 4399, link: "https://carrefouruae.com" }
+    ]
   },
   {
-    name: "Samsung Galaxy S23",
-    image: "https://via.placeholder.com/300x200?text=Galaxy+S23",
-    prices: { amazon: 3099, noon: 3050, carrefour: 3150 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
-  },
-  {
-    name: "AirPods Pro",
-    image: "https://via.placeholder.com/300x200?text=AirPods+Pro",
-    prices: { amazon: 899, noon: 879, carrefour: 929 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
-  },
-  {
+    key: "creatine",
     name: "Creatine Monohydrate",
-    image: "https://via.placeholder.com/300x200?text=Creatine",
-    prices: { amazon: 119, noon: 115, carrefour: 129 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
-  },
-  {
-    name: "Whey Protein",
-    image: "https://via.placeholder.com/300x200?text=Whey+Protein",
-    prices: { amazon: 289, noon: 279, carrefour: 299 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
-  },
-  {
-    name: "Omega 3 Capsules",
-    image: "https://via.placeholder.com/300x200?text=Omega+3",
-    prices: { amazon: 79, noon: 75, carrefour: 85 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
-  },
-  {
-    name: "Philips Air Fryer",
-    image: "https://via.placeholder.com/300x200?text=Air+Fryer",
-    prices: { amazon: 499, noon: 479, carrefour: 529 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
-  },
-  {
-    name: "Xiaomi Power Bank",
-    image: "https://via.placeholder.com/300x200?text=Power+Bank",
-    prices: { amazon: 129, noon: 125, carrefour: 139 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
-  },
-  {
-    name: "Nespresso Capsules",
-    image: "https://via.placeholder.com/300x200?text=Nespresso",
-    prices: { amazon: 149, noon: 145, carrefour: 155 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
-  },
-  {
-    name: "Extra Virgin Olive Oil",
-    image: "https://via.placeholder.com/300x200?text=Olive+Oil",
-    prices: { amazon: 39, noon: 37, carrefour: 42 },
-    links: { amazon: "#", noon: "#", carrefour: "#" }
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Creatine.png",
+    stores: [
+      { name: "Amazon", price: 119, link: "https://amazon.ae" },
+      { name: "Noon", price: 115, link: "https://noon.com" },
+      { name: "Carrefour", price: 129, link: "https://carrefouruae.com" }
+    ]
   }
 ];
 
-function renderProducts(list) {
-  const container = document.getElementById("products");
-  container.innerHTML = "";
+function showSuggestions() {
+  const input = document.getElementById("searchInput").value.toLowerCase();
+  const box = document.getElementById("suggestions");
+  box.innerHTML = "";
 
-  if (list.length === 0) {
-    container.innerHTML = "<p style='padding:16px;'>Product not found yet — we’re adding more daily.</p>";
+  if (!input) {
+    box.style.display = "none";
     return;
   }
 
-  list.forEach(product => {
-    const bestStore = Object.keys(product.prices)
-      .reduce((a, b) => product.prices[a] < product.prices[b] ? a : b);
+  const matches = products.filter(p => p.name.toLowerCase().includes(input));
 
-    const card = document.createElement("div");
-    card.className = "product-card";
+  matches.forEach(p => {
+    const div = document.createElement("div");
+    div.textContent = p.name;
+    div.onclick = () => showProduct(p);
+    box.appendChild(div);
+  });
 
-    card.innerHTML = `
-      <img src="${product.image}">
-      <h3>${product.name}</h3>
-      <p><strong>${product.prices[bestStore]} AED</strong></p>
-      <p class="store">Best store: ${bestStore.toUpperCase()}</p>
-      <a href="${product.links[bestStore]}" class="buy-btn" target="_blank">
-        Go to ${bestStore.toUpperCase()}
-      </a>
-      <div class="reward-hint">
-        Earn reward points on eligible purchases
+  box.style.display = matches.length ? "block" : "none";
+}
+
+function showProduct(product) {
+  document.getElementById("suggestions").style.display = "none";
+
+  let html = `
+    <div class="product">
+      <h2>${product.name}</h2>
+      <img src="${product.image}" width="100%">
+  `;
+
+  product.stores.forEach(s => {
+    html += `
+      <div class="store-row">
+        <span>${s.name}: <strong>${s.price} AED</strong></span>
+        <button onclick="window.open('${s.link}', '_blank')">
+          Go to store
+        </button>
       </div>
     `;
-
-    container.appendChild(card);
   });
+
+  html += `<p style="font-size:12px;color:#666;">Earn reward points on eligible purchases</p></div>`;
+
+  document.getElementById("result").innerHTML = html;
 }
 
-function searchProducts() {
-  const q = document.getElementById("searchInput").value.toLowerCase();
-  const filtered = products.filter(p => p.name.toLowerCase().includes(q));
-  renderProducts(filtered);
+function openDeal(key) {
+  const product = products.find(p => p.key === key);
+  if (product) showProduct(product);
 }
-
-renderProducts(products);
