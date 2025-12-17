@@ -1,95 +1,141 @@
+/* =========================
+   GLOBAL STATE
+========================= */
+
+let currentPage = "home";
+
 let basket = JSON.parse(localStorage.getItem("basket")) || [];
-basketCount.textContent = basket.length;
 
-/* NAVIGATION */
-function goTo(pageId){
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  document.getElementById(pageId).classList.add("active");
-}
+let userProfile = JSON.parse(localStorage.getItem("profile")) || {
+  name: "",
+  email: "",
+  phone: ""
+};
 
-/* SEARCH */
-function handleSearch(){
-  const q = searchInput.value.toLowerCase();
-  suggestions.innerHTML="";
-  results.innerHTML="";
-  hotDeals.style.display = q ? "none" : "block";
-  if(!q) return;
+/* =========================
+   PAGE NAVIGATION (SAFE)
+========================= */
 
-  products.filter(p=>p.name.toLowerCase().includes(q)).forEach(p=>{
-    const d=document.createElement("div");
-    d.textContent=p.name;
-    d.onclick=()=>{ suggestions.innerHTML=""; openProduct(p.key); };
-    suggestions.appendChild(d);
-  });
-}
+function showPage(pageId) {
+  const pages = ["homePage", "rewardsPage", "profilePage", "basketPage"];
 
-/* PRODUCT VIEW */
-function openProduct(key){
-  const p = products.find(x=>x.key===key);
-  const min = Math.min(...p.stores.map(s=>s.p));
-  let html=`<div class="product-card"><img src="${p.image}"><h3>${p.name}</h3>`;
-  p.stores.forEach(s=>{
-    html+=`
-    <div class="store ${s.p===min?'best':''}">
-      <span>${s.n}: ${s.p} AED ${s.p===min?'🏆':''}</span>
-      <button onclick="addToBasket('${p.name}','${s.n}',${s.p})">Add</button>
-    </div>`;
-  });
-  html+=`</div>`;
-  results.innerHTML=html;
-}
-
-/* BASKET LOGIC */
-function addToBasket(name,store,price){
-  basket.push({name,store,price});
-  localStorage.setItem("basket",JSON.stringify(basket));
-  basketCount.textContent=basket.length;
-  alert("Added to basket 🎉");
-}
-
-function renderBasket(){
-  basketItems.innerHTML="";
-  const grouped={};
-
-  basket.forEach((item,i)=>{
-    if(!grouped[item.store]) grouped[item.store]=[];
-    grouped[item.store].push({...item,index:i});
+  pages.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
   });
 
-  for(const store in grouped){
-    let total=0;
-    basketItems.innerHTML+=`<h3>${store}</h3>`;
-    grouped[store].forEach(item=>{
-      total+=item.price;
-      basketItems.innerHTML+=`
-        <div class="product-card">
-          ${item.name} – ${item.price} AED
-          <button onclick="removeItem(${item.index})">❌</button>
-        </div>`;
-    });
-    basketItems.innerHTML+=`<strong>Total: ${total} AED</strong>`;
+  const activePage = document.getElementById(pageId);
+  if (activePage) activePage.style.display = "block";
+
+  currentPage = pageId;
+}
+
+/* =========================
+   BASKET LOGIC
+========================= */
+
+function addToBasket(product, store) {
+  basket.push({
+    id: Date.now(),
+    name: product.name,
+    price: product.prices[store],
+    store: store,
+    image: product.image
+  });
+
+  localStorage.setItem("basket", JSON.stringify(basket));
+
+  // happy feedback
+  alert("Added to basket 🥰");
+}
+
+function removeFromBasket(id) {
+  basket = basket.filter(item => item.id !== id);
+  localStorage.setItem("basket", JSON.stringify(basket));
+  renderBasket();
+}
+
+function renderBasket() {
+  const basketContainer = document.getElementById("basketItems");
+  if (!basketContainer) return;
+
+  basketContainer.innerHTML = "";
+
+  if (basket.length === 0) {
+    basketContainer.innerHTML = "<p>Your basket is empty</p>";
+    return;
   }
+
+  const grouped = {};
+
+  basket.forEach(item => {
+    if (!grouped[item.store]) grouped[item.store] = [];
+    grouped[item.store].push(item);
+  });
+
+  let grandTotal = 0;
+
+  for (const store in grouped) {
+    let storeTotal = 0;
+
+    const storeDiv = document.createElement("div");
+    storeDiv.className = "basket-store";
+
+    storeDiv.innerHTML = `<h3>${store}</h3>`;
+
+    grouped[store].forEach(item => {
+      storeTotal += item.price;
+      grandTotal += item.price;
+
+      storeDiv.innerHTML += `
+        <div class="basket-item">
+          <img src="${item.image}" />
+          <span>${item.name}</span>
+          <span>${item.price} AED</span>
+          <button onclick="removeFromBasket(${item.id})">❌</button>
+        </div>
+      `;
+    });
+
+    storeDiv.innerHTML += `<strong>Subtotal: ${storeTotal} AED</strong>`;
+    basketContainer.appendChild(storeDiv);
+  }
+
+  const totalDiv = document.createElement("div");
+  totalDiv.className = "basket-total";
+  totalDiv.innerHTML = `<h2>Total: ${grandTotal} AED</h2>`;
+
+  basketContainer.appendChild(totalDiv);
 }
 
-function removeItem(i){
-  basket.splice(i,1);
-  localStorage.setItem("basket",JSON.stringify(basket));
-  basketCount.textContent=basket.length;
+/* =========================
+   PROFILE SAVE (PERSISTENT)
+========================= */
+
+function saveProfile() {
+  userProfile.name = document.getElementById("profileName").value;
+  userProfile.email = document.getElementById("profileEmail").value;
+  userProfile.phone = document.getElementById("profilePhone").value;
+
+  localStorage.setItem("profile", JSON.stringify(userProfile));
+
+  alert("Profile saved ✅");
+}
+
+function loadProfile() {
+  if (!userProfile) return;
+
+  document.getElementById("profileName").value = userProfile.name || "";
+  document.getElementById("profileEmail").value = userProfile.email || "";
+  document.getElementById("profilePhone").value = userProfile.phone || "";
+}
+
+/* =========================
+   INIT
+========================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+  showPage("homePage");
   renderBasket();
-}
-
-/* PROFILE */
-function saveProfile(){
-  localStorage.setItem("profile",JSON.stringify({
-    name:nameInput.value,
-    email:emailInput.value,
-    phone:phoneInput.value
-  }));
-  profileSaved.textContent="Saved ✅";
-}
-
-/* AUTO LOAD */
-document.addEventListener("DOMContentLoaded",()=>{
-  goTo("homePage");
-  renderBasket();
+  loadProfile();
 });
