@@ -1,38 +1,33 @@
-/* =========================
-   GLOBAL STATE
-========================= */
-
-let currentPage = "home";
+/* ======================
+   GLOBAL DATA
+====================== */
 
 let basket = JSON.parse(localStorage.getItem("basket")) || [];
 
-let userProfile = JSON.parse(localStorage.getItem("profile")) || {
+let profile = JSON.parse(localStorage.getItem("profile")) || {
   name: "",
   email: "",
   phone: ""
 };
 
-/* =========================
-   PAGE NAVIGATION (SAFE)
-========================= */
+/* ======================
+   PAGE CONTROL
+====================== */
 
-function showPage(pageId) {
+function showPage(page) {
   const pages = ["homePage", "rewardsPage", "profilePage", "basketPage"];
-
-  pages.forEach(id => {
-    const el = document.getElementById(id);
+  pages.forEach(p => {
+    const el = document.getElementById(p);
     if (el) el.style.display = "none";
   });
 
-  const activePage = document.getElementById(pageId);
-  if (activePage) activePage.style.display = "block";
-
-  currentPage = pageId;
+  const active = document.getElementById(page);
+  if (active) active.style.display = "block";
 }
 
-/* =========================
+/* ======================
    BASKET LOGIC
-========================= */
+====================== */
 
 function addToBasket(product, store) {
   basket.push({
@@ -44,8 +39,6 @@ function addToBasket(product, store) {
   });
 
   localStorage.setItem("basket", JSON.stringify(basket));
-
-  // happy feedback
   alert("Added to basket 🥰");
 }
 
@@ -56,18 +49,17 @@ function removeFromBasket(id) {
 }
 
 function renderBasket() {
-  const basketContainer = document.getElementById("basketItems");
-  if (!basketContainer) return;
+  const container = document.getElementById("basketItems");
+  if (!container) return;
 
-  basketContainer.innerHTML = "";
+  container.innerHTML = "";
 
   if (basket.length === 0) {
-    basketContainer.innerHTML = "<p>Your basket is empty</p>";
+    container.innerHTML = "<p>Your basket is empty</p>";
     return;
   }
 
   const grouped = {};
-
   basket.forEach(item => {
     if (!grouped[item.store]) grouped[item.store] = [];
     grouped[item.store].push(item);
@@ -75,12 +67,11 @@ function renderBasket() {
 
   let grandTotal = 0;
 
-  for (const store in grouped) {
+  Object.keys(grouped).forEach(store => {
     let storeTotal = 0;
 
     const storeDiv = document.createElement("div");
     storeDiv.className = "basket-store";
-
     storeDiv.innerHTML = `<h3>${store}</h3>`;
 
     grouped[store].forEach(item => {
@@ -89,7 +80,7 @@ function renderBasket() {
 
       storeDiv.innerHTML += `
         <div class="basket-item">
-          <img src="${item.image}" />
+          <img src="${item.image}">
           <span>${item.name}</span>
           <span>${item.price} AED</span>
           <button onclick="removeFromBasket(${item.id})">❌</button>
@@ -98,41 +89,36 @@ function renderBasket() {
     });
 
     storeDiv.innerHTML += `<strong>Subtotal: ${storeTotal} AED</strong>`;
-    basketContainer.appendChild(storeDiv);
-  }
+    container.appendChild(storeDiv);
+  });
 
-  const totalDiv = document.createElement("div");
-  totalDiv.className = "basket-total";
-  totalDiv.innerHTML = `<h2>Total: ${grandTotal} AED</h2>`;
-
-  basketContainer.appendChild(totalDiv);
+  container.innerHTML += `<h2>Total: ${grandTotal} AED</h2>`;
 }
 
-/* =========================
-   PROFILE SAVE (PERSISTENT)
-========================= */
+/* ======================
+   PROFILE
+====================== */
 
 function saveProfile() {
-  userProfile.name = document.getElementById("profileName").value;
-  userProfile.email = document.getElementById("profileEmail").value;
-  userProfile.phone = document.getElementById("profilePhone").value;
+  profile.name = document.getElementById("profileName").value;
+  profile.email = document.getElementById("profileEmail").value;
+  profile.phone = document.getElementById("profilePhone").value;
 
-  localStorage.setItem("profile", JSON.stringify(userProfile));
-
+  localStorage.setItem("profile", JSON.stringify(profile));
   alert("Profile saved ✅");
 }
 
 function loadProfile() {
-  if (!userProfile) return;
+  if (!profile) return;
 
-  document.getElementById("profileName").value = userProfile.name || "";
-  document.getElementById("profileEmail").value = userProfile.email || "";
-  document.getElementById("profilePhone").value = userProfile.phone || "";
+  document.getElementById("profileName").value = profile.name;
+  document.getElementById("profileEmail").value = profile.email;
+  document.getElementById("profilePhone").value = profile.phone;
 }
 
-/* =========================
+/* ======================
    INIT
-========================= */
+====================== */
 
 document.addEventListener("DOMContentLoaded", () => {
   showPage("homePage");
