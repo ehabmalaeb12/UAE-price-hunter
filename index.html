@@ -2,15 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UAE Price Hunter</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
-<header class="app-header">
+<header>
+  <div class="basket">
+    <i class="fa-solid fa-basket-shopping"></i>
+    <span id="basketCount">0</span>
+  </div>
   <h1>UAE Price Hunter</h1>
-  <p>Compare prices across UAE stores & earn rewards</p>
+  <p>Compare prices & earn rewards</p>
 </header>
 
 <div class="container">
@@ -20,45 +25,42 @@
     <input
       type="text"
       id="searchInput"
-      placeholder="Search any product (iPhone, Creatine, Air Fryer...)"
+      placeholder="Search products (iPhone, Creatine, Air Fryer...)"
       oninput="handleSearch()"
     />
-    <div id="suggestions" class="suggestions"></div>
+    <div id="suggestions"></div>
   </div>
 
+  <!-- SEARCH RESULTS -->
+  <div id="results"></div>
+
   <!-- HOT DEALS -->
-  <section class="hot-deals">
+  <section id="hotDeals">
     <h2>🔥 Hot Deals</h2>
-    <div class="deals-grid">
-      <div onclick="openDeal('iphone')" class="deal">iPhone 14 — 50% OFF</div>
-      <div onclick="openDeal('airfryer')" class="deal">Air Fryer — 60% OFF</div>
-      <div onclick="openDeal('creatine')" class="deal">Creatine — 70% OFF</div>
+    <div class="deals">
+      <div onclick="openProduct('iphone')">iPhone 14 — 50% OFF</div>
+      <div onclick="openProduct('airfryer')">Air Fryer — 60% OFF</div>
+      <div onclick="openProduct('creatine')">Creatine — 70% OFF</div>
     </div>
   </section>
 
-  <!-- RESULTS -->
-  <div id="results"></div>
-
 </div>
 
-<!-- FOOTER -->
-<footer>
-  <span onclick="openRewards()">💰 Rewards</span> |
-  <span onclick="alert('Privacy policy placeholder')">Privacy</span> |
-  <span onclick="alert('Disclaimer placeholder')">Disclaimer</span>
-</footer>
+<!-- BOTTOM NAV -->
+<nav>
+  <button onclick="showHome()"><i class="fa-solid fa-house"></i><span>Home</span></button>
+  <button onclick="showRewards()"><i class="fa-solid fa-gift"></i><span>Rewards</span></button>
+  <button><i class="fa-solid fa-user"></i><span>Profile</span></button>
+</nav>
 
 <!-- REWARDS MODAL -->
-<div id="rewardsModal" class="modal">
-  <div class="modal-content">
-    <h3>💰 Rewards System</h3>
-    <p>
-      • Minimum order: <strong>30 AED</strong><br>
-      • You earn cashback points on eligible purchases<br>
-      • Points = real money usable inside UAE Price Hunter<br>
-      • Rewards come from store commissions (up to 40%)
-    </p>
-    <button onclick="closeRewards()">Got it</button>
+<div id="rewardsModal">
+  <div class="modal-box">
+    <h3>Your Rewards</h3>
+    <p><strong>1 point = AED 0.01</strong></p>
+    <p>Minimum redeem: <strong>AED 30</strong></p>
+    <p>Points are added after you visit a store through the app.</p>
+    <button onclick="closeRewards()">Close</button>
   </div>
 </div>
 
