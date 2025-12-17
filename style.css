@@ -1,8 +1,9 @@
 body {
   margin: 0;
-  font-family: system-ui;
+  font-family: system-ui, -apple-system, sans-serif;
   background: #fffde7;
   color: #1f2937;
+  padding-bottom: 80px; /* Space for nav bar */
 }
 
 header {
@@ -11,6 +12,7 @@ header {
   text-align: center;
   border-radius: 0 0 30px 30px;
   position: relative;
+  box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
 }
 
 .basket-btn {
@@ -24,13 +26,15 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  cursor: pointer;
 }
 
 .basket-btn span {
   position: absolute;
   top: -5px;
   right: -5px;
-  background: red;
+  background: #ef4444;
   color: white;
   width: 18px;
   height: 18px;
@@ -39,6 +43,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: bold;
 }
 
 main {
@@ -52,7 +57,9 @@ main {
   padding: 14px;
   border-radius: 16px;
   border: none;
-  box-shadow: 0 8px 20px rgba(0,0,0,.1);
+  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+  font-size: 16px;
+  box-sizing: border-box; /* Fixes padding issues */
 }
 
 #suggestions {
@@ -68,6 +75,7 @@ main {
   cursor: pointer;
 }
 
+/* DEALS GRID */
 .deals-grid {
   display: grid;
   grid-template-columns: repeat(3,1fr);
@@ -80,6 +88,12 @@ main {
   overflow: hidden;
   text-align: center;
   position: relative;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: transform 0.1s;
+}
+
+.deal-card:active {
+  transform: scale(0.98);
 }
 
 .deal-card img {
@@ -92,18 +106,32 @@ main {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: red;
+  background: #ef4444;
   color: white;
   padding: 4px 8px;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: bold;
 }
 
+.deal-card p {
+  font-size: 13px;
+  margin: 8px 0;
+}
+
+/* PRODUCT & STORE */
 .product-card {
   background: white;
   padding: 16px;
   border-radius: 20px;
   margin-top: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.product-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
 }
 
 .store {
@@ -111,27 +139,86 @@ main {
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid #eee;
 }
 
 .store.best {
   background: #fef9c3;
-  padding: 10px;
-  border-radius: 12px;
+  border: 1px solid #facc15;
 }
 
 button {
   background: #fde047;
   border: none;
   padding: 8px 14px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-weight: bold;
+  cursor: pointer;
 }
 
-.page {
-  display: none;
+/* --- BASKET STYLES (NEW) --- */
+.basket-group {
+  background: white;
+  border-radius: 16px;
   padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
+.basket-group h3 {
+  margin: 0 0 10px 0;
+  color: #4b5563;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.basket-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.del-btn {
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.store-total {
+  text-align: right;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 2px dashed #eee;
+  font-size: 14px;
+}
+
+.grand-total {
+  background: #1f2937;
+  color: white;
+  padding: 20px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 16px;
+  background: #10b981;
+  color: white;
+  font-size: 16px;
+  border-radius: 16px;
+}
+
+/* NAV */
 nav {
   position: fixed;
   bottom: 0;
@@ -139,6 +226,28 @@ nav {
   background: white;
   display: flex;
   justify-content: space-around;
-  padding: 12px 0;
-  box-shadow: 0 -6px 20px rgba(0,0,0,.15);
+  padding: 16px 0;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+  z-index: 100;
 }
+
+nav button {
+  background: none;
+  font-size: 20px;
+  color: #9ca3af;
+}
+
+nav button:focus, nav button:hover {
+  color: #eab308;
+}
+
+.page {
+  display: none;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
