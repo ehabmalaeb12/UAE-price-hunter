@@ -4,62 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UAE Price Hunter</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="header">
-    <h1>UAE Price Hunter</h1>
-    <p>Compare prices across major UAE stores & earn rewards</p>
-  </header>
+<header class="header">
+  <h1>UAE Price Hunter</h1>
+  <p>Compare prices across UAE stores & earn rewards</p>
+</header>
 
-  <!-- SEARCH -->
-  <section class="search-section">
-    <input 
-      type="text" 
-      id="searchInput" 
-      placeholder="Search products across Amazon, Noon & Carrefour"
-      onkeyup="searchProducts()"
-    />
-  </section>
+<section class="search-section">
+  <input
+    type="text"
+    id="searchInput"
+    placeholder="Search products across Amazon, Noon & Carrefour"
+    onkeyup="showSuggestions()"
+  />
+  <div id="suggestions" class="suggestions"></div>
+</section>
 
-  <!-- INFO STRIP -->
-  <section class="info-strip">
-    <div>🔍 Smart price comparison</div>
-    <div>🎁 Earn in-app reward points</div>
-    <div>🇦🇪 Trusted UAE stores</div>
-  </section>
+<section class="hot-deals">
+  <h2>🔥 Hot Deals</h2>
+  <div class="hot-deals-grid">
+    <button onclick="openDeal('iphone')">iPhone 14 — 50% OFF</button>
+    <button onclick="openDeal('airfryer')">Air Fryer — 60% OFF</button>
+    <button onclick="openDeal('creatine')">Creatine — 70% OFF</button>
+  </div>
+</section>
 
-  <!-- PRODUCTS -->
-  <main>
-    <h2 class="section-title">All Products</h2>
-    <div id="products" class="products-grid"></div>
-  </main>
+<main id="result"></main>
 
-  <!-- HOT DEALS -->
-  <section class="hot-deals">
-    <h2>🔥 Hot Deals</h2>
-    <div class="hot-deals-grid">
-      <div class="hot-card">iPhone 14 — 50% OFF</div>
-      <div class="hot-card">Air Fryer — 60% OFF</div>
-      <div class="hot-card">Creatine — 70% OFF</div>
-    </div>
-  </section>
+<footer>
+  <a href="rewards.html">Rewards</a> |
+  <a href="privacy.html">Privacy</a> |
+  <a href="disclaimer.html">Disclaimer</a>
+</footer>
 
-  <!-- SHOPPING LIST -->
-  <section class="shopping-list">
-    <h2>🛒 Shopping List</h2>
-    <p><strong>Coming soon</strong> — plan multiple purchases and see the best store for each item.</p>
-  </section>
-
-  <!-- FOOTER -->
-  <footer>
-    <a href="rewards.html">Rewards</a> |
-    <a href="privacy.html">Privacy Policy</a> |
-    <a href="disclaimer.html">Disclaimer</a>
-  </footer>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
