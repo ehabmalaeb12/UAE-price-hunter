@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UAE Price Hunter</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UAE Price Hunter</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
@@ -15,7 +15,7 @@
     <span id="basketCount">0</span>
   </div>
   <h1>UAE Price Hunter</h1>
-  <p>Compare prices & earn rewards</p>
+  <p>Smart shopping. Real rewards.</p>
 </header>
 
 <div class="container">
@@ -32,7 +32,7 @@
     <section id="hotDeals">
       <h2>🔥 Hot Deals</h2>
       <div class="deals">
-        <div onclick="openProduct('iphone')">iPhone 14 — 50% OFF</div>
+        <div onclick="openProduct('iphone')">iPhone — 50% OFF</div>
         <div onclick="openProduct('airfryer')">Air Fryer — 60% OFF</div>
         <div onclick="openProduct('creatine')">Creatine — 70% OFF</div>
       </div>
@@ -42,31 +42,37 @@
   <!-- REWARDS -->
   <div id="rewardsPage" class="page">
     <h2>🎁 Rewards</h2>
-    <p><strong>1 point = AED 0.01</strong></p>
-    <p>Minimum redeem: AED 30</p>
-    <p>Points are earned when you shop through the app.</p>
+    <div class="card">
+      <p><strong>Total Earned:</strong> 1,250 points</p>
+      <p><strong>Pending:</strong> 350 points</p>
+      <p><strong>Value:</strong> AED 12.50</p>
+      <p>Minimum redeem: AED 30</p>
+    </div>
   </div>
 
   <!-- PROFILE -->
   <div id="profilePage" class="page">
     <h2>👤 Profile</h2>
-    <p>Name: Guest</p>
-    <p>Total Points: 0</p>
-    <p>Purchase history coming soon.</p>
+    <div class="card">
+      <label>Your Name</label>
+      <input id="usernameInput" placeholder="Enter your name">
+      <button onclick="saveName()">Save</button>
+      <p id="savedName"></p>
+    </div>
   </div>
 
   <!-- BASKET -->
   <div id="basketPage" class="page">
-    <h2>🧺 Your Basket</h2>
+    <h2>🧺 Basket</h2>
     <div id="basketItems"></div>
   </div>
 
 </div>
 
 <nav>
-  <button onclick="showHome()"><i class="fa-solid fa-house"></i>Home</button>
-  <button onclick="showRewards()"><i class="fa-solid fa-gift"></i>Rewards</button>
-  <button onclick="showProfile()"><i class="fa-solid fa-user"></i>Profile</button>
+  <button onclick="showHome()"><i class="fa-solid fa-house"></i></button>
+  <button onclick="showRewards()"><i class="fa-solid fa-gift"></i></button>
+  <button onclick="showProfile()"><i class="fa-solid fa-user"></i></button>
 </nav>
 
 <script src="script.js"></script>
