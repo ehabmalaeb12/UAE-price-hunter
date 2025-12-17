@@ -10,7 +10,7 @@
 <body>
 
 <header>
-  <div class="basket">
+  <div class="basket" onclick="showBasket()">
     <i class="fa-solid fa-basket-shopping"></i>
     <span id="basketCount">0</span>
   </div>
@@ -20,49 +20,54 @@
 
 <div class="container">
 
-  <!-- SEARCH -->
-  <div class="search-box">
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search products (iPhone, Creatine, Air Fryer...)"
-      oninput="handleSearch()"
-    />
-    <div id="suggestions"></div>
-  </div>
-
-  <!-- SEARCH RESULTS -->
-  <div id="results"></div>
-
-  <!-- HOT DEALS -->
-  <section id="hotDeals">
-    <h2>🔥 Hot Deals</h2>
-    <div class="deals">
-      <div onclick="openProduct('iphone')">iPhone 14 — 50% OFF</div>
-      <div onclick="openProduct('airfryer')">Air Fryer — 60% OFF</div>
-      <div onclick="openProduct('creatine')">Creatine — 70% OFF</div>
+  <!-- HOME -->
+  <div id="homePage">
+    <div class="search-box">
+      <input id="searchInput" placeholder="Search any product..." oninput="handleSearch()">
+      <div id="suggestions"></div>
     </div>
-  </section>
 
-</div>
+    <div id="results"></div>
 
-<!-- BOTTOM NAV -->
-<nav>
-  <button onclick="showHome()"><i class="fa-solid fa-house"></i><span>Home</span></button>
-  <button onclick="showRewards()"><i class="fa-solid fa-gift"></i><span>Rewards</span></button>
-  <button><i class="fa-solid fa-user"></i><span>Profile</span></button>
-</nav>
-
-<!-- REWARDS MODAL -->
-<div id="rewardsModal">
-  <div class="modal-box">
-    <h3>Your Rewards</h3>
-    <p><strong>1 point = AED 0.01</strong></p>
-    <p>Minimum redeem: <strong>AED 30</strong></p>
-    <p>Points are added after you visit a store through the app.</p>
-    <button onclick="closeRewards()">Close</button>
+    <section id="hotDeals">
+      <h2>🔥 Hot Deals</h2>
+      <div class="deals">
+        <div onclick="openProduct('iphone')">iPhone 14 — 50% OFF</div>
+        <div onclick="openProduct('airfryer')">Air Fryer — 60% OFF</div>
+        <div onclick="openProduct('creatine')">Creatine — 70% OFF</div>
+      </div>
+    </section>
   </div>
+
+  <!-- REWARDS -->
+  <div id="rewardsPage" class="page">
+    <h2>🎁 Rewards</h2>
+    <p><strong>1 point = AED 0.01</strong></p>
+    <p>Minimum redeem: AED 30</p>
+    <p>Points are earned when you shop through the app.</p>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="profilePage" class="page">
+    <h2>👤 Profile</h2>
+    <p>Name: Guest</p>
+    <p>Total Points: 0</p>
+    <p>Purchase history coming soon.</p>
+  </div>
+
+  <!-- BASKET -->
+  <div id="basketPage" class="page">
+    <h2>🧺 Your Basket</h2>
+    <div id="basketItems"></div>
+  </div>
+
 </div>
+
+<nav>
+  <button onclick="showHome()"><i class="fa-solid fa-house"></i>Home</button>
+  <button onclick="showRewards()"><i class="fa-solid fa-gift"></i>Rewards</button>
+  <button onclick="showProfile()"><i class="fa-solid fa-user"></i>Profile</button>
+</nav>
 
 <script src="script.js"></script>
 </body>
