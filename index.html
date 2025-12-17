@@ -1,17 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UAE Price Hunter</title>
-
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
 <body>
 
 <header>
-  <div class="basket-btn" onclick="openBasket()">
+  <div class="basket-btn" onclick="goTo('basketPage')">
     <i class="fa-solid fa-basket-shopping"></i>
     <span id="basketCount">0</span>
   </div>
@@ -19,49 +9,39 @@
   <p>Compare prices. Earn rewards.</p>
 </header>
 
-<main>
-
-  <!-- SEARCH -->
+<!-- HOME PAGE -->
+<section id="homePage" class="page active">
   <div class="search-container">
     <input id="searchInput" placeholder="Search any product…" oninput="handleSearch()">
     <div id="suggestions"></div>
   </div>
 
-  <!-- RESULTS -->
   <div id="results"></div>
 
-  <!-- HOT DEALS -->
   <section id="hotDeals">
     <h2>🔥 Hot Deals</h2>
     <div class="deals-grid">
       <div class="deal-card" onclick="openProduct('iphone')">
-        <img src="images/iphone.jpg">
-        <span>-50%</span>
-        <p>iPhone 15 Pro</p>
+        <img src="images/iphone.jpg"><span>-50%</span><p>iPhone 15 Pro</p>
       </div>
       <div class="deal-card" onclick="openProduct('airfryer')">
-        <img src="images/airfryer.jpg">
-        <span>-60%</span>
-        <p>Philips Air Fryer</p>
+        <img src="images/airfryer.jpg"><span>-60%</span><p>Air Fryer</p>
       </div>
       <div class="deal-card" onclick="openProduct('creatine')">
-        <img src="images/creatine.jpg">
-        <span>-70%</span>
-        <p>Creatine</p>
+        <img src="images/creatine.jpg"><span>-70%</span><p>Creatine</p>
       </div>
     </div>
   </section>
+</section>
 
-</main>
-
-<!-- BASKET -->
-<div id="basketPage" class="page">
-  <h2>🧺 Your Basket</h2>
+<!-- BASKET PAGE -->
+<section id="basketPage" class="page">
+  <h2>🧺 Basket</h2>
   <div id="basketItems"></div>
-</div>
+</section>
 
-<!-- REWARDS -->
-<div id="rewardsPage" class="page">
+<!-- REWARDS PAGE -->
+<section id="rewardsPage" class="page">
   <h2>🎁 Rewards</h2>
   <div class="card">
     <p><strong>Total earned:</strong> 1,250 points</p>
@@ -69,10 +49,10 @@
     <p><strong>Value:</strong> AED 12.50</p>
     <p>Minimum redeem: AED 30</p>
   </div>
-</div>
+</section>
 
-<!-- PROFILE -->
-<div id="profilePage" class="page">
+<!-- PROFILE PAGE -->
+<section id="profilePage" class="page">
   <h2>👤 Profile</h2>
   <div class="card">
     <input id="nameInput" placeholder="Name">
@@ -81,15 +61,13 @@
     <button onclick="saveProfile()">Save</button>
     <p id="profileSaved"></p>
   </div>
-</div>
+</section>
 
-<!-- NAV -->
 <nav>
-  <button onclick="showHome()"><i class="fa-solid fa-house"></i></button>
-  <button onclick="showRewards()"><i class="fa-solid fa-gift"></i></button>
-  <button onclick="showProfile()"><i class="fa-solid fa-user"></i></button>
+  <button onclick="goTo('homePage')"><i class="fa-solid fa-house"></i></button>
+  <button onclick="goTo('rewardsPage')"><i class="fa-solid fa-gift"></i></button>
+  <button onclick="goTo('profilePage')"><i class="fa-solid fa-user"></i></button>
 </nav>
 
 <script src="script.js"></script>
 </body>
-</html>
