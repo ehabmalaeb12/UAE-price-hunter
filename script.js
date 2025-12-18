@@ -82,20 +82,39 @@ function openBasket() {
 
 // --- 5. PROFILE ENGINE (NAME, EMAIL, PHONE) ---
 function renderProfile() {
-    document.getElementById('profilePage').innerHTML = `
-        <div class="page-header"><h2>My Profile</h2></div>
+    const container = document.getElementById('profilePage');
+    container.innerHTML = `
+        <div class="page-header"><h2>Smart Profile</h2></div>
+        
         <div class="profile-card glass-card">
-            <div class="user-avatar"><i class="fa-solid fa-user-ninja"></i></div>
+            <div class="user-avatar"><i class="fa-solid fa-user-astronaut"></i></div>
             <h3>${userProfile.name}</h3>
-            <p>${userProfile.email || 'No email'}</p>
+            <p>${userProfile.email}</p>
         </div>
+
+        <div class="glass-card partner-status-card">
+            <div class="status-header">
+                <i class="fa-solid fa-hubspot"></i>
+                <span>Partnership Integrations</span>
+            </div>
+            <div class="api-grid">
+                <div class="api-tag status-active">UI/UX Engine v2.0</div>
+                <div class="api-tag status-pending">Amazon API (Pending)</div>
+                <div class="api-tag status-pending">Noon API (Pending)</div>
+                <div class="api-tag status-pending">DCM/Admitad Hook</div>
+            </div>
+            <p class="api-note">API synchronization will activate upon partnership verification.</p>
+        </div>
+
         <div class="glass-card settings-list">
-            <div class="input-box"><label>Full Name</label><input type="text" id="nameInput" value="${userProfile.name}"></div>
-            <div class="input-box"><label>Email Address</label><input type="email" id="emailInput" value="${userProfile.email}" placeholder="your@email.com"></div>
-            <div class="input-box"><label>Phone Number</label><input type="tel" id="phoneInput" value="${userProfile.phone}" placeholder="05x-xxx-xxxx"></div>
-            <button class="gold-btn" onclick="saveProfile()">Update Profile</button>
-        </div>`;
+            <div class="input-group"><label>Full Name</label><input type="text" id="pName" value="${userProfile.name}"></div>
+            <div class="input-group"><label>Email Address</label><input type="email" id="pEmail" value="${userProfile.email}"></div>
+            <div class="input-group"><label>Mobile (UAE)</label><input type="tel" id="pPhone" value="${userProfile.phone}"></div>
+            <button class="gold-btn" onclick="saveProfile()">Save Securely</button>
+        </div>
+    `;
 }
+
 
 function saveProfile() {
     userProfile.name = document.getElementById('nameInput').value;
