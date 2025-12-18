@@ -115,4 +115,17 @@ footer { text-align: center; padding: 20px; font-size: 11px; color: #6b7280; mar
     display: none; max-height: 200px; overflow-y: auto; margin: 0 15px;
 }
 .glass-dropdown div { padding: 12px 20px; border-bottom: 1px solid #eee; cursor: pointer; }
+/* Grouped Basket Styles */
+.store-group { border-top: 4px solid var(--gold); margin-bottom: 20px; }
+.store-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+.store-group-header h4 { margin: 0; font-size: 16px; }
+
+.basket-item-mini { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; font-size: 13px; }
+.mini-price { display: flex; align-items: center; gap: 10px; }
+.remove-btn-icon { background: none; border: none; color: #ff4d4d; cursor: pointer; font-size: 16px; }
+
+/* Profile Input Boxes */
+.input-box { margin-bottom: 15px; }
+.input-box label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 5px; text-transform: uppercase; }
+.input-box input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; box-sizing: border-box; background: white; }
 
