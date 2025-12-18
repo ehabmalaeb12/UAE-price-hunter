@@ -1,122 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>UAE Price Hunter | Smart Shopping</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#facc15">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UAE Price Hunter | Smart Shopping</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#facc15">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 
 <div class="glass-bg"></div>
 
 <header>
-  <div class="top-bar">
-    <div class="basket-btn" onclick="openBasket()">
-      <i class="fa-solid fa-cart-shopping"></i>
-      <span id="basketCount">0</span>
+    <div class="top-bar">
+        <div class="basket-btn" onclick="openBasket()">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span id="basketCount">0</span>
+        </div>
+        <div class="logo">
+            <span class="gold">UAE</span> PRICE HUNTER
+        </div>
+        <div class="lang-toggle">عربي</div>
     </div>
-    <div class="logo">
-      <span class="gold">UAE</span> PRICE HUNTER
-    </div>
-    <div class="lang-toggle">عربي</div>
-  </div>
-  <p class="tagline">Smart Savings for the Emirates</p>
+    <p class="tagline">Smart Savings for the Emirates</p>
 </header>
 
 <main>
-  <div class="search-section">
-    <div class="search-pill">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input id="searchInput" placeholder="What are you hunting for today?" oninput="handleSearch()">
-    </div>
-    <div id="suggestions" class="glass-dropdown"></div>
-  </div>
-
-  <div id="results"></div>
-
-  <section id="hotDeals">
-    <div class="uae-welcome-card">
-      <div class="welcome-text">
-        <h3>Marhaba! 🇦🇪</h3>
-        <p>Your local AI shopper is ready.</p>
-      </div>
-      <div class="savings-meter">
-        <span id="meterPoints">0</span>
-        <label>Points</label>
-      </div>
+    <div class="search-section">
+        <div class="search-pill">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="searchInput" placeholder="What are you hunting for today?" oninput="handleSearch()">
+        </div>
+        <div id="suggestions" class="glass-dropdown"></div>
     </div>
 
-    <div class="section-header">
-      <h2>🔥 Trending in UAE</h2>
-      <span>View All</span>
-    </div>
-    
-    <div class="deals-grid">
-      <div class="deal-card" onclick="openProduct('iphone')">
-        <div class="badge">9.8 Score</div>
-        <img src="images/iphone.jpg" alt="iPhone">
-        <p>iPhone 15 Pro</p>
-        <span class="price-hint">From 4,250 AED</span>
-      </div>
-      <div class="deal-card" onclick="openProduct('airfryer')">
-        <div class="badge">Best Value</div>
-        <img src="images/airfryer.jpg" alt="Air Fryer">
-        <p>Philips Air Fryer</p>
-        <span class="price-hint">From 379 AED</span>
-      </div>
-      <div class="deal-card" onclick="openProduct('creatine')">
-        <div class="badge">Local Stock</div>
-        <img src="images/creatine.jpg" alt="Creatine">
-        <p>Optimum Nutrition</p>
-        <span class="price-hint">From 115 AED</span>
-      </div>
-    </div>
-  </section>
+    <div id="results"></div>
+
+    <section id="hotDeals">
+        <div class="uae-welcome-card">
+            <div class="welcome-text">
+                <h3>Marhaba! 🇦🇪</h3>
+                <p>Your local AI shopper is ready.</p>
+            </div>
+            <div class="savings-meter">
+                <span id="meterPoints">0</span>
+                <label>Points</label>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h2>🔥 Trending in UAE</h2>
+        </div>
+        
+        <div class="deals-grid">
+            <div class="deal-card" onclick="openProduct('iphone')">
+                <div class="badge">9.8 Score</div>
+                <img src="images/iphone.jpg" alt="iPhone">
+                <p>iPhone 15 Pro</p>
+                <span class="price-hint">From 4,250 AED</span>
+            </div>
+            <div class="deal-card" onclick="openProduct('airfryer')">
+                <div class="badge">Best Value</div>
+                <img src="images/airfryer.jpg" alt="Air Fryer">
+                <p>Philips Air Fryer</p>
+                <span class="price-hint">From 379 AED</span>
+            </div>
+            <div class="deal-card" onclick="openProduct('creatine')">
+                <div class="badge">Local Stock</div>
+                <img src="images/creatine.jpg" alt="Creatine">
+                <p>Optimum Nutrition</p>
+                <span class="price-hint">From 115 AED</span>
+            </div>
+        </div>
+    </section>
 </main>
 
 <div id="basketPage" class="page">
-  <div class="page-header">
-    <button onclick="showHome()"><i class="fa-solid fa-chevron-left"></i></button>
-    <h2>Shopping Comparison</h2>
-  </div>
-  <div id="basketItems"></div>
+    <div class="page-header">
+        <button onclick="showHome()" class="back-btn"><i class="fa-solid fa-chevron-left"></i> Back</button>
+        <h2>My Comparison Basket</h2>
+    </div>
+    <div id="basketItems"></div>
 </div>
 
-<div id="rewardsPage" class="page">
-  </div>
+<div id="rewardsPage" class="page"></div>
 
 <div id="profilePage" class="page">
-  <div class="page-header">
-    <h2>My Profile</h2>
-  </div>
-  <div class="glass-card profile-form">
-    <div class="input-group">
-      <label>Full Name</label>
-      <input id="nameInput" placeholder="Enter your name">
+    <div class="page-header">
+        <h2>My Account</h2>
     </div>
-    <div class="input-group">
-      <label>UAE Mobile</label>
-      <input id="phoneInput" placeholder="05x xxx xxxx">
+    <div class="glass-card profile-form">
+        <div class="input-group">
+            <label>Full Name</label>
+            <input id="nameInput" placeholder="Enter your name">
+        </div>
+        <div class="input-group">
+            <label>UAE Mobile</label>
+            <input id="phoneInput" placeholder="05x xxx xxxx">
+        </div>
+        <button class="gold-btn" onclick="saveProfile()">Update My Account</button>
     </div>
-    <button class="gold-btn" onclick="saveProfile()">Update My Account</button>
-  </div>
 </div>
 
 <footer>
-  <p><strong>Affiliate Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases. We compare Amazon.ae, Noon.com, and Carrefouruae.com.</p>
-  <div class="footer-links">
-    <a href="privacy.html">Privacy</a> • <a href="terms.html">Terms</a>
-  </div>
+    <p><strong>Affiliate Disclosure:</strong> As an Amazon Associate, we earn from qualifying purchases. We compare Amazon.ae, Noon.com, and Carrefouruae.com.</p>
+    <div class="footer-links">
+        <a href="privacy.html">Privacy</a> • <a href="terms.html">Terms</a>
+    </div>
 </footer>
 
 <nav class="pill-nav">
-  <button onclick="showHome()" id="navHome" class="active"><i class="fa-solid fa-house-chimney"></i></button>
-  <button onclick="showRewards()" id="navGift"><i class="fa-solid fa-gift"></i></button>
-  <button onclick="showProfile()" id="navUser"><i class="fa-solid fa-user-ninja"></i></button>
+    <button onclick="showHome()" id="navHome" class="nav-item active"><i class="fa-solid fa-house-chimney"></i></button>
+    <button onclick="showRewards()" id="navGift" class="nav-item"><i class="fa-solid fa-gift"></i></button>
+    <button onclick="showProfile()" id="navUser" class="nav-item"><i class="fa-solid fa-user-ninja"></i></button>
 </nav>
 
 <script src="script.js"></script>
