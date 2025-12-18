@@ -1,9 +1,10 @@
-const CACHE_NAME = 'uae-hunter-v2.1'; // Change this number to force update
+const CACHE_NAME = 'uae-hunter-2030-v4.0';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './script.js'
+  './script.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
 ];
 
 self.addEventListener('install', (e) => {
@@ -17,6 +18,7 @@ self.addEventListener('activate', (e) => {
       if (k !== CACHE_NAME) return caches.delete(k);
     }));
   }));
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
