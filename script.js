@@ -216,3 +216,19 @@ function updateMeter() {
     document.getElementById("meterPoints").textContent = confirmedPoints + pendingPoints;
 }
 
+// --- AUTO-UPDATE LOGIC ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // New content is available, force refresh
+                        window.location.reload();
+                    }
+                });
+            });
+        });
+    });
+}
