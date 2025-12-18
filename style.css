@@ -26,4 +26,27 @@ header { background: white; padding: 15px 20px; box-shadow: 0 2px 10px rgba(0,0,
 .gold-btn { width: 100%; padding: 12px; background: var(--uae-yellow); border: none; border-radius: 10px; font-weight: bold; }
 .warning { font-size: 10px; color: #999; font-style: italic; }
 .page { display: none; }
+/* Profile Page Styling */
+.profile-card { text-align: center; background: var(--dark); color: white; border: none; padding: 30px; }
+.user-avatar { font-size: 50px; color: var(--uae-yellow); margin-bottom: 10px; }
+.settings-list { padding: 20px; }
+.setting-item { margin-bottom: 15px; }
+.setting-item label { display: block; font-size: 12px; color: #666; margin-bottom: 5px; }
+.setting-item input { width: 100%; border: 1px solid #eee; padding: 10px; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+.stats-grid { display: flex; justify-content: space-around; padding: 15px; }
+.stat-box { text-align: center; }
+.stat-box strong { font-size: 20px; color: var(--dark); }
+.stat-box p { font-size: 12px; color: #666; margin: 0; }
+
+/* Page Header */
+.page-header { padding: 20px 20px 10px; display: flex; align-items: center; gap: 15px; }
+.page-header h2 { margin: 0; font-size: 24px; font-weight: 800; }
+.back-link { background: none; border: none; color: var(--gold); font-weight: bold; padding: 0; cursor: pointer; }
+
+/* Transitions */
+.page { animation: slideIn 0.3s ease-out; }
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
 
