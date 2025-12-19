@@ -176,4 +176,24 @@ footer { text-align: center; padding: 20px; font-size: 11px; color: #6b7280; mar
     opacity: 0.7;
     font-style: italic;
 }
+/* This adds a red 'glow' and border to the product when it's a hot deal */
+.card-hot-deal {
+    border: 2px solid #ff4757 !important;
+    position: relative; /* Necessary so the badge stays inside the card */
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+}
+
+/* This is the little 'SAVE %' banner */
+.deal-badge {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: #ff4757;
+    color: white;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    z-index: 10;
+}
 
