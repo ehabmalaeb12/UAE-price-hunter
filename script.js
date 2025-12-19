@@ -1,3 +1,26 @@
+const RAINFOREST_KEY = 'PASTE_YOUR_KEY_HERE'; // Put your key inside the quotes
+
+async function fetchAmazonData(asin) {
+    const url = `https://api.rainforestapi.com/request?api_key=${RAINFOREST_KEY}&type=product&amazon_domain=amazon.ae&asin=${asin}`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        // Check if we got a valid product and price
+        if (data.product && data.product.buybox_winner) {
+            return {
+                price: data.product.buybox_winner.price.raw, // e.g., "2,500 AED"
+                isDeal: data.product.buybox_winner.is_deal,  // True/False
+                savings: data.product.buybox_winner.price.percentage_off // e.g., 15
+            };
+        }
+    } catch (error) {
+        console.error("Connection failed:", error);
+        return null;
+    }
+}
+
 // --- 1. CONFIGURATION & LEGAL ---
 let currentLang = 'en';
 const legalContent = {
