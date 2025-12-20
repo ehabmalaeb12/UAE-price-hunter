@@ -196,4 +196,33 @@ footer { text-align: center; padding: 20px; font-size: 11px; color: #6b7280; mar
     border-radius: 4px;
     z-index: 10;
 }
+/* Existing styles remain the same */
+
+/* Search Dropdown */
+.glass-dropdown {
+    position: absolute; width: calc(100% - 30px); background: white; 
+    z-index: 1000; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    display: none; max-height: 200px; overflow-y: auto; margin: 0 15px;
+}
+.glass-dropdown div {
+    padding: 12px 20px; cursor: pointer;
+}
+.glass-dropdown div:hover {
+    background: rgba(212, 175, 55, 0.1);
+}
+
+/* Profile Styles */
+.profile-card {
+    text-align: center; 
+    background: var(--glass); 
+    color: var(--dark); 
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+.user-avatar { 
+    font-size: 50px; 
+    color: var(--gold); 
+    margin-bottom: 10px; 
+}
 
