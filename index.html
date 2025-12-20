@@ -143,4 +143,39 @@
         </div>
     </div>
 </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAE Price Hunter Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <div class="user-stats">
+            <span>Welcome, Hunter!</span>
+            <div class="points-badge">My Balance: <strong id="userPoints">0</strong> 🪙</div>
+        </div>
+
+        <div class="search-header">
+            <h1>UAE Price Hunter</h1>
+            <div class="search-box">
+                <input type="text" id="productInput" placeholder="Search iPhone, Coffee, Nespresso...">
+                <button onclick="compareAllPrices()">Compare</button>
+            </div>
+        </div>
+
+        <div id="resultsContainer" class="results-grid">
+            </div>
+
+        <div class="top-deals-section">
+            <h2>🔥 Trending Deals</h2>
+            <p>Prices updated live via Scrape.do engine</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
 
