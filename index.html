@@ -2,34 +2,82 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UAE Price Hunter Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UAE Price Hunter | Live Smart Hub</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body>
-    <div class="app-container">
-        <div class="user-stats">
-            <span>Welcome, Hunter!</span>
-            <div class="points-badge">My Balance: <strong id="userPoints">0</strong> 🪙</div>
-        </div>
+<body id="appBody">
 
-        <div class="search-header">
-            <h1>UAE Price Hunter</h1>
-            <div class="search-box">
-                <input type="text" id="productInput" placeholder="Search iPhone, Coffee, Nespresso...">
-                <button onclick="compareAllPrices()">Compare</button>
+<div class="desert-bg"></div>
+
+<header>
+    <div class="top-bar">
+        <div class="basket-btn" onclick="openBasket()">
+            <div class="basket-icon-wrapper">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span id="basketCount">0</span>
             </div>
         </div>
-
-        <div id="resultsContainer" class="results-grid">
-            </div>
-
-        <div class="top-deals-section">
-            <h2>🔥 Trending Deals</h2>
-            <p>Prices updated live via Scrape.do engine</p>
+        <div class="logo"><span class="gold">UAE</span> PRICE HUNTER</div>
+        <div class="lang-toggle" onclick="toggleLanguage()">
+            <i class="fa-solid fa-globe"></i> <span id="langLabel">عربي</span>
         </div>
     </div>
+</header>
 
-    <script src="script.js"></script>
+<main id="mainContent">
+    <div class="search-section">
+        <div class="search-pill glass-effect">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="searchInput" placeholder="Search any product in UAE..." oninput="handleSearch()">
+        </div>
+        <div id="suggestions" class="glass-dropdown"></div>
+    </div>
+
+    <section id="trendingSection">
+        <div class="uae-welcome-card">
+            <div class="welcome-text">
+                <h3 data-key="welcomeTitle">Marhaba! 🇦🇪</h3>
+                <p data-key="welcomeSub">Your AI Price Assistant is ready.</p>
+            </div>
+            <div class="savings-meter">
+                <span id="meterPoints">0</span>
+                <label data-key="points">Points</label>
+            </div>
+        </div>
+        <div class="section-header">
+            <h2 data-key="trending">🔥 Live Price Comparison</h2>
+        </div>
+        <div id="trendingGrid" class="deals-grid"></div>
+    </section>
+</main>
+
+<div id="productPage" class="page"></div>
+<div id="basketPage" class="page">
+    <div class="page-header">
+        <button class="back-nav" onclick="showHome()"><i class="fa-solid fa-chevron-left"></i></button>
+        <h2 data-key="basketTitle">My Basket</h2>
+    </div>
+    <div id="basketItems"></div>
+</div>
+<div id="rewardsPage" class="page">
+    <div class="page-header"><h2 data-key="rewardsTitle">My Rewards</h2></div>
+    <div class="glass-card reward-hero">
+        <div class="coin-icon"><i class="fa-solid fa-coins"></i></div>
+        <h1 id="totalPointsDisplay">0</h1>
+        <p data-key="pointsBalance">Available Points</p>
+    </div>
+</div>
+<div id="profilePage" class="page"></div>
+
+<nav class="pill-nav glass-effect">
+    <button onclick="showHome()" id="navHome" class="nav-item active"><i class="fa-solid fa-house-chimney"></i></button>
+    <button onclick="showRewards()" id="navGift" class="nav-item"><i class="fa-solid fa-gift"></i></button>
+    <button onclick="showProfile()" id="navUser" class="nav-item"><i class="fa-solid fa-user-ninja"></i></button>
+</nav>
+
+<script src="script.js"></script>
 </body>
 </html>
+
