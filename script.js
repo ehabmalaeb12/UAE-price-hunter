@@ -1,73 +1,99 @@
 // --- CONFIGURATION ---
 const SCRAPE_DO_TOKEN = '641c5334a7504c15abb0902cd23d0095b4dbb6711a3';
-const REWARD_CONVERSION_RATE = 50; // 1 AED for each 50 points
+const REWARD_CONVERSION_RATE = 50; // 1 Dirham for every 50 points
 
-// Language Toggle Function
-function toggleLanguage() {
-    const langLabel = document.getElementById("langLabel");
-    let isArabic = langLabel.innerHTML === 'عربي';
-    
-    langLabel.innerHTML = isArabic ? 'English' : 'عربي';
-    
-    // Update text according to selected language
-    if (isArabic) {
-        document.documentElement.lang = 'ar';
-        document.querySelector('header .logo').innerHTML = '<span class="gold">الإمارات</span> صياد الأسعار';
-        document.querySelector('.search-section input').placeholder = 'ابحث عن أي منتج في الإمارات ...';
-        showHome(); // Re-show home to update texts.
-    } else {
-        document.documentElement.lang = 'en';
-        document.querySelector('header .logo').innerHTML = '<span class="gold">UAE</span> PRICE HUNTER';
-        document.querySelector('.search-section input').placeholder = 'Search any product in UAE...';
-        showHome(); // Re-show home to update texts.
-    }
+// Initialize rewards
+let rewards = {
+    pending: parseInt(localStorage.getItem("pendingPoints")) || 0,
+    approved: parseInt(localStorage.getItem("approvedPoints")) || 0,
+    saved: parseInt(localStorage.getItem("savedPoints")) || 0,
+};
+
+// Initialize basket
+let basket = JSON.parse(localStorage.getItem("basket")) || [];
+
+// Load saved points on profile page
+function loadProfilePoints() {
+    document.getElementById("savedPoints").innerText = rewards.saved;
+}
+
+// Functions to handle page navigation
+function showHome() {
+    document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
+    document.getElementById('mainContent').style.display = 'block';
+    document.getElementById('trendingGrid').style.display = 'block';
 }
 
 function showRewards() {
     document.getElementById("approvedPoints").innerText = rewards.approved;
     document.getElementById("pendingPoints").innerText = rewards.pending;
-
-    // Add points conversion display
-    const rewardsInfo = document.createElement('p');
-    rewardsInfo.innerText = '1 Dirham = 50 Points';
-    document.querySelector('#rewardsPage .glass-card').appendChild(rewardsInfo);
-    
-    showPage("rewardsPage");
+    document.querySelector('.page').style.display = 'none';
+    document.getElementById('rewardsPage').style.display = 'block';
 }
 
-// --- CONFIGURATION ---
-const SCRAPE_DO_TOKEN = '641c5334a7504c15abb0902cd23d0095b4dbb6711a3';
-const REWARD_CONVERSION_RATE = 100; // 100 points = 1 AED
+function showProfile() {
+    loadProfilePoints();
+    document.querySelector('.page').style.display = 'none';
+    document.getElementById('profilePage').style.display = 'block';
+}
 
-// --- NEW REWARDS LOGIC ---
-let rewards = {
-    pending: parseInt(localStorage.getItem("pendingPoints")) || 0,
-    approved: parseInt(localStorage.getItem("approvedPoints")) || 0
-};
+// Function to toggle language
+function toggleLanguage() {
+    const langLabel = document.getElementById("langLabel");
+    const isArabic = langLabel.innerText === 'عربي';
+    
+    langLabel.innerText = isArabic ? 'English' : 'عربي';
+    updateLanguage(isArabic);
+}
 
-// --- FIX: BASKET ENGINE ---
+// Function to update language based on setting
+function updateLanguage(isArabic) {
+    const elementsToTranslate = {
+        "headerLogo": isArabic ? "صياد الأسعار" : "UAE PRICE HUNTER",
+        "searchPlaceholder": isArabic ? "ابحث عن أي منتج في الإمارات ..." : "Search any product in UAE...",
+        "welcomeTitle": isArabic ? "مرحبا! 🇦🇪" : "Marhaba! 🇦🇪",
+        "welcomeSub": isArabic ? "مساعد الأسعار الذكي جاهز." : "Your AI Price Assistant is ready."
+    };
+
+    document.querySelectorAll("[data-key]").forEach(element => {
+        const key = element.getAttribute("data-key");
+        if (elementsToTranslate[key]) {
+            element.innerText = elementsToTranslate[key];
+        }
+    });
+}
+
+// --- BASKET ENGINE ---
 function openBasket() {
     const container = document.getElementById("basketItems");
-    if (!container) return;
-    
+    const totalPriceElement = document.getElementById("basketTotalPrice");
     container.innerHTML = ""; // Clear view
-    const basket = JSON.parse(localStorage.getItem("basket")) || [];
+    totalPriceElement.innerHTML = '0'; // Reset total price
 
     if (basket.length === 0) {
         container.innerHTML = "<div class='empty-basket'>Your desert is empty! 🏜️</div>";
     } else {
+        let totalPrice = 0;
         basket.forEach((item, index) => {
+            totalPrice += item.price;
             container.innerHTML += `
                 <div class="glass-card basket-item">
                     <div style="display:flex; gap:10px; align-items:center;">
                         <img src="${item.img || ''}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">
                         <div><strong>${item.name}</strong><br><small>${item.store}</small></div>
                     </div>
-                    <div>${item.price} AED <button onclick="removeFromBasket(${index})" class="remove-btn">×</button></div>
+                    <div>${item.price} AED 
+                    <button onclick="removeFromBasket(${index})" class="remove-btn">×</button>
+                    </div>
                 </div>`;
         });
+        totalPriceElement.innerHTML = totalPrice.toFixed(2); // Update total price
     }
     showPage("basketPage");
+}
+
+function proceedToCheckout() {
+    alert('Proceeding to checkout');
 }
 
 // --- SMART SEARCH & COMPARISON ---
@@ -82,7 +108,6 @@ async function handleSearch() {
     dropdown.innerHTML = ""; // Clear previous suggestions
     dropdown.style.display = 'block'; // Show suggestions
 
-    // Simulating an advanced search with a timeout
     clearTimeout(window.searchTimeout);
     window.searchTimeout = setTimeout(async () => {
         const stores = ['Amazon', 'Noon', 'Carrefour', 'Namshi', 'SharafDG', 'Jumbo'];
@@ -116,9 +141,9 @@ function accumulateResults(accum, result) {
 
 function renderResults(results) {
     const grid = document.getElementById("trendingGrid");
+    const dropdown = document.getElementById("suggestions");
     grid.innerHTML = "";
-    const suggestions = document.getElementById("suggestions");
-    suggestions.innerHTML = "";
+    dropdown.innerHTML = "";
     
     if (results.length === 0) {
         grid.innerHTML = "<p>No items found. Try a different keyword.</p>";
@@ -130,41 +155,52 @@ function renderResults(results) {
         grid.innerHTML += `
             <div class="deal-card glass-card ${isBestPrice ? 'card-hot-deal' : ''}">
                 ${isBestPrice ? '<div class="deal-badge">CHEAPEST</div>' : ''}
+                <img src="${res.img}" alt="${res.name}">
                 <div class="store-name gold">${res.store.join(", ")}</div>
                 <div class="price-tag">${res.price.toLocaleString()} AED</div>
                 <p class="pts-preview">🪙 Earn ${Math.floor(res.price)} Points</p>
-                <button class="buy-btn-2050" onclick="processReward(${res.price}, '${res.link}')">Shop Now</button>
+                <button class="buy-btn-2050" onclick="addToBasket(${res.id})">Add to Basket</button>
             </div>`;
-        
+
         // Add to suggestions
-        suggestions.innerHTML += `<div style="padding: 8px; cursor: pointer;">${res.name} - ${res.price} AED</div>`
+        dropdown.innerHTML += `<div style="padding: 8px; cursor: pointer;" onclick="selectSuggestion('${res.name}')">${res.name} - ${res.price} AED</div>`;
     });
 
-    suggestions.style.display = 'block'; // Display suggestions
+    dropdown.style.display = 'block'; // Display suggestions
 }
 
-function toggleLanguage() {
-    const langLabel = document.getElementById("langLabel");
-    langLabel.innerHTML = langLabel.innerHTML === 'عربي' ? 'English' : 'عربي';
-    document.body.classList.toggle('rtl');
+function selectSuggestion(name) {
+    document.getElementById("searchInput").value = name;
+    handleSearch(); // Trigger the search for selected suggestion
 }
 
-// Other utility functions ...
+// Function to add items to the basket
+function addToBasket(productId) {
+    const product = { id: productId, name: `Product ${productId}`, price: Math.random() * 100 + 50, store: 'Store Name', img: 'https://via.placeholder.com/150' }; // Mock product details
+    basket.push(product);
+    localStorage.setItem("basket", JSON.stringify(basket));
+    document.getElementById("basketCount").innerText = basket.length;
 
-// Show page utility
+    alert(`${product.name} added to your basket!`);
+}
+
+// Mock function to fetch store data - replace with real API calls
+async function fetchStoreData(store, query) {
+    const dummyData = {
+        "Amazon": [{ id: 1, name: `${query} Product A`, price: Math.random() * 100 + 50, store: 'Amazon', link: '#', img: 'https://via.placeholder.com/150' }],
+        "Noon": [{ id: 2, name: `${query} Product B`, price: Math.random() * 100 + 50, store: 'Noon', link: '#', img: 'https://via.placeholder.com/150' }],
+        "Carrefour": [{ id: 3, name: `${query} Product C`, price: Math.random() * 100 + 50, store: 'Carrefour', link: '#', img: 'https://via.placeholder.com/150' }],
+        "Namshi": [{ id: 4, name: `${query} Product D`, price: Math.random() * 100 + 50, store: 'Namshi', link: '#', img: 'https://via.placeholder.com/150' }],
+        "SharafDG": [{ id: 5, name: `${query} Product E`, price: Math.random() * 100 + 50, store: 'SharafDG', link: '#', img: 'https://via.placeholder.com/150' }],
+        "Jumbo": [{ id: 6, name: `${query} Product F`, price: Math.random() * 100 + 50, store: 'Jumbo', link: '#', img: 'https://via.placeholder.com/150' }],
+    };
+
+    return dummyData[store] || [];
+}
+
+// Utility function to show the appropriate page.
 function showPage(pageId) {
     const pages = document.querySelectorAll('.page');
     pages.forEach(page => page.style.display = 'none');
     document.getElementById(pageId).style.display = 'block';
-}
-
-async function fetchStoreData(store, query) {
-    // Mocking data fetch. Replace this with actual API calls.
-    const dummyData = {
-        "Amazon": [{name: query + ' Product A', price:Math.random()*100 + 50, store: 'Amazon', link: '#', img: 'https://via.placeholder.com/150'}],
-        "Noon": [{name: query + ' Product B', price:Math.random()*100 + 50, store: 'Noon', link: '#', img: 'https://via.placeholder.com/150'}],
-        // Add more mock data for other stores
-    };
-
-    return dummyData[store] || [];
 }
