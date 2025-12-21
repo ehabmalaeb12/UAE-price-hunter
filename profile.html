@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile & Rewards - UAE Price Hunter</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2C3E50;
+            --secondary: #3498DB;
+            --accent: #E74C3C;
+            --dark: #1A252F;
+            --light: #ECF0F1;
+            --success: #2ECC71;
+            --warning: #F39C12;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <div class="top-nav">
+        <div class="nav-left">
+            <div class="logo">
+                <i class="fas fa-search-dollar"></i>
+                <h1>UAE PRICE HUNTER</h1>
+            </div>
+        </div>
+        <div class="nav-right">
+            <button class="lang-btn" onclick="toggleLanguage()">عربي</button>
+            <div class="user-menu">
+                <span id="userName">Guest</span>
+                <i class="fas fa-user-circle"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav">
+        <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i> Home
+        </a>
+        <a href="basket.html" class="nav-link">
+            <i class="fas fa-shopping-basket"></i> Basket 
+            <span id="navBasketCount" class="badge">0</span>
+        </a>
+        <a href="profile.html" class="nav-link active">
+            <i class="fas fa-user"></i> Profile
+        </a>
+        <a href="profile.html#rewards" class="nav-link">
+            <i class="fas fa-gift"></i> Rewards
+        </a>
+    </nav>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>Welcome to UAE Price Hunter</h2>
+            <p>Login to save your points and basket</p>
+            <div class="login-form">
+                <input type="email" id="loginEmail" placeholder="Your Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button class="btn-primary" onclick="loginUser()">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button class="btn-secondary" onclick="signupUser()">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+                <p class="small-text">By continuing, you agree to our Terms & Privacy</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Profile Header -->
+        <div class="profile-header" id="profile">
+            <div class="profile-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="profile-info">
+                <h1 id="profileName">Guest User</h1>
+                <p id="profileEmail">Not logged in</p>
+                <div class="profile-stats">
+                    <div class="stat">
+                        <span class="stat-value" id="totalPoints">0</span>
+                        <span class="stat-label">Total Points</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="savedMoney">0</span>
+                        <span class="stat-label">AED Saved</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="searchesCount">0</span>
+                        <span class="stat-label">Searches</span>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button class="btn-outline" onclick="showModal('loginModal')" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Login / Sign Up
+                </button>
+                <button class="btn-secondary" onclick="logoutUser()" id="logoutBtn" style="display: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('personal')">
+                <i class="fas fa-user"></i> Personal Info
+            </button>
+            <button class="tab" onclick="showTab('rewards')">
+                <i class="fas fa-gift"></i> My Rewards
+            </button>
+            <button class="tab" onclick="showTab('history')">
+                <i class="fas fa-history"></i> Search History
+            </button>
+            <button class="tab" onclick="showTab('settings')">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+        </div>
+
+        <!-- Personal Info Tab -->
+        <div id="personalTab" class="tab-content active">
+            <div class="card">
+                <h2><i class="fas fa-id-card"></i> Personal Information</h2>
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="your.email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" placeholder="+971 50 123 4567">
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location in UAE</label>
+                        <select id="location">
+                            <option value="">Select Emirate</option>
+                            <option value="dubai">Dubai</option>
+                            <option value="abu-dhabi">Abu Dhabi</option>
+                            <option value="sharjah">Sharjah</option>
+                            <option value="ajman">Ajman</option>
+                            <option value="ras-al-khaimah">Ras Al Khaimah</option>
+                            <option value="fujairah">Fujairah</option>
+                            <option value="umm-al-quwain">Umm Al Quwain</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-primary" onclick="saveProfile()">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2><i class="fas fa-chart-line"></i> Your Shopping Stats</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-search"></i>
+                        <div>
+                            <h3>Total Searches</h3>
+                            <p id="totalSearches">0 searches</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <div>
+                            <h3>Money Saved</h3>
+                            <p id="moneySaved">0 AED</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-calendar"></i>
+                        <div>
+                            <h3>Member Since</h3>
+                            <p id="memberSince">Not available</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-percentage"></i>
+                        <div>
+                            <h3>Average Savings</h3>
+                            <p id="avgSavings">0%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rewards Tab -->
+        <div id="rewardsTab" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-gift"></i> My Rewards & Points</h2>
+                
+                <div class="points-overview">
+                    <div class="points-card large">
+                        <div class="points-value">
+                            <span id="availablePoints">0</span>
+                            <small>Available Points</small>
+                        </div>
+                        <div class="points-conversion">
+                            <p><strong>50 Points = 1 AED</strong></p>
+                            <p>Redeem your points for cash or vouchers</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="points-breakdown">
+                    <h3><i class="fas fa-list"></i> Points Breakdown</h3>
+                    <div class="breakdown-grid">
+                        <div class="breakdown-item">
+                            <span class="label">Approved Points</span>
+                            <span class="value" id="approvedPoints">0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="label">Pending Points</span>
+                            <span class="value" id="pendingPoints">0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="label">Points Expiring Soon</span>
+                            <span class="value" id="expiringPoints">0</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="label">Total Earned</span>
+                            <span class="value" id="totalEarnedPoints">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="points-activity">
+                    <h3><i class="fas fa-history"></i> Recent Points Activity</h3>
+                    <div class="activity-list" id="pointsActivity">
+                        <!-- Points activity will be loaded here -->
+                        <div class="empty-activity">
+                            <i class="fas fa-coins"></i>
+                            <p>No points activity yet. Start shopping to earn points!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="redeem-section">
+                    <h3><i class="fas fa-shopping-bag"></i> Redeem Points</h3>
+                    <div class="redeem-options">
+                        <div class="redeem-option">
+                            <div class="option-content">
+                                <i class="fas fa-shopping-cart"></i>
+                                <div>
+                                    <h4>Carrefour Voucher</h4>
+                                    <p>1000 Points = 20 AED Voucher</p>
+                                </div>
+                            </div>
+                            <button class="btn-outline" onclick="redeemPoints(1000, 'Carrefour Voucher')">
+                                Redeem
+                            </button>
+                        </div>
+                        <div class="redeem-option">
+                            <div class="option-content">
+                                <i class="fas fa-mobile-alt"></i>
+                                <div>
+                                    <h4>Etisalat Recharge</h4>
+                                    <p>2500 Points = 50 AED Recharge</p>
+                                </div>
+                            </div>
+                            <button class="btn-outline" onclick="redeemPoints(2500, 'Etisalat Recharge')">
+                                Redeem
+                            </button>
+                        </div>
+                        <div class="redeem-option">
+                            <div class="option-content">
+                                <i class="fas fa-plane"></i>
+                                <div>
+                                    <h4>Emirates Miles</h4>
+                                    <p>5000 Points = 100 Skywards Miles</p>
+                                </div>
+                            </div>
+                            <button class="btn-outline" onclick="redeemPoints(5000, 'Emirates Miles')">
+                                Redeem
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="historyTab" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-history"></i> Search History</h2>
+                <div class="history-controls">
+                    <button class="btn-outline" onclick="clearSearchHistory()">
+                        <i class="fas fa-trash"></i> Clear History
+                    </button>
+                    <button class="btn-outline" onclick="exportHistory()">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+                <div class="history-list" id="searchHistoryList">
+                    <!-- Search history will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settingsTab" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-cog"></i> Account Settings</h2>
+                
+                <div class="settings-group">
+                    <h3><i class="fas fa-bell"></i> Notifications</h3>
+                    <div class="setting-item">
+                        <span>Price Drop Alerts</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Points & Rewards Updates</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>New Features Announcements</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3><i class="fas fa-eye"></i> Privacy</h3>
+                    <div class="setting-item">
+                        <span>Show my profile to other users</span>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Save search history</span>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3><i class="fas fa-language"></i> Language & Region</h3>
+                    <div class="form-group">
+                        <label for="appLanguage">App Language</label>
+                        <select id="appLanguage">
+                            <option value="en" selected>English</option>
+                            <option value="ar">العربية (Arabic)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="currency">Currency</label>
+                        <select id="currency">
+                            <option value="AED" selected>UAE Dirham (AED)</option>
+                            <option value="USD">US Dollar (USD)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+
+                <div class="danger-zone">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                    <button class="btn-danger" onclick="deleteAccount()">
+                        <i class="fas fa-trash"></i> Delete My Account
+                    </button>
+                    <p class="small-text">This will permanently delete your account and all data.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>UAE Price Hunter</h3>
+                <p>Smart shopping for the UAE market</p>
+                <p>Your profile is synced across all devices</p>
+            </div>
+            <div class="footer-section">
+                <h3>Account</h3>
+                <a href="profile.html">My Profile</a>
+                <a href="profile.html#rewards">My Rewards</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Service</a>
+            </div>
+            <div class="footer-section">
+                <h3>Support</h3>
+                <a href="contact.html">Contact Us</a>
+                <a href="help.html">Help Center</a>
+                <a href="faq.html">FAQ</a>
+                <a href="feedback.html">Feedback</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 UAE Price Hunter. All rights reserved.</p>
+            <p class="small-text">Your data is protected and never shared with third parties.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            updateNavigation();
+            loadProfilePage();
+        });
+
+        // Load profile page content
+        function loadProfilePage() {
+            // Load user data
+            const user = JSON.parse(localStorage.getItem('current_user') || '{}');
+            const points = parseInt(localStorage.getItem('user_points') || '0');
+            const searchHistory = JSON.parse(localStorage.getItem('search_history') || '[]');
+            
+            // Update profile info
+            if (user.email) {
+                document.getElementById('profileName').textContent = user.name || user.email.split('@')[0];
+                document.getElementById('profileEmail').textContent = user.email;
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'inline-block';
+                document.getElementById('userName').textContent = user.name || user.email.split('@')[0];
+            }
+            
+            // Update points
+            document.getElementById('totalPoints').textContent = points;
+            document.getElementById('availablePoints').textContent = points;
+            document.getElementById('approvedPoints').textContent = points;
+            
+            // Calculate pending points (simulated)
+            const pendingPoints = Math.floor(points * 0.3);
+            document.getElementById('pendingPoints').textContent = pendingPoints;
+            document.getElementById('totalEarnedPoints').textContent = points + pendingPoints;
+            
+            // Update search history
+            document.getElementById('searchesCount').textContent = searchHistory.length;
+            document.getElementById('totalSearches').textContent = searchHistory.length + ' searches';
+            
+            // Calculate money saved (simulated)
+            const savedMoney = searchHistory.length * 15; // Average 15 AED saved per search
+            document.getElementById('savedMoney').textContent = savedMoney;
+            document.getElementById('moneySaved').textContent = savedMoney + ' AED';
+            
+            // Update member since
+            if (user.joinedDate) {
+                document.getElementById('memberSince').textContent = new Date(user.joinedDate).toLocaleDateString();
+            }
+            
+            // Load search history
+            loadSearchHistoryList();
+            
+            // Load points activity
+            loadPointsActivity();
+        }
+
+        // Show tab content
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab').forEach(tabBtn => {
+                tabBtn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+            
+            // Update URL hash
+            if (tabName === 'rewards') {
+                window.location.hash = 'rewards';
+            }
+        }
+
+        // Load search history list
+        function loadSearchHistoryList() {
+            const historyList = document.getElementById('searchHistoryList');
+            const searchHistory = JSON.parse(localStorage.getItem('search_history') || '[]');
+            
+            if (searchHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-history">
+                        <i class="fas fa-search"></i>
+                        <p>No search history yet. Start searching for products!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            searchHistory.forEach((item, index) => {
+                html += `
+                    <div class="history-item">
+                        <div class="history-content">
+                            <i class="fas fa-search"></i>
+                            <div>
+                                <h4>${item.query}</h4>
+                                <p class="history-date">${new Date(item.timestamp).toLocaleString()}</p>
+                                <p class="history-stats">Found ${item.results || 0} products</p>
+                            </div>
+                        </div>
+                        <button class="btn-outline" onclick="repeatSearch('${item.query}')">
+                            <i class="fas fa-redo"></i> Search Again
+                        </button>
+                    </div>
+                `;
+            });
+            
+            historyList.innerHTML = html;
+        }
+
+        // Load points activity
+        function loadPointsActivity() {
+            const activityList = document.getElementById('pointsActivity');
+            const activities = [
+                { type: 'earned', amount: 100, reason: 'Welcome Bonus', date: new Date().toISOString() },
+                { type: 'earned', amount: 50, reason: 'First Search', date: new Date(Date.now() - 86400000).toISOString() },
+                { type: 'earned', amount: 25, reason: 'Daily Login', date: new Date(Date.now() - 172800000).toISOString() }
+            ];
+            
+            let html = '';
+            activities.forEach(activity => {
+                html += `
+                    <div class="activity-item ${activity.type}">
+                        <div class="activity-icon">
+                            <i class="fas fa-${activity.type === 'earned' ? 'plus-circle' : 'minus-circle'}"></i>
+                        </div>
+                        <div class="activity-details">
+                            <h4>${activity.reason}</h4>
+                            <p class="activity-date">${new Date(activity.date).toLocaleDateString()}</p>
+                        </div>
+                        <div class="activity-amount ${activity.type}">
+                            ${activity.type === 'earned' ? '+' : '-'}${activity.amount} points
+                        </div>
+                    </div>
+                `;
+            });
+            
+            activityList.innerHTML = html;
+        }
+
+        // Repeat search from history
+        function repeatSearch(query) {
+            localStorage.setItem('last_search', query);
+            window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+        }
+
+        // Clear search history
+        function clearSearchHistory() {
+            if (confirm('Are you sure you want to clear your search history?')) {
+                localStorage.setItem('search_history', '[]');
+                loadSearchHistoryList();
+                alert('Search history cleared!');
+            }
+        }
+
+        // Export history
+        function exportHistory() {
+            const searchHistory = JSON.parse(localStorage.getItem('search_history') || '[]');
+            const dataStr = JSON.stringify(searchHistory, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(dataBlob);
+            downloadLink.download = 'uae-price-hunter-history.json';
+            downloadLink.click();
+            
+            alert('Search history exported successfully!');
+        }
+
+        // Save profile
+        function saveProfile() {
+            const name = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const location = document.getElementById('location').value;
+            
+            // Save to localStorage (in real app, save to Firebase)
+            const user = {
+                name: name,
+                email: email,
+                phone: phone,
+                location: location,
+                updatedAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem('current_user', JSON.stringify(user));
+            loadProfilePage();
+            alert('Profile saved successfully!');
+        }
+
+        // Redeem points
+        function redeemPoints(pointsNeeded, rewardName) {
+            const currentPoints = parseInt(localStorage.getItem('user_points') || '0');
+            
+            if (currentPoints < pointsNeeded) {
+                alert(`You need ${pointsNeeded} points to redeem this reward. You have ${currentPoints} points.`);
+                return;
+            }
+            
+            if (confirm(`Redeem ${pointsNeeded} points for ${rewardName}?`)) {
+                const newPoints = currentPoints - pointsNeeded;
+                localStorage.setItem('user_points', newPoints.toString());
+                
+                // Add to points activity
+                const activities = JSON.parse(localStorage.getItem('points_activity') || '[]');
+                activities.unshift({
+                    type: 'redeemed',
+                    amount: pointsNeeded,
+                    reason: rewardName,
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem('points_activity', JSON.stringify(activities));
+                
+                loadProfilePage();
+                alert(`🎉 Successfully redeemed ${rewardName}!`);
+            }
+        }
+
+        // Save settings
+        function saveSettings() {
+            alert('Settings saved successfully!');
+        }
+
+        // Delete account
+        function deleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                if (confirm('This will permanently delete all your data. Type DELETE to confirm:')) {
+                    // Clear all user data
+                    localStorage.removeItem('current_user');
+                    localStorage.removeItem('user_points');
+                    localStorage.removeItem('search_history');
+                    localStorage.removeItem('points_activity');
+                    
+                    alert('Account deleted successfully. You will be redirected to the home page.');
+                    window.location.href = 'index.html';
+                }
+            }
+        }
+
+        // Check URL hash for rewards tab
+        window.addEventListener('hashchange', function() {
+            if (window.location.hash === '#rewards') {
+                showTab('rewards');
+            }
+        });
+
+        // Toggle language
+        function toggleLanguage() {
+            const btn = document.querySelector('.lang-btn');
+            if (btn.textContent === 'عربي') {
+                btn.textContent = 'EN';
+                document.documentElement.dir = 'rtl';
+                document.documentElement.lang = 'ar';
+                updateArabicProfileContent();
+            } else {
+                btn.textContent = 'عربي';
+                document.documentElement.dir = 'ltr';
+                document.documentElement.lang = 'en';
+                updateEnglishProfileContent();
+            }
+        }
+
+        function updateArabicProfileContent() {
+            // Update profile header
+            document.querySelector('.profile-info h1').textContent = 'مستخدم ضيف';
+            // Add more translations as needed
+        }
+
+        function updateEnglishProfileContent() {
+            // Update profile header
+            document.querySelector('.profile-info h1').textContent = 'Guest User';
+        }
+    </script>
+</body>
+</html>
