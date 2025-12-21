@@ -738,4 +738,60 @@ function showNotification(message, type = 'info') {
     gap: 0.5rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 9999;
-    animation: slideInRight
+    animation: slideInRight 0.3s ease;
+    max-width: 400px;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Add animation styles
+  if (!document.querySelector('#notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
+// Get notification color
+function getNotificationColor(type) {
+  const colors = {
+    'success': '#2ECC71',
+    'error': '#E74C3C',
+    'warning': '#F39C12',
+    'info': '#3498DB'
+  };
+  return colors[type] || '#3498DB';
+}
+
+// Export functions to window
+window.initializeApp = initializeApp;
+window.performSearch = performSearch;
+window.addToBasket = addToBasket;
+window.updateBasketQuantity = updateBasketQuantity;
+window.removeItemFromBasket = removeItemFromBasket;
+window.clearBasket = clearBasket;
+window.showModal = showModal;
+window.closeModal = closeModal;
+window.loginUser = loginUser;
+window.signupUser = signupUser;
+window.logoutUser = logoutUser;
+window.selectSuggestion = selectSuggestion;
+window.showNotification = showNotification;
+
+console.log("🎯 UAE Price Hunter main script loaded");
