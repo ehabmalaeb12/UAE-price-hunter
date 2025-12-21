@@ -1,5 +1,42 @@
 // --- CONFIGURATION ---
 const SCRAPE_DO_TOKEN = '641c5334a7504c15abb0902cd23d0095b4dbb6711a3';
+const REWARD_CONVERSION_RATE = 50; // 1 AED for each 50 points
+
+// Language Toggle Function
+function toggleLanguage() {
+    const langLabel = document.getElementById("langLabel");
+    let isArabic = langLabel.innerHTML === 'عربي';
+    
+    langLabel.innerHTML = isArabic ? 'English' : 'عربي';
+    
+    // Update text according to selected language
+    if (isArabic) {
+        document.documentElement.lang = 'ar';
+        document.querySelector('header .logo').innerHTML = '<span class="gold">الإمارات</span> صياد الأسعار';
+        document.querySelector('.search-section input').placeholder = 'ابحث عن أي منتج في الإمارات ...';
+        showHome(); // Re-show home to update texts.
+    } else {
+        document.documentElement.lang = 'en';
+        document.querySelector('header .logo').innerHTML = '<span class="gold">UAE</span> PRICE HUNTER';
+        document.querySelector('.search-section input').placeholder = 'Search any product in UAE...';
+        showHome(); // Re-show home to update texts.
+    }
+}
+
+function showRewards() {
+    document.getElementById("approvedPoints").innerText = rewards.approved;
+    document.getElementById("pendingPoints").innerText = rewards.pending;
+
+    // Add points conversion display
+    const rewardsInfo = document.createElement('p');
+    rewardsInfo.innerText = '1 Dirham = 50 Points';
+    document.querySelector('#rewardsPage .glass-card').appendChild(rewardsInfo);
+    
+    showPage("rewardsPage");
+}
+
+// --- CONFIGURATION ---
+const SCRAPE_DO_TOKEN = '641c5334a7504c15abb0902cd23d0095b4dbb6711a3';
 const REWARD_CONVERSION_RATE = 100; // 100 points = 1 AED
 
 // --- NEW REWARDS LOGIC ---
