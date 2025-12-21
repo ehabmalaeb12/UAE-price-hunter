@@ -1,6 +1,6 @@
 // --- CONFIGURATION ---
-const SCRAPE_DO_TOKEN = '641c5334a7504c15abb0902cd23d0095b4dbb6711a3';
-const REWARD_CONVERSION_RATE = 50; // 1 Dirham for every 50 points
+const SCRAPE_DO_TOKEN = '641c5334a7504c15abb0902cd23d0095b4dbb6711a3'; // Your API token
+const EMAIL_TO_SEND = "uae.price.hunter@gmail.com"; // Email endpoint
 
 // Initialize rewards
 let rewards = {
@@ -52,7 +52,7 @@ function updateLanguage(isArabic) {
         "headerLogo": isArabic ? "صياد الأسعار" : "UAE PRICE HUNTER",
         "searchPlaceholder": isArabic ? "ابحث عن أي منتج في الإمارات ..." : "Search any product in UAE...",
         "welcomeTitle": isArabic ? "مرحبا! 🇦🇪" : "Marhaba! 🇦🇪",
-        "welcomeSub": isArabic ? "مساعد الأسعار الذكي جاهز." : "Your AI Price Assistant is ready."
+        "trending": isArabic ? "🔥 مقارنة الأسعار المباشرة" : "🔥 Live Price Comparison"
     };
 
     document.querySelectorAll("[data-key]").forEach(element => {
@@ -176,7 +176,14 @@ function selectSuggestion(name) {
 
 // Function to add items to the basket
 function addToBasket(productId) {
-    const product = { id: productId, name: `Product ${productId}`, price: Math.random() * 100 + 50, store: 'Store Name', img: 'https://via.placeholder.com/150' }; // Mock product details
+    const product = { 
+        id: productId, 
+        name: `Product ${productId}`, // Replace with actual product name
+        price: Math.random() * 100 + 50, // Replace with actual price fetching logic
+        store: 'Store Name', // Replace with fetched store name
+        img: 'https://via.placeholder.com/150' // Replace with actual image link
+    };
+    
     basket.push(product);
     localStorage.setItem("basket", JSON.stringify(basket));
     document.getElementById("basketCount").innerText = basket.length;
@@ -184,7 +191,7 @@ function addToBasket(productId) {
     alert(`${product.name} added to your basket!`);
 }
 
-// Mock function to fetch store data - replace with real API calls
+// Mock function to fetch store data (replace with real API calls)
 async function fetchStoreData(store, query) {
     const dummyData = {
         "Amazon": [{ id: 1, name: `${query} Product A`, price: Math.random() * 100 + 50, store: 'Amazon', link: '#', img: 'https://via.placeholder.com/150' }],
@@ -198,7 +205,20 @@ async function fetchStoreData(store, query) {
     return dummyData[store] || [];
 }
 
-// Utility function to show the appropriate page.
+// Sending Profile Information via Email
+function sendProfile() {
+    const profileData = {
+        name: "Your Name", // Replace with actual value
+        email: "Your Email", // Replace with actual value
+        savedPoints: rewards.saved,
+    };
+
+    const emailBody = `Profile Information:\nName: ${profileData.name}\nEmail: ${profileData.email}\nSaved Points: ${profileData.savedPoints}`;
+    const mailtoLink = `mailto:${EMAIL_TO_SEND}?subject=Profile Information&body=${encodeURIComponent(emailBody)}`;
+    window.location.href = mailtoLink; // Opening mail client for sending
+}
+
+// Utility function to show the appropriate page
 function showPage(pageId) {
     const pages = document.querySelectorAll('.page');
     pages.forEach(page => page.style.display = 'none');
