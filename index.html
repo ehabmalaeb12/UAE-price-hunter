@@ -1,98 +1,146 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UAE Price Hunter | Live Smart Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAE Price Hunter</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Arabic Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body id="appBody">
+<body>
+    <!-- Language Toggle -->
+    <div class="language-toggle">
+        <button id="arabicBtn" class="lang-btn active">عربي</button>
+        <button id="englishBtn" class="lang-btn">English</button>
+    </div>
 
-<div class="desert-bg"></div>
-
-<header>
-    <div class="top-bar">
-        <div class="basket-btn" onclick="openBasket()">
-            <div class="basket-icon-wrapper">
-                <i class="fa-solid fa-cart-shopping"></i>
-                <span id="basketCount">0</span>
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Welcome to UAE Price Hunter</h2>
+            <div id="loginForm">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button id="loginBtn">Login</button>
+                <button id="signupBtn">Create Account</button>
             </div>
         </div>
-        <div class="logo"><span class="gold">UAE</span> PRICE HUNTER</div>
-        <div class="lang-toggle" onclick="toggleLanguage()">
-            <i class="fa-solid fa-globe"></i> <span id="langLabel">عربي</span>
-        </div>
-    </div>
-</header>
-
-<main id="mainContent">
-    <div class="search-section">
-        <div class="search-pill glass-effect">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input id="searchInput" placeholder="Search any product in UAE..." oninput="handleSearch()">
-        </div>
-        <div id="suggestions" class="glass-dropdown"></div>
     </div>
 
-    <section id="trendingSection">
-        <div class="uae-welcome-card">
-            <div class="welcome-text">
-                <h3 data-key="welcomeTitle">Marhaba! 🇦🇪</h3>
-                <p>Your AI Price Assistant is ready.</p>
+    <!-- Basket Modal -->
+    <div id="basketModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>My Basket</h2>
+            <div id="basketItems"></div>
+            <div id="basketTotal">Total: 0 AED</div>
+            <button id="clearBasket">Clear Basket</button>
+        </div>
+    </div>
+
+    <header>
+        <h1><i class="fas fa-search-dollar"></i> UAE PRICE HUNTER</h1>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h2 id="greeting">Marhaba! 🇦🇪</h2>
+            <p id="subtitle">Your AI Price Assistant is ready.</p>
+            
+            <div class="points-display">
+                <div class="points-card" id="userPointsCard" style="display:none;">
+                    <h3><i class="fas fa-coins"></i> <span id="pointsValue">0</span></h3>
+                    <p>Points Balance</p>
+                </div>
+                <button id="showLogin" class="btn-primary">Login to Earn Points</button>
             </div>
-            <div class="savings-meter">
-                <span id="meterPoints">0</span>
-                <label>Points</label>
+        </section>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search for products (iPhone, Samsung TV, Nike shoes...)" autocomplete="off">
+                <button id="searchBtn"><i class="fas fa-search"></i> Search</button>
+                <div id="searchSuggestions" class="suggestions-box"></div>
             </div>
-        </div>
-        <div class="section-header">
-            <h2 data-key="trending">🔥 Live Price Comparison</h2>
-        </div>
-        <div id="trendingGrid" class="deals-grid"></div>
-    </section>
-</main>
+            <div class="store-filters">
+                <label><input type="checkbox" class="store-checkbox" value="amazon" checked> Amazon.ae</label>
+                <label><input type="checkbox" class="store-checkbox" value="noon" checked> Noon</label>
+                <label><input type="checkbox" class="store-checkbox" value="carrefour" checked> Carrefour</label>
+                <label><input type="checkbox" class="store-checkbox" value="sharafdg" checked> Sharaf DG</label>
+                <label><input type="checkbox" class="store-checkbox" value="emax" checked> eMax</label>
+                <label><input type="checkbox" class="store-checkbox" value="lulu" checked> Lulu</label>
+            </div>
+        </section>
 
-<div id="productPage" class="page"></div>
-<div id="basketPage" class="page">
-    <div class="page-header">
-        <button class="back-nav" onclick="showHome()"><i class="fa-solid fa-chevron-left"></i></button>
-        <h2>My Basket</h2>
-    </div>
-    <div id="basketItems"></div>
-    <div class="basket-total">
-        <strong>Total:</strong> <span id="basketTotalPrice">0</span> AED
-        <button onclick="proceedToCheckout()">Checkout</button>
-    </div>
-</div>
-<div id="rewardsPage" class="page">
-    <div class="page-header"><h2>My Rewards</h2></div>
-    <div class="glass-card">
-        <h3>Points Overview</h3>
-        <p>Approved Points: <span id="approvedPoints">0</span></p>
-        <p>Pending Points: <span id="pendingPoints">0</span></p>
-        <p>1 Dirham = 50 Points</p>
-        <button onclick="redeemPoints()">Redeem Points</button>
-    </div>
-</div>
-<div id="profilePage" class="page">
-    <div class="page-header"><h2>Your Profile</h2></div>
-    <div class="profile-card">
-        <div class="user-avatar"><i class="fa-solid fa-user-circle"></i></div>
-        <p>Your Name</p>
-        <p>Your Email</p>
-        <p>Saved Points: <span id="savedPoints">0</span></p>
-        <button onclick="sendProfile()">Send Profile Info</button>
-        <button onclick="logout()">Logout</button>
-    </div>
-</div>
+        <!-- Results Section -->
+        <section class="results-section">
+            <h2><i class="fas fa-fire"></i> Live Price Comparison</h2>
+            <div id="loading" style="display:none;">Searching 6 stores...</div>
+            <div id="searchResults"></div>
+        </section>
 
-<nav class="pill-nav glass-effect">
-    <button onclick="showHome()" id="navHome" class="nav-item active"><i class="fa-solid fa-house-chimney"></i></button>
-    <button onclick="showRewards()" id="navGift" class="nav-item"><i class="fa-solid fa-gift"></i></button>
-    <button onclick="showProfile()" id="navUser" class="nav-item"><i class="fa-solid fa-user-ninja"></i></button>
-</nav>
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <button id="openBasket" class="action-btn">
+                <i class="fas fa-shopping-basket"></i>
+                <span>My Basket</span>
+                <span id="basketCount" class="badge">0</span>
+            </button>
+            <button id="openProfile" class="action-btn">
+                <i class="fas fa-user"></i>
+                <span>My Profile</span>
+            </button>
+            <button id="openRewards" class="action-btn">
+                <i class="fas fa-gift"></i>
+                <span>Rewards</span>
+            </button>
+        </section>
 
-<script src="script.js"></script>
+        <!-- Profile Section -->
+        <section id="profileSection" class="profile-section" style="display:none;">
+            <h2><i class="fas fa-id-card"></i> Your Profile</h2>
+            <div class="profile-info">
+                <p><strong>Name:</strong> <span id="profileName">Loading...</span></p>
+                <p><strong>Email:</strong> <span id="profileEmail">Loading...</span></p>
+                <p><strong>Member Since:</strong> <span id="memberSince">Loading...</span></p>
+                <p><strong>Saved Points:</strong> <span id="profilePoints">0</span> (50 points = 1 AED)</p>
+            </div>
+            <button id="logoutBtn" class="btn-secondary">Logout</button>
+        </section>
+
+        <!-- Rewards Section -->
+        <section id="rewardsSection" class="rewards-section" style="display:none;">
+            <h2><i class="fas fa-award"></i> My Rewards</h2>
+            <div class="rewards-card">
+                <h3>Points Overview</h3>
+                <div class="points-breakdown">
+                    <p><i class="fas fa-check-circle"></i> Approved Points: <span id="approvedPoints">0</span></p>
+                    <p><i class="fas fa-clock"></i> Pending Points: <span id="pendingPoints">0</span></p>
+                    <p><i class="fas fa-exchange-alt"></i> Exchange Rate: 50 Points = 1 AED</p>
+                </div>
+                <button id="redeemPoints" class="btn-primary">Redeem Points</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>UAE Price Hunter © 2024 | Compare prices from 6+ stores</p>
+        <p>This is a demo project. Real implementation requires affiliate API setup.</p>
+    </footer>
+
+    <!-- Load scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
