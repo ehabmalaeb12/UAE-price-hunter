@@ -38,7 +38,7 @@
     <section id="trendingSection">
         <div class="uae-welcome-card">
             <div class="welcome-text">
-                <h3>Marhaba! 🇦🇪</h3>
+                <h3 data-key="welcomeTitle">Marhaba! 🇦🇪</h3>
                 <p>Your AI Price Assistant is ready.</p>
             </div>
             <div class="savings-meter">
@@ -47,7 +47,7 @@
             </div>
         </div>
         <div class="section-header">
-            <h2>🔥 Live Price Comparison</h2>
+            <h2 data-key="trending">🔥 Live Price Comparison</h2>
         </div>
         <div id="trendingGrid" class="deals-grid"></div>
     </section>
@@ -82,6 +82,7 @@
         <p>Your Name</p>
         <p>Your Email</p>
         <p>Saved Points: <span id="savedPoints">0</span></p>
+        <button onclick="sendProfile()">Send Profile Info</button>
         <button onclick="logout()">Logout</button>
     </div>
 </div>
@@ -95,4 +96,3 @@
 <script src="script.js"></script>
 </body>
 </html>
-
