@@ -1,226 +1,623 @@
-// --- CONFIGURATION ---
-const SCRAPE_DO_TOKEN = '641c5334a7504c15abb0902cd23d0095b4dbb6711a3'; // Your API token
-const EMAIL_TO_SEND = "uae.price.hunter@gmail.com"; // Email endpoint
+// ============================================
+// UAE PRICE HUNTER - MAIN APPLICATION
+// ============================================
+// 🔧 CONFIGURATION: Add your API keys below
+// ============================================
 
-// Initialize rewards
-let rewards = {
-    pending: parseInt(localStorage.getItem("pendingPoints")) || 0,
-    approved: parseInt(localStorage.getItem("approvedPoints")) || 0,
-    saved: parseInt(localStorage.getItem("savedPoints")) || 0,
+// 🔧 REPLACE THIS WITH YOUR SCRAPE.DO API KEY
+const SCRAPEDO_API_KEY = "641c5334a7504c15abb0902cd23d0095b4dbb6711a3"; // Get from: https://scrape.do
+
+// Sample products for search suggestions
+const SUGGESTION_PRODUCTS = [
+    "iPhone 15 Pro Max", "Samsung Galaxy S24", "MacBook Air M3",
+    "PlayStation 5", "Nike Air Force 1", "Adidas Ultraboost",
+    "Samsung QLED TV 65", "Dyson Airwrap", "Apple Watch Series 9",
+    "Nescafe Coffee Machine", "Chocolate Dates", "Arabic Perfume",
+    "Gold Jewelry", "Car Accessories", "Baby Stroller"
+];
+
+// Store URLs for scraping
+const STORE_URLS = {
+    amazon: "https://www.amazon.ae/s?k=",
+    noon: "https://www.noon.com/uae-en/search?q=",
+    carrefour: "https://www.carrefouruae.com/mafuae/en/search?text=",
+    sharafdg: "https://www.sharafdg.com/catalogsearch/result/?q=",
+    emax: "https://www.emaxme.com/search?q=",
+    lulu: "https://www.luluhypermarket.com/en-ae/search?q="
 };
 
-// Initialize basket
-let basket = JSON.parse(localStorage.getItem("basket")) || [];
+// DOM Elements
+let currentUser = null;
+let userData = null;
+let basket = [];
+let currentLanguage = 'english';
 
-// Load saved points on profile page
-function loadProfilePoints() {
-    document.getElementById("savedPoints").innerText = rewards.saved;
-}
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
 
-// Functions to handle page navigation
-function showHome() {
-    document.querySelectorAll('.page').forEach(page => page.style.display = 'none');
-    document.getElementById('mainContent').style.display = 'block';
-    document.getElementById('trendingGrid').style.display = 'block';
-}
-
-function showRewards() {
-    document.getElementById("approvedPoints").innerText = rewards.approved;
-    document.getElementById("pendingPoints").innerText = rewards.pending;
-    document.querySelector('.page').style.display = 'none';
-    document.getElementById('rewardsPage').style.display = 'block';
-}
-
-function showProfile() {
-    loadProfilePoints();
-    document.querySelector('.page').style.display = 'none';
-    document.getElementById('profilePage').style.display = 'block';
-}
-
-// Function to toggle language
-function toggleLanguage() {
-    const langLabel = document.getElementById("langLabel");
-    const isArabic = langLabel.innerText === 'عربي';
+function initializeApp() {
+    // Set up event listeners
+    setupEventListeners();
     
-    langLabel.innerText = isArabic ? 'English' : 'عربي';
-    updateLanguage(isArabic);
+    // Check Firebase auth state
+    checkAuthState();
+    
+    // Load basket from localStorage as fallback
+    loadBasketFromStorage();
 }
 
-// Function to update language based on setting
-function updateLanguage(isArabic) {
-    const elementsToTranslate = {
-        "headerLogo": isArabic ? "صياد الأسعار" : "UAE PRICE HUNTER",
-        "searchPlaceholder": isArabic ? "ابحث عن أي منتج في الإمارات ..." : "Search any product in UAE...",
-        "welcomeTitle": isArabic ? "مرحبا! 🇦🇪" : "Marhaba! 🇦🇪",
-        "trending": isArabic ? "🔥 مقارنة الأسعار المباشرة" : "🔥 Live Price Comparison"
-    };
+// ============================================
+// AUTHENTICATION FUNCTIONS
+// ============================================
 
-    document.querySelectorAll("[data-key]").forEach(element => {
-        const key = element.getAttribute("data-key");
-        if (elementsToTranslate[key]) {
-            element.innerText = elementsToTranslate[key];
+function setupEventListeners() {
+    // Search functionality
+    document.getElementById('searchBtn').addEventListener('click', performSearch);
+    document.getElementById('searchInput').addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') performSearch();
+        else showSearchSuggestions(this.value);
+    });
+    
+    // Login/Signup
+    document.getElementById('showLogin').addEventListener('click', showLoginModal);
+    document.getElementById('loginBtn').addEventListener('click', loginUser);
+    document.getElementById('signupBtn').addEventListener('click', signupUser);
+    document.getElementById('logoutBtn').addEventListener('click', logoutUser);
+    
+    // Basket
+    document.getElementById('openBasket').addEventListener('click', showBasketModal);
+    document.getElementById('clearBasket').addEventListener('click', clearBasket);
+    
+    // Navigation
+    document.getElementById('openProfile').addEventListener('click', showProfileSection);
+    document.getElementById('openRewards').addEventListener('click', showRewardsSection);
+    
+    // Language toggle
+    document.getElementById('arabicBtn').addEventListener('click', () => switchLanguage('arabic'));
+    document.getElementById('englishBtn').addEventListener('click', () => switchLanguage('english'));
+    
+    // Modal close buttons
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', closeAllModals);
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            closeAllModals();
         }
     });
 }
 
-// --- BASKET ENGINE ---
-function openBasket() {
-    const container = document.getElementById("basketItems");
-    const totalPriceElement = document.getElementById("basketTotalPrice");
-    container.innerHTML = ""; // Clear view
-    totalPriceElement.innerHTML = '0'; // Reset total price
-
-    if (basket.length === 0) {
-        container.innerHTML = "<div class='empty-basket'>Your desert is empty! 🏜️</div>";
-    } else {
-        let totalPrice = 0;
-        basket.forEach((item, index) => {
-            totalPrice += item.price;
-            container.innerHTML += `
-                <div class="glass-card basket-item">
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <img src="${item.img || ''}" style="width:40px; height:40px; border-radius:5px; object-fit:cover;">
-                        <div><strong>${item.name}</strong><br><small>${item.store}</small></div>
-                    </div>
-                    <div>${item.price} AED 
-                    <button onclick="removeFromBasket(${index})" class="remove-btn">×</button>
-                    </div>
-                </div>`;
-        });
-        totalPriceElement.innerHTML = totalPrice.toFixed(2); // Update total price
-    }
-    showPage("basketPage");
-}
-
-function proceedToCheckout() {
-    alert('Proceeding to checkout');
-}
-
-// --- SMART SEARCH & COMPARISON ---
-async function handleSearch() {
-    const query = document.getElementById("searchInput").value.trim();
-    if (query.length < 3) {
-        document.getElementById("suggestions").style.display = 'none';
-        return;
-    }
-
-    const dropdown = document.getElementById("suggestions");
-    dropdown.innerHTML = ""; // Clear previous suggestions
-    dropdown.style.display = 'block'; // Show suggestions
-
-    clearTimeout(window.searchTimeout);
-    window.searchTimeout = setTimeout(async () => {
-        const stores = ['Amazon', 'Noon', 'Carrefour', 'Namshi', 'SharafDG', 'Jumbo'];
-        const results = await Promise.all(stores.map(s => fetchStoreData(s, query)));
-
-        // Gather unique results
-        const uniqueResults = results.reduce((accum, result) => {
-            return accumulateResults(accum, result);
-        }, []);
-
-        // Sort results by price
-        const validResults = uniqueResults.filter(r => r.price > 0).sort((a, b) => a.price - b.price);
-        renderResults(validResults);
-    }, 300);
-}
-
-function accumulateResults(accum, result) {
-    if (!result || !result.length) return accum;
-
-    result.forEach(item => {
-        const existing = accum.find(i => i.name === item.name);
-        if (existing) {
-            existing.store.push(item.store);
-            existing.price = Math.min(existing.price, item.price); // Keep the best price
+function checkAuthState() {
+    firebaseAuth.onAuthStateChanged((user) => {
+        if (user) {
+            currentUser = user;
+            loadUserData(user.uid);
+            showUserProfile();
         } else {
-            accum.push({...item, store: [item.store]});
+            currentUser = null;
+            userData = null;
+            showLoginButton();
         }
     });
-    return accum;
 }
 
-function renderResults(results) {
-    const grid = document.getElementById("trendingGrid");
-    const dropdown = document.getElementById("suggestions");
-    grid.innerHTML = "";
-    dropdown.innerHTML = "";
-    
-    if (results.length === 0) {
-        grid.innerHTML = "<p>No items found. Try a different keyword.</p>";
+async function loadUserData(userId) {
+    try {
+        const docRef = firebaseDb.collection('users').doc(userId);
+        const docSnap = await docRef.get();
+        
+        if (docSnap.exists()) {
+            userData = docSnap.data();
+            updateProfileDisplay();
+            updatePointsDisplay();
+        } else {
+            // Create new user document
+            userData = {
+                name: currentUser.displayName || currentUser.email.split('@')[0],
+                email: currentUser.email,
+                points: 100, // Welcome points
+                joined: new Date().toISOString(),
+                basket: []
+            };
+            await docRef.set(userData);
+            updateProfileDisplay();
+        }
+    } catch (error) {
+        console.error("Error loading user data:", error);
+    }
+}
+
+// ============================================
+// SEARCH FUNCTIONS
+// ============================================
+
+async function performSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (!query) {
+        alert("Please enter a search term");
         return;
     }
+    
+    const selectedStores = Array.from(document.querySelectorAll('.store-checkbox:checked'))
+        .map(cb => cb.value);
+    
+    if (selectedStores.length === 0) {
+        alert("Please select at least one store");
+        return;
+    }
+    
+    // Show loading
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('searchResults').innerHTML = '';
+    
+    try {
+        // For demo purposes, we'll use mock data
+        // In production, replace with actual scrape.do API calls
+        const results = await mockSearch(query, selectedStores);
+        displaySearchResults(results);
+    } catch (error) {
+        console.error("Search error:", error);
+        document.getElementById('searchResults').innerHTML = `
+            <div class="error-message">
+                <p>Search failed. Please try again.</p>
+                <p><small>Error: ${error.message}</small></p>
+            </div>
+        `;
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+}
 
-    results.forEach((res, index) => {
-        const isBestPrice = index === 0; // First in sorted list
-        grid.innerHTML += `
-            <div class="deal-card glass-card ${isBestPrice ? 'card-hot-deal' : ''}">
-                ${isBestPrice ? '<div class="deal-badge">CHEAPEST</div>' : ''}
-                <img src="${res.img}" alt="${res.name}">
-                <div class="store-name gold">${res.store.join(", ")}</div>
-                <div class="price-tag">${res.price.toLocaleString()} AED</div>
-                <p class="pts-preview">🪙 Earn ${Math.floor(res.price)} Points</p>
-                <button class="buy-btn-2050" onclick="addToBasket(${res.id})">Add to Basket</button>
-            </div>`;
+// ============================================
+// 🚀 ACTUAL SCRAPE.DO API INTEGRATION POINT
+// ============================================
+// Replace this function with real API calls to scrape.do
+// ============================================
 
-        // Add to suggestions
-        dropdown.innerHTML += `<div style="padding: 8px; cursor: pointer;" onclick="selectSuggestion('${res.name}')">${res.name} - ${res.price} AED</div>`;
+async function searchWithScrapeDo(query, store) {
+    // 🔧 IMPLEMENT REAL SCRAPE.DO API CALL HERE
+    // Example (uncomment and add your API key):
+    /*
+    const url = STORE_URLS[store] + encodeURIComponent(query);
+    const response = await fetch(`https://api.scrape.do?token=${SCRAPEDO_API_KEY}&url=${encodeURIComponent(url)}`);
+    const html = await response.text();
+    
+    // Parse HTML to extract product data
+    // You'll need to write parsing logic for each store
+    return parseStoreData(html, store);
+    */
+    
+    // For now, return mock data
+    return mockStoreData(query, store);
+}
+
+function mockSearch(query, stores) {
+    // Generate mock product data for demo
+    const products = [];
+    const basePrice = Math.floor(Math.random() * 500) + 100;
+    
+    stores.forEach(store => {
+        const priceVariation = Math.floor(Math.random() * 200) - 100;
+        const price = basePrice + priceVariation;
+        
+        products.push({
+            id: `${store}-${Date.now()}-${Math.random()}`,
+            name: `${query} - ${store.toUpperCase()} Edition`,
+            store: store,
+            price: price,
+            originalPrice: price + 50,
+            image: `https://via.placeholder.com/150x150/2C3E50/FFFFFF?text=${store}`,
+            description: `Premium ${query} available at ${store}. Best quality guaranteed.`,
+            url: `https://${store}.com/product/${encodeURIComponent(query)}`,
+            inStock: Math.random() > 0.2,
+            rating: (Math.random() * 3 + 2).toFixed(1)
+        });
     });
-
-    dropdown.style.display = 'block'; // Display suggestions
+    
+    // Add best price highlight
+    if (products.length > 0) {
+        const bestPrice = Math.min(...products.map(p => p.price));
+        products.forEach(p => {
+            p.isBestPrice = p.price === bestPrice;
+        });
+    }
+    
+    return products;
 }
 
-function selectSuggestion(name) {
-    document.getElementById("searchInput").value = name;
-    handleSearch(); // Trigger the search for selected suggestion
+function mockStoreData(query, store) {
+    const price = Math.floor(Math.random() * 1000) + 50;
+    return {
+        name: `${query} at ${store}`,
+        price: price,
+        url: `https://${store}.com/product/${encodeURIComponent(query)}`,
+        image: `https://via.placeholder.com/150/2C3E50/FFFFFF?text=${store}`,
+        inStock: true
+    };
 }
 
-// Function to add items to the basket
-function addToBasket(productId) {
-    const product = { 
-        id: productId, 
-        name: `Product ${productId}`, // Replace with actual product name
-        price: Math.random() * 100 + 50, // Replace with actual price fetching logic
-        store: 'Store Name', // Replace with fetched store name
-        img: 'https://via.placeholder.com/150' // Replace with actual image link
+// ============================================
+// DISPLAY FUNCTIONS
+// ============================================
+
+function displaySearchResults(products) {
+    const container = document.getElementById('searchResults');
+    
+    if (products.length === 0) {
+        container.innerHTML = '<p class="no-results">No products found. Try a different search.</p>';
+        return;
+    }
+    
+    // Group by product name (simplified grouping)
+    const groupedProducts = {};
+    products.forEach(product => {
+        const key = product.name.split(' - ')[0];
+        if (!groupedProducts[key]) groupedProducts[key] = [];
+        groupedProducts[key].push(product);
+    });
+    
+    let html = '';
+    
+    Object.values(groupedProducts).forEach(productGroup => {
+        const bestProduct = productGroup.reduce((best, current) => 
+            current.isBestPrice ? current : best, productGroup[0]);
+        
+        html += `
+            <div class="product-group">
+                <div class="product-header">
+                    <h3>${bestProduct.name.split(' - ')[0]}</h3>
+                    <span class="best-price-tag">Best Price: ${bestProduct.price} AED</span>
+                </div>
+                <div class="product-description">${bestProduct.description}</div>
+                <div class="store-comparison">
+        `;
+        
+        productGroup.forEach(product => {
+            html += `
+                <div class="store-product ${product.isBestPrice ? 'best-price' : ''}">
+                    <img src="${product.image}" alt="${product.name}">
+                    <div class="product-info">
+                        <h4>${product.store.toUpperCase()}</h4>
+                        <div class="price-info">
+                            <span class="current-price">${product.price} AED</span>
+                            ${product.originalPrice > product.price ? 
+                                `<span class="original-price">${product.originalPrice} AED</span>` : ''}
+                        </div>
+                        <p class="stock-status ${product.inStock ? 'in-stock' : 'out-stock'}">
+                            ${product.inStock ? '✓ In Stock' : '✗ Out of Stock'}
+                        </p>
+                        <p class="rating">⭐ ${product.rating}/5</p>
+                        <button class="btn-add-to-basket" onclick="addToBasket(${JSON.stringify(product).replace(/"/g, '&quot;')})">
+                            <i class="fas fa-cart-plus"></i> Add to Basket
+                        </button>
+                        <a href="${product.url}" target="_blank" class="btn-visit-store">
+                            <i class="fas fa-external-link-alt"></i> Visit Store
+                        </a>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div></div>';
+    });
+    
+    container.innerHTML = html;
+}
+
+function showSearchSuggestions(query) {
+    const suggestionsBox = document.getElementById('searchSuggestions');
+    
+    if (!query || query.length < 2) {
+        suggestionsBox.style.display = 'none';
+        return;
+    }
+    
+    const filtered = SUGGESTION_PRODUCTS.filter(product =>
+        product.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 5);
+    
+    if (filtered.length > 0) {
+        suggestionsBox.innerHTML = filtered.map(product => 
+            `<div class="suggestion-item" onclick="selectSuggestion('${product}')">${product}</div>`
+        ).join('');
+        suggestionsBox.style.display = 'block';
+    } else {
+        suggestionsBox.style.display = 'none';
+    }
+}
+
+function selectSuggestion(product) {
+    document.getElementById('searchInput').value = product;
+    document.getElementById('searchSuggestions').style.display = 'none';
+    performSearch();
+}
+
+// ============================================
+// BASKET FUNCTIONS
+// ============================================
+
+function addToBasket(product) {
+    basket.push({
+        ...product,
+        addedAt: new Date().toISOString(),
+        quantity: 1
+    });
+    
+    updateBasketDisplay();
+    saveBasketToStorage();
+    saveBasketToFirebase();
+    
+    // Show confirmation
+    showNotification(`Added ${product.name} to basket!`);
+}
+
+function updateBasketDisplay() {
+    const basketCount = document.getElementById('basketCount');
+    const basketTotal = document.getElementById('basketTotal');
+    
+    // Update count
+    basketCount.textContent = basket.length;
+    
+    // Calculate total
+    const total = basket.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    basketTotal.textContent = `Total: ${total} AED`;
+    
+    // Update basket modal items
+    const basketItems = document.getElementById('basketItems');
+    if (basketItems) {
+        if (basket.length === 0) {
+            basketItems.innerHTML = '<p>Your basket is empty</p>';
+        } else {
+            basketItems.innerHTML = basket.map((item, index) => `
+                <div class="basket-item">
+                    <img src="${item.image}" alt="${item.name}">
+                    <div class="basket-item-info">
+                        <h4>${item.name}</h4>
+                        <p>${item.store} - ${item.price} AED × ${item.quantity}</p>
+                    </div>
+                    <button onclick="removeFromBasket(${index})" class="btn-remove">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+function removeFromBasket(index) {
+    basket.splice(index, 1);
+    updateBasketDisplay();
+    saveBasketToStorage();
+    saveBasketToFirebase();
+}
+
+function clearBasket() {
+    if (confirm("Clear all items from basket?")) {
+        basket = [];
+        updateBasketDisplay();
+        saveBasketToStorage();
+        saveBasketToFirebase();
+    }
+}
+
+function saveBasketToStorage() {
+    localStorage.setItem('uae_price_hunter_basket', JSON.stringify(basket));
+}
+
+function loadBasketFromStorage() {
+    const saved = localStorage.getItem('uae_price_hunter_basket');
+    if (saved) {
+        basket = JSON.parse(saved);
+        updateBasketDisplay();
+    }
+}
+
+async function saveBasketToFirebase() {
+    if (currentUser && userData) {
+        try {
+            await firebaseDb.collection('users').doc(currentUser.uid).update({
+                basket: basket,
+                lastUpdated: new Date().toISOString()
+            });
+        } catch (error) {
+            console.error("Error saving basket to Firebase:", error);
+        }
+    }
+}
+
+// ============================================
+// UI FUNCTIONS
+// ============================================
+
+function showLoginModal() {
+    document.getElementById('loginModal').style.display = 'block';
+}
+
+function showBasketModal() {
+    updateBasketDisplay();
+    document.getElementById('basketModal').style.display = 'block';
+}
+
+function showProfileSection() {
+    document.getElementById('profileSection').style.display = 'block';
+    document.getElementById('rewardsSection').style.display = 'none';
+}
+
+function showRewardsSection() {
+    document.getElementById('rewardsSection').style.display = 'block';
+    document.getElementById('profileSection').style.display = 'none';
+}
+
+function closeAllModals() {
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.style.display = 'none';
+    });
+}
+
+function updateProfileDisplay() {
+    if (userData) {
+        document.getElementById('profileName').textContent = userData.name;
+        document.getElementById('profileEmail').textContent = userData.email;
+        document.getElementById('profilePoints').textContent = userData.points || 0;
+        document.getElementById('memberSince').textContent = new Date(userData.joined).toLocaleDateString();
+    }
+}
+
+function updatePointsDisplay() {
+    if (userData) {
+        document.getElementById('pointsValue').textContent = userData.points || 0;
+        document.getElementById('approvedPoints').textContent = userData.points || 0;
+        document.getElementById('pendingPoints').textContent = Math.floor((userData.points || 0) * 0.3);
+    }
+}
+
+function showUserProfile() {
+    document.getElementById('userPointsCard').style.display = 'block';
+    document.getElementById('showLogin').style.display = 'none';
+    document.getElementById('profileSection').style.display = 'block';
+}
+
+function showLoginButton() {
+    document.getElementById('userPointsCard').style.display = 'none';
+    document.getElementById('showLogin').style.display = 'block';
+    document.getElementById('profileSection').style.display = 'none';
+}
+
+// ============================================
+// LANGUAGE FUNCTIONS
+// ============================================
+
+function switchLanguage(lang) {
+    currentLanguage = lang;
+    
+    // Update button states
+    document.getElementById('arabicBtn').classList.toggle('active', lang === 'arabic');
+    document.getElementById('englishBtn').classList.toggle('active', lang === 'english');
+    
+    // Update direction
+    document.documentElement.dir = lang === 'arabic' ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang === 'arabic' ? 'ar' : 'en';
+    
+    // Update text content
+    updateLanguageContent(lang);
+}
+
+function updateLanguageContent(lang) {
+    const translations = {
+        english: {
+            greeting: "Marhaba! 🇦🇪",
+            subtitle: "Your AI Price Assistant is ready.",
+            searchPlaceholder: "Search for products (iPhone, Samsung TV, Nike shoes...)",
+            liveComparison: "Live Price Comparison",
+            basket: "My Basket",
+            rewards: "My Rewards",
+            profile: "Your Profile",
+            logout: "Logout"
+        },
+        arabic: {
+            greeting: "مرحباً! 🇦🇪",
+            subtitle: "مساعد الأسعار الذكي جاهز",
+            searchPlaceholder: "ابحث عن المنتجات (آيفون، تلفزيون سامسونج، أحذية نايك...)",
+            liveComparison: "مقارنة الأسعار المباشرة",
+            basket: "سلة التسوق",
+            rewards: "المكافآت",
+            profile: "ملفك الشخصي",
+            logout: "تسجيل الخروج"
+        }
     };
     
-    basket.push(product);
-    localStorage.setItem("basket", JSON.stringify(basket));
-    document.getElementById("basketCount").innerText = basket.length;
-
-    alert(`${product.name} added to your basket!`);
+    const t = translations[lang];
+    
+    // Update text elements
+    document.getElementById('greeting').textContent = t.greeting;
+    document.getElementById('subtitle').textContent = t.subtitle;
+    document.getElementById('searchInput').placeholder = t.searchPlaceholder;
+    document.querySelector('.results-section h2').innerHTML = `<i class="fas fa-fire"></i> ${t.liveComparison}`;
+    
+    // Update button texts
+    document.querySelector('#openBasket span').textContent = t.basket;
+    document.querySelector('#openRewards span').textContent = t.rewards;
+    document.querySelector('#openProfile span').textContent = t.profile;
+    document.querySelector('#logoutBtn').textContent = t.logout;
 }
 
-// Mock function to fetch store data (replace with real API calls)
-async function fetchStoreData(store, query) {
-    const dummyData = {
-        "Amazon": [{ id: 1, name: `${query} Product A`, price: Math.random() * 100 + 50, store: 'Amazon', link: '#', img: 'https://via.placeholder.com/150' }],
-        "Noon": [{ id: 2, name: `${query} Product B`, price: Math.random() * 100 + 50, store: 'Noon', link: '#', img: 'https://via.placeholder.com/150' }],
-        "Carrefour": [{ id: 3, name: `${query} Product C`, price: Math.random() * 100 + 50, store: 'Carrefour', link: '#', img: 'https://via.placeholder.com/150' }],
-        "Namshi": [{ id: 4, name: `${query} Product D`, price: Math.random() * 100 + 50, store: 'Namshi', link: '#', img: 'https://via.placeholder.com/150' }],
-        "SharafDG": [{ id: 5, name: `${query} Product E`, price: Math.random() * 100 + 50, store: 'SharafDG', link: '#', img: 'https://via.placeholder.com/150' }],
-        "Jumbo": [{ id: 6, name: `${query} Product F`, price: Math.random() * 100 + 50, store: 'Jumbo', link: '#', img: 'https://via.placeholder.com/150' }],
-    };
+// ============================================
+// AUTH FUNCTIONS
+// ============================================
 
-    return dummyData[store] || [];
+async function loginUser() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    try {
+        await firebaseAuth.signInWithEmailAndPassword(email, password);
+        closeAllModals();
+        showNotification("Login successful!");
+    } catch (error) {
+        alert("Login error: " + error.message);
+    }
 }
 
-// Sending Profile Information via Email
-function sendProfile() {
-    const profileData = {
-        name: "Your Name", // Replace with actual value
-        email: "Your Email", // Replace with actual value
-        savedPoints: rewards.saved,
-    };
-
-    const emailBody = `Profile Information:\nName: ${profileData.name}\nEmail: ${profileData.email}\nSaved Points: ${profileData.savedPoints}`;
-    const mailtoLink = `mailto:${EMAIL_TO_SEND}?subject=Profile Information&body=${encodeURIComponent(emailBody)}`;
-    window.location.href = mailtoLink; // Opening mail client for sending
+async function signupUser() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    if (password.length < 6) {
+        alert("Password must be at least 6 characters");
+        return;
+    }
+    
+    try {
+        await firebaseAuth.createUserWithEmailAndPassword(email, password);
+        closeAllModals();
+        showNotification("Account created! Welcome to UAE Price Hunter!");
+    } catch (error) {
+        alert("Signup error: " + error.message);
+    }
 }
 
-// Utility function to show the appropriate page
-function showPage(pageId) {
-    const pages = document.querySelectorAll('.page');
-    pages.forEach(page => page.style.display = 'none');
-    document.getElementById(pageId).style.display = 'block';
+async function logoutUser() {
+    try {
+        await firebaseAuth.signOut();
+        showNotification("Logged out successfully");
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
 }
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+function showNotification(message) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Show with animation
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Make functions available globally
+window.addToBasket = addToBasket;
+window.removeFromBasket = removeFromBasket;
+window.selectSuggestion = selectSuggestion;
+
+console.log("UAE Price Hunter script loaded successfully!");
