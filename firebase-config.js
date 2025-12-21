@@ -1,11 +1,8 @@
 // ============================================
-// FIREBASE CONFIGURATION FILE
-// ============================================
-// 🔥 REPLACE THESE VALUES WITH YOUR FIREBASE CONFIG
-// Get from: Firebase Console → Project Settings → General → Your apps
+// FIREBASE CONFIGURATION - UAE PRICE HUNTER
 // ============================================
 
-onst firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyBZ_mW9D-Hf36J2QMXzDQMgQzkNCNH2-oY",
   authDomain: "uae-price-hunter.firebaseapp.com",
   projectId: "uae-price-hunter",
@@ -15,16 +12,24 @@ onst firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+try {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+    console.log("✅ Firebase initialized successfully");
+  }
+} catch (error) {
+  console.error("❌ Firebase init error:", error);
+}
 
-// Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
+// Make Firebase available globally
 const auth = firebase.auth();
 const db = firebase.firestore();
+const analytics = firebase.analytics();
 
-// Make available globally
-window.firebaseApp = app;
-window.firebaseAuth = auth;
-window.firebaseDb = db;
+// Check if Firebase services are available
+if (!auth || !db) {
+  console.error("❌ Firebase services not available. Check Firebase SDK loading.");
+  alert("Firebase not loaded. Check console for errors.");
+}
 
-console.log("Firebase configured - ready for profile & basket");
+export { auth, db, analytics };
