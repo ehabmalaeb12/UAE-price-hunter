@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Basket - UAE Price Hunter</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2C3E50;
+            --secondary: #3498DB;
+            --accent: #E74C3C;
+            --dark: #1A252F;
+            --light: #ECF0F1;
+            --success: #2ECC71;
+            --warning: #F39C12;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <div class="top-nav">
+        <div class="nav-left">
+            <div class="logo">
+                <i class="fas fa-search-dollar"></i>
+                <h1>UAE PRICE HUNTER</h1>
+            </div>
+        </div>
+        <div class="nav-right">
+            <button class="lang-btn" onclick="toggleLanguage()">عربي</button>
+            <div class="user-menu" onclick="window.location.href='profile.html'">
+                <span id="userName">Guest</span>
+                <i class="fas fa-user-circle"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="main-nav">
+        <a href="index.html" class="nav-link">
+            <i class="fas fa-home"></i> Home
+        </a>
+        <a href="basket.html" class="nav-link active">
+            <i class="fas fa-shopping-basket"></i> Basket 
+            <span id="navBasketCount" class="badge">0</span>
+        </a>
+        <a href="profile.html" class="nav-link">
+            <i class="fas fa-user"></i> Profile
+        </a>
+        <a href="profile.html#rewards" class="nav-link">
+            <i class="fas fa-gift"></i> Rewards
+        </a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Basket Header -->
+        <div class="page-header">
+            <h1><i class="fas fa-shopping-basket"></i> My Shopping Basket</h1>
+            <p>Review your items and proceed to checkout</p>
+        </div>
+
+        <div class="basket-container">
+            <!-- Empty Basket State -->
+            <div id="emptyBasket" class="empty-state">
+                <i class="fas fa-shopping-basket"></i>
+                <h2>Your basket is empty</h2>
+                <p>Add some products to get started!</p>
+                <a href="index.html" class="btn-primary">
+                    <i class="fas fa-search"></i> Start Shopping
+                </a>
+            </div>
+
+            <!-- Basket with Items -->
+            <div id="basketContent" style="display: none;">
+                <!-- Basket grouped by store will be loaded here -->
+            </div>
+
+            <!-- Checkout Summary -->
+            <div id="checkoutSummary" class="checkout-summary" style="display: none;">
+                <h3><i class="fas fa-receipt"></i> Order Summary</h3>
+                <div class="summary-details">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">0.00 AED</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Estimated Tax</span>
+                        <span id="tax">0.00 AED</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Delivery Charges</span>
+                        <span id="delivery">0.00 AED</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span><strong>Total Amount</strong></span>
+                        <span id="totalAmount"><strong>0.00 AED</strong></span>
+                    </div>
+                </div>
+                
+                <div class="checkout-buttons">
+                    <button class="btn-secondary" onclick="clearBasket()">
+                        <i class="fas fa-trash"></i> Clear Basket
+                    </button>
+                    <button class="btn-primary" onclick="proceedToCheckout()">
+                        <i class="fas fa-lock"></i> Proceed to Checkout
+                    </button>
+                </div>
+                
+                <p class="secure-note">
+                    <i class="fas fa-shield-alt"></i> Secure checkout · Your payment is protected
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>UAE Price Hunter</h3>
+                <p>Smart shopping for the UAE market</p>
+            </div>
+            <div class="footer-section">
+                <h3>Need Help?</h3>
+                <a href="contact.html">Contact Support</a>
+                <a href="faq.html">FAQ</a>
+                <a href="shipping.html">Shipping Info</a>
+            </div>
+            <div class="footer-section">
+                <h3>Payment Methods</h3>
+                <div class="payment-icons">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fab fa-cc-amex"></i>
+                    <i class="fab fa-apple-pay"></i>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 UAE Price Hunter. All prices in AED. This is a demo project.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            updateNavigation();
+            loadBasketPage();
+        });
+
+        // Load basket page content
+        function loadBasketPage() {
+            const basket = JSON.parse(localStorage.getItem('uae_price_hunter_basket') || '[]');
+            
+            if (basket.length === 0) {
+                document.getElementById('emptyBasket').style.display = 'block';
+                document.getElementById('basketContent').style.display = 'none';
+                document.getElementById('checkoutSummary').style.display = 'none';
+                return;
+            }
+
+            // Hide empty state
+            document.getElementById('emptyBasket').style.display = 'none';
+            
+            // Group items by store
+            const stores = {};
+            basket.forEach(item => {
+                if (!stores[item.store]) {
+                    stores[item.store] = [];
+                }
+                stores[item.store].push(item);
+            });
+
+            let html = '';
+            let subtotal = 0;
+
+            // Create store sections
+            Object.keys(stores).forEach(store => {
+                const storeItems = stores[store];
+                let storeTotal = 0;
+                
+                html += `
+                    <div class="store-section">
+                        <div class="store-header">
+                            <div class="store-info">
+                                <img src="${getStoreLogo(store)}" alt="${store}" class="store-logo">
+                                <h3>${getStoreName(store)}</h3>
+                            </div>
+                            <button class="btn-store-checkout" onclick="checkoutStore('${store}')">
+                                <i class="fas fa-external-link-alt"></i> Checkout at ${getStoreName(store)}
+                            </button>
+                        </div>
+                        
+                        <div class="store-items">
+                `;
+
+                storeItems.forEach((item, index) => {
+                    const itemTotal = item.price * item.quantity;
+                    storeTotal += itemTotal;
+                    subtotal += itemTotal;
+                    
+                    html += `
+                        <div class="basket-item" data-id="${item.id}">
+                            <img src="${item.image}" alt="${item.name}" class="item-image">
+                            
+                            <div class="item-details">
+                                <h4>${item.name}</h4>
+                                <p class="item-desc">${item.description}</p>
+                                <div class="item-meta">
+                                    <span class="price">${item.price} AED</span>
+                                    <span class="sku">SKU: ${item.id.substring(0, 8)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="item-quantity">
+                                <button onclick="updateQuantity('${item.id}', -1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="quantity">${item.quantity}</span>
+                                <button onclick="updateQuantity('${item.id}', 1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="item-total">
+                                <span>${itemTotal.toFixed(2)} AED</span>
+                            </div>
+                            
+                            <button class="item-remove" onclick="removeItem('${item.id}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                        
+                        <div class="store-total">
+                            <div class="store-summary">
+                                <span>${storeItems.length} item${storeItems.length > 1 ? 's' : ''}</span>
+                                <span class="total-amount">${storeTotal.toFixed(2)} AED</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('basketContent').innerHTML = html;
+            document.getElementById('basketContent').style.display = 'block';
+            document.getElementById('checkoutSummary').style.display = 'block';
+
+            // Update totals
+            updateCheckoutSummary(subtotal);
+        }
+
+        // Update quantity
+        function updateQuantity(itemId, change) {
+            let basket = JSON.parse(localStorage.getItem('uae_price_hunter_basket') || '[]');
+            const index = basket.findIndex(item => item.id === itemId);
+            
+            if (index !== -1) {
+                basket[index].quantity += change;
+                
+                if (basket[index].quantity < 1) {
+                    basket.splice(index, 1);
+                }
+                
+                localStorage.setItem('uae_price_hunter_basket', JSON.stringify(basket));
+                updateNavigation();
+                loadBasketPage();
+            }
+        }
+
+        // Remove item
+        function removeItem(itemId) {
+            let basket = JSON.parse(localStorage.getItem('uae_price_hunter_basket') || '[]');
+            basket = basket.filter(item => item.id !== itemId);
+            localStorage.setItem('uae_price_hunter_basket', JSON.stringify(basket));
+            updateNavigation();
+            loadBasketPage();
+        }
+
+        // Clear basket
+        function clearBasket() {
+            if (confirm('Are you sure you want to clear your basket?')) {
+                localStorage.setItem('uae_price_hunter_basket', '[]');
+                updateNavigation();
+                loadBasketPage();
+            }
+        }
+
+        // Update checkout summary
+        function updateCheckoutSummary(subtotal) {
+            const tax = subtotal * 0.05; // 5% VAT for UAE
+            const delivery = 20.00; // Fixed delivery
+            const total = subtotal + tax + delivery;
+            
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2) + ' AED';
+            document.getElementById('tax').textContent = tax.toFixed(2) + ' AED';
+            document.getElementById('delivery').textContent = delivery.toFixed(2) + ' AED';
+            document.getElementById('totalAmount').innerHTML = '<strong>' + total.toFixed(2) + ' AED</strong>';
+        }
+
+        // Proceed to checkout
+        function proceedToCheckout() {
+            const basket = JSON.parse(localStorage.getItem('uae_price_hunter_basket') || '[]');
+            
+            if (basket.length === 0) {
+                alert('Your basket is empty!');
+                return;
+            }
+
+            // Group by store for separate checkouts
+            const stores = {};
+            basket.forEach(item => {
+                if (!stores[item.store]) {
+                    stores[item.store] = [];
+                }
+                stores[item.store].push(item);
+            });
+
+            // For demo, show checkout options
+            let checkoutOptions = '<h3>Checkout Options</h3>';
+            Object.keys(stores).forEach(store => {
+                const storeItems = stores[store];
+                let storeTotal = storeItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                checkoutOptions += `
+                    <div class="checkout-option">
+                        <p><strong>${getStoreName(store)}</strong>: ${storeItems.length} items (${storeTotal.toFixed(2)} AED)</p>
+                        <button onclick="checkoutStore('${store}')" class="btn-primary">
+                            Checkout at ${getStoreName(store)}
+                        </button>
+                    </div>
+                `;
+            });
+
+            // Create modal for checkout options
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close-modal" onclick="this.parentElement.parentElement.remove()">&times;</span>
+                    ${checkoutOptions}
+                    <p class="note"><i class="fas fa-info-circle"></i> You will be redirected to each store's checkout page separately</p>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Checkout at specific store
+        function checkoutStore(store) {
+            const basket = JSON.parse(localStorage.getItem('uae_price_hunter_basket') || '[]');
+            const storeItems = basket.filter(item => item.store === store);
+            
+            if (storeItems.length === 0) return;
+            
+            // Create affiliate URLs with tracking
+            const trackingId = 'uae_price_hunter_' + new Date().getTime();
+            const storeUrls = {
+                amazon: `https://www.amazon.ae/gp/cart/view.html?ref_=nav_cart`,
+                noon: `https://www.noon.com/cart`,
+                carrefour: `https://www.carrefouruae.com/mafuae/en/cart`,
+                sharafdg: `https://www.sharafdg.com/checkout/cart/`,
+                emax: `https://www.emaxme.com/checkout/cart/`,
+                lulu: `https://www.luluhypermarket.com/en-ae/cart`
+            };
+            
+            const storeUrl = storeUrls[store] || `https://${store}.com/cart`;
+            
+            // Add items to URL (simplified - real implementation would need store-specific APIs)
+            const urlWithTracking = `${storeUrl}?tracking=${trackingId}&source=uae_price_hunter`;
+            
+            // Open store checkout in new tab
+            window.open(urlWithTracking, '_blank');
+            
+            // Award points for checkout
+            awardCheckoutPoints(storeItems);
+            
+            // Remove checked out items from basket
+            const remainingItems = basket.filter(item => item.store !== store);
+            localStorage.setItem('uae_price_hunter_basket', JSON.stringify(remainingItems));
+            updateNavigation();
+            loadBasketPage();
+            
+            alert(`Redirecting to ${getStoreName(store)} checkout. You will earn points for this purchase!`);
+        }
+
+        // Award points for checkout
+        function awardCheckoutPoints(items) {
+            // This would be handled by Firebase in real implementation
+            console.log('Awarding points for checkout:', items);
+            // Points calculation based on purchase value
+            const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const pointsEarned = Math.floor(totalValue * 5); // 5 points per 1 AED
+            
+            // Save points to user's account (simplified)
+            const userPoints = parseInt(localStorage.getItem('user_points') || '0');
+            localStorage.setItem('user_points', (userPoints + pointsEarned).toString());
+            
+            // Show notification
+            alert(`🎉 Congratulations! You earned ${pointsEarned} points for this purchase!`);
+        }
+
+        // Helper functions
+        function getStoreLogo(store) {
+            const logos = {
+                amazon: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg',
+                noon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Noon_%28company%29_logo.svg/1200px-Noon_%28company%29_logo.svg.png',
+                carrefour: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Carrefour_logo.svg/2560px-Carrefour_logo.svg.png',
+                sharafdg: 'https://www.sharafdg.com/static/version1712821587/frontend/Sdg/default/en_US/images/logo.svg',
+                emax: 'https://www.emaxme.com/pub/static/version1704199543/frontend/Emax/default/en_US/images/logo.svg',
+                lulu: 'https://www.luluhypermarket.com/medias/Logo-Lulu-1-.png?context=bWFzdGVyfGltYWdlc3wxMTY4Nzh8aW1hZ2UvcG5nfGltYWdlcy9oYWEvaGM4LzkzMjA1NDE5NTkzNDIucG5nfGNiYjkxZTI2YzQ5MGM0OTMyNThlNzZkNzQzM2M2NjY2ZjUwOGJlODFmNzRlYjFhMzQ3OGFhMGNiMDk4OGVjZjY'
+            };
+            return logos[store] || 'https://via.placeholder.com/50/2C3E50/FFFFFF?text=' + store.charAt(0).toUpperCase();
+        }
+
+        function getStoreName(store) {
+            const names = {
+                amazon: 'Amazon.ae',
+                noon: 'Noon',
+                carrefour: 'Carrefour UAE',
+                sharafdg: 'Sharaf DG',
+                emax: 'eMax',
+                lulu: 'Lulu Hypermarket'
+            };
+            return names[store] || store.charAt(0).toUpperCase() + store.slice(1);
+        }
+
+        // Toggle language
+        function toggleLanguage() {
+            const btn = document.querySelector('.lang-btn');
+            if (btn.textContent === 'عربي') {
+                btn.textContent = 'EN';
+                document.documentElement.dir = 'rtl';
+                document.documentElement.lang = 'ar';
+                updateArabicBasketContent();
+            } else {
+                btn.textContent = 'عربي';
+                document.documentElement.dir = 'ltr';
+                document.documentElement.lang = 'en';
+                updateEnglishBasketContent();
+            }
+        }
+
+        function updateArabicBasketContent() {
+            document.querySelector('.page-header h1').innerHTML = '<i class="fas fa-shopping-basket"></i> سلة التسوق الخاصة بي';
+            document.querySelector('.page-header p').textContent = 'راجع العناصر وانتقل إلى الدفع';
+            // Add more translations as needed
+        }
+
+        function updateEnglishBasketContent() {
+            document.querySelector('.page-header h1').innerHTML = '<i class="fas fa-shopping-basket"></i> My Shopping Basket';
+            document.querySelector('.page-header p').textContent = 'Review your items and proceed to checkout';
+        }
+    </script>
+</body>
+</html>
