@@ -1,350 +1,230 @@
-// ============================================
-// UAE PRICE HUNTER - 2025 EDITION
-// Complete Fix with Modern Features
-// ============================================
-
-import { auth, db } from './firebase-config.js';
+// UAE PRICE HUNTER - MAIN APPLICATION LOGIC
 
 // Configuration
-const CONFIG = {
-  SCRAPEDO_API_KEY: "641c5334a7504c15abb0902cd23d0095b4dbb6711a3", // ← Add your key here
-  SEARCH_DELAY: 300,
-  MAX_SUGGESTIONS: 8
+const APP_CONFIG = {
+  // Points system
+  POINTS_PER_SEARCH: 10,
+  POINTS_PER_ADD_TO_BASKET: 50,
+  POINTS_PER_CHECKOUT: 100,
+  POINTS_PER_AED_SPENT: 5,
+  
+  // Search settings
+  MAX_SUGGESTIONS: 8,
+  SEARCH_HISTORY_LIMIT: 50,
+  
+  // Local storage keys
+  LS_BASKET: 'uae_price_hunter_basket',
+  LS_USER: 'current_user',
+  LS_POINTS: 'user_points',
+  LS_SEARCH_HISTORY: 'search_history',
+  LS_POINTS_ACTIVITY: 'points_activity'
 };
 
-// State Management
-const state = {
+// Application state
+let appState = {
   user: null,
   basket: [],
-  searchResults: [],
-  currentPage: 'home',
-  language: 'english',
-  selectedStores: ['amazon', 'noon', 'carrefour', 'sharafdg', 'emax', 'lulu']
+  points: 0,
+  searchHistory: [],
+  language: 'en',
+  currentSearch: null
 };
 
-// Product Database with Real UAE Products
-const PRODUCT_DATABASE = {
-  "iphone": {
-    name: "Apple iPhone 15 Pro Max",
-    description: "256GB, Titanium, 5G, Latest A17 Pro Chip",
-    basePrice: 4899,
-    category: "Electronics"
-  },
-  "samsung": {
-    name: "Samsung Galaxy S24 Ultra",
-    description: "512GB, Snapdragon 8 Gen 3, SPen Included",
-    basePrice: 4299,
-    category: "Electronics"
-  },
-  "macbook": {
-    name: "Apple MacBook Air M3",
-    description: "13-inch, 8GB RAM, 256GB SSD, Midnight",
-    basePrice: 3999,
-    category: "Computers"
-  },
-  "ps5": {
-    name: "Sony PlayStation 5",
-    description: "Disc Edition, 1TB SSD, Latest Model",
-    basePrice: 1999,
-    category: "Gaming"
-  },
-  "nike": {
-    name: "Nike Air Force 1",
-    description: "White Leather, Original AF1 Design",
-    basePrice: 450,
-    category: "Fashion"
-  },
-  "tv": {
-    name: "Samsung 65\" QLED 4K TV",
-    description: "Smart TV, Quantum HDR, Alexa Built-in",
-    basePrice: 3499,
-    category: "Electronics"
-  },
-  "dyson": {
-    name: "Dyson Airwrap Complete",
-    description: "Hair Styler, 5 Attachments, New Model",
-    basePrice: 2499,
-    category: "Beauty"
-  }
-};
-
-// Initialize Application
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log("🚀 UAE Price Hunter 2025 Initializing...");
+// Initialize application
+function initializeApp() {
+  console.log("🚀 Initializing UAE Price Hunter...");
   
-  // Initialize modules
-  await initFirebase();
-  initUI();
-  initNavigation();
-  initSearch();
-  initEventListeners();
+  // Load saved state
+  loadAppState();
   
-  // Load saved data
-  loadBasketFromStorage();
+  // Setup Firebase auth listener
+  setupFirebaseAuth();
+  
+  // Setup event listeners
+  setupEventListeners();
+  
+  // Update UI
   updateUI();
   
-  console.log("✅ App initialized successfully");
-});
+  console.log("✅ Application initialized");
+}
 
-// ============================================
-// FIREBASE AUTH FIX
-// ============================================
-
-async function initFirebase() {
+// Load application state from localStorage
+function loadAppState() {
   try {
-    console.log("Checking Firebase availability...");
-    
-    // Check if Firebase services are loaded
-    if (!auth || !db) {
-      throw new Error("Firebase services not available");
+    // Load basket
+    const savedBasket = localStorage.getItem(APP_CONFIG.LS_BASKET);
+    if (savedBasket) {
+      appState.basket = JSON.parse(savedBasket);
     }
     
-    // Listen for auth state changes
-    auth.onAuthStateChanged(async (user) => {
+    // Load user
+    const savedUser = localStorage.getItem(APP_CONFIG.LS_USER);
+    if (savedUser) {
+      appState.user = JSON.parse(savedUser);
+    }
+    
+    // Load points
+    const savedPoints = localStorage.getItem(APP_CONFIG.LS_POINTS);
+    if (savedPoints) {
+      appState.points = parseInt(savedPoints);
+    }
+    
+    // Load search history
+    const savedHistory = localStorage.getItem(APP_CONFIG.LS_SEARCH_HISTORY);
+    if (savedHistory) {
+      appState.searchHistory = JSON.parse(savedHistory);
+    }
+  } catch (error) {
+    console.error("❌ Error loading app state:", error);
+    // Reset to default state
+    appState = {
+      user: null,
+      basket: [],
+      points: 0,
+      searchHistory: [],
+      language: 'en',
+      currentSearch: null
+    };
+  }
+}
+
+// Save application state to localStorage
+function saveAppState() {
+  try {
+    localStorage.setItem(APP_CONFIG.LS_BASKET, JSON.stringify(appState.basket));
+    localStorage.setItem(APP_CONFIG.LS_USER, JSON.stringify(appState.user));
+    localStorage.setItem(APP_CONFIG.LS_POINTS, appState.points.toString());
+    localStorage.setItem(APP_CONFIG.LS_SEARCH_HISTORY, JSON.stringify(appState.searchHistory));
+  } catch (error) {
+    console.error("❌ Error saving app state:", error);
+  }
+}
+
+// Setup Firebase authentication listener
+function setupFirebaseAuth() {
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    firebase.auth().onAuthStateChanged((user) => {
       if (user) {
-        console.log("✅ User logged in:", user.email);
-        state.user = user;
-        await loadUserData(user.uid);
-        showPage('profile'); // Show profile page after login
+        // User is signed in
+        appState.user = {
+          uid: user.uid,
+          email: user.email,
+          name: user.displayName || user.email.split('@')[0],
+          photoURL: user.photoURL,
+          joinedDate: user.metadata.creationTime
+        };
+        
+        console.log("✅ User authenticated:", appState.user.email);
+        
+        // Load user data from Firestore
+        loadUserDataFromFirebase(user.uid);
       } else {
-        console.log("👤 No user logged in");
-        state.user = null;
-        showPage('home');
+        // User is signed out
+        appState.user = null;
+        console.log("👤 User signed out");
       }
+      
+      saveAppState();
       updateUI();
     });
-    
-    console.log("✅ Firebase initialized successfully");
-  } catch (error) {
-    console.error("❌ Firebase initialization failed:", error);
-    showNotification("Firebase error. Running in offline mode.", "error");
+  } else {
+    console.warn("⚠️ Firebase not available - running in offline mode");
   }
 }
 
-async function loadUserData(userId) {
+// Load user data from Firebase
+async function loadUserDataFromFirebase(userId) {
+  if (!window.firebaseServices || !window.firebaseServices.getUserData) {
+    console.warn("⚠️ Firebase services not available");
+    return;
+  }
+  
   try {
-    const docRef = db.collection('users').doc(userId);
-    const docSnap = await docRef.get();
-    
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      console.log("📊 User data loaded:", data);
-      return data;
-    } else {
-      // Create new user document
-      await docRef.set({
-        email: state.user.email,
-        name: state.user.displayName || state.user.email.split('@')[0],
-        points: 1000,
-        joined: new Date().toISOString(),
-        basket: []
-      });
-      console.log("🆕 New user document created");
+    const userData = await window.firebaseServices.getUserData(userId);
+    if (userData) {
+      // Merge Firebase data with local state
+      appState.points = userData.points || appState.points;
+      appState.basket = userData.basket || appState.basket;
+      
+      console.log("📊 User data loaded from Firebase");
+      saveAppState();
+      updateUI();
     }
   } catch (error) {
-    console.error("❌ Error loading user data:", error);
+    console.error("❌ Error loading user data from Firebase:", error);
   }
 }
 
-// ============================================
-// 2025 MODERN NAVIGATION SYSTEM
-// ============================================
-
-function initNavigation() {
-  // Handle page navigation
-  document.querySelectorAll('[data-page]').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const page = e.target.dataset.page;
-      showPage(page);
-    });
-  });
-  
-  // Handle browser back/forward
-  window.addEventListener('popstate', () => {
-    const page = window.location.hash.replace('#', '') || 'home';
-    showPage(page);
-  });
-  
-  // Initial page from URL
-  const initialPage = window.location.hash.replace('#', '') || 'home';
-  showPage(initialPage);
-}
-
-function showPage(pageName) {
-  state.currentPage = pageName;
-  
-  // Hide all pages
-  document.querySelectorAll('.page').forEach(page => {
-    page.classList.remove('active');
-  });
-  
-  // Show current page
-  const targetPage = document.getElementById(`${pageName}-page`);
-  if (targetPage) {
-    targetPage.classList.add('active');
-    targetPage.classList.add('fade-in');
-    
-    // Update URL
-    window.history.pushState(null, '', `#${pageName}`);
-    
-    // Update active nav link
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.classList.toggle('active', link.dataset.page === pageName);
-    });
-    
-    // Page-specific setup
-    switch(pageName) {
-      case 'basket':
-        renderBasketPage();
-        break;
-      case 'profile':
-        renderProfilePage();
-        break;
-      case 'rewards':
-        renderRewardsPage();
-        break;
-    }
-  }
-  
-  console.log(`📄 Showing page: ${pageName}`);
-}
-
-// ============================================
-// 2025 AI-POWERED SEARCH SYSTEM
-// ============================================
-
-function initSearch() {
+// Setup event listeners
+function setupEventListeners() {
+  // Search input listener (if on home page)
   const searchInput = document.getElementById('searchInput');
-  const searchBtn = document.getElementById('searchBtn');
-  const suggestionsBox = document.getElementById('searchSuggestions');
+  if (searchInput) {
+    searchInput.addEventListener('input', handleSearchInput);
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        performSearch();
+      }
+    });
+  }
   
-  if (!searchInput) return;
-  
-  // Smart search with debouncing
-  let searchTimeout;
-  searchInput.addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    const query = e.target.value.trim();
-    
-    if (query.length < 2) {
-      hideSuggestions();
-      return;
-    }
-    
-    searchTimeout = setTimeout(() => {
-      showSmartSuggestions(query);
-    }, CONFIG.SEARCH_DELAY);
-  });
-  
-  // Search button
-  searchBtn.addEventListener('click', () => performSmartSearch(searchInput.value));
-  
-  // Enter key
-  searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      performSmartSearch(searchInput.value);
-    }
-  });
-  
-  // Click outside to hide suggestions
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-container')) {
-      hideSuggestions();
-    }
+  // Store checkbox listeners
+  document.querySelectorAll('.store-option input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', updateStoreSelection);
   });
 }
 
-function showSmartSuggestions(query) {
+// Handle search input for suggestions
+function handleSearchInput(event) {
+  const query = event.target.value.trim();
+  
+  if (query.length < 2) {
+    hideSuggestions();
+    return;
+  }
+  
+  showSearchSuggestions(query);
+}
+
+// Show search suggestions
+function showSearchSuggestions(query) {
   const suggestionsBox = document.getElementById('searchSuggestions');
   if (!suggestionsBox) return;
   
-  const normalizedQuery = query.toLowerCase();
-  const suggestions = [];
-  
-  // 1. Direct matches from database
-  Object.entries(PRODUCT_DATABASE).forEach(([key, product]) => {
-    if (key.includes(normalizedQuery) || 
-        product.name.toLowerCase().includes(normalizedQuery) ||
-        product.category.toLowerCase().includes(normalizedQuery)) {
-      suggestions.push({
-        type: 'product',
-        text: product.name,
-        category: product.category,
-        relevance: 1.0
-      });
-    }
-  });
-  
-  // 2. Category suggestions
-  const categories = [...new Set(Object.values(PRODUCT_DATABASE).map(p => p.category))];
-  categories.forEach(category => {
-    if (category.toLowerCase().includes(normalizedQuery)) {
-      suggestions.push({
-        type: 'category',
-        text: `All ${category}`,
-        category: category,
-        relevance: 0.8
-      });
-    }
-  });
-  
-  // 3. Trending in UAE (mock data)
-  const trendingUAE = [
-    "Gold Jewelry Dubai",
-    "Arabic Perfume",
-    "Dates Gift Box",
-    "Saudi Coffee Set",
-    "Abaya Fashion",
-    "Smart Watch"
+  // Get trending searches
+  const trendingSearches = [
+    'iPhone 15 Pro Max',
+    'Samsung Galaxy S24 Ultra',
+    'MacBook Air M3',
+    'PlayStation 5',
+    'Arabic Oud Perfume',
+    '22K Gold Jewelry',
+    'Dates Gift Box',
+    'Samsung QLED TV',
+    'Dyson Airwrap',
+    'Nike Air Force 1'
   ];
   
-  trendingUAE.forEach(trend => {
-    if (trend.toLowerCase().includes(normalizedQuery)) {
-      suggestions.push({
-        type: 'trending',
-        text: trend,
-        icon: '🔥',
-        relevance: 0.7
-      });
-    }
-  });
+  // Filter trending searches
+  const filtered = trendingSearches.filter(item =>
+    item.toLowerCase().includes(query.toLowerCase())
+  ).slice(0, APP_CONFIG.MAX_SUGGESTIONS);
   
-  // Sort by relevance and limit
-  suggestions.sort((a, b) => b.relevance - a.relevance);
-  const topSuggestions = suggestions.slice(0, CONFIG.MAX_SUGGESTIONS);
-  
-  if (topSuggestions.length > 0) {
-    renderSuggestions(topSuggestions);
+  if (filtered.length > 0) {
+    suggestionsBox.innerHTML = filtered.map(item => `
+      <div class="suggestion-item" onclick="selectSuggestion('${item}')">
+        <i class="fas fa-search"></i>
+        <span>${item}</span>
+      </div>
+    `).join('');
     suggestionsBox.style.display = 'block';
   } else {
     hideSuggestions();
   }
 }
 
-function renderSuggestions(suggestions) {
-  const suggestionsBox = document.getElementById('searchSuggestions');
-  if (!suggestionsBox) return;
-  
-  suggestionsBox.innerHTML = suggestions.map(item => `
-    <div class="suggestion-item" data-type="${item.type}">
-      ${item.icon || '🔍'}
-      <span class="suggestion-text">${item.text}</span>
-      ${item.category ? `<span class="suggestion-category">${item.category}</span>` : ''}
-    </div>
-  `).join('');
-  
-  // Add click handlers
-  suggestionsBox.querySelectorAll('.suggestion-item').forEach((item, index) => {
-    item.addEventListener('click', () => {
-      const text = suggestions[index].text;
-      document.getElementById('searchInput').value = text;
-      performSmartSearch(text);
-      hideSuggestions();
-    });
-  });
-}
-
+// Hide suggestions
 function hideSuggestions() {
   const suggestionsBox = document.getElementById('searchSuggestions');
   if (suggestionsBox) {
@@ -352,740 +232,510 @@ function hideSuggestions() {
   }
 }
 
-async function performSmartSearch(query) {
-  if (!query.trim()) {
-    showNotification("Please enter a search term", "warning");
+// Select suggestion
+function selectSuggestion(suggestion) {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.value = suggestion;
+    hideSuggestions();
+    performSearch();
+  }
+}
+
+// Perform search
+async function performSearch() {
+  const searchInput = document.getElementById('searchInput');
+  if (!searchInput) return;
+  
+  const query = searchInput.value.trim();
+  if (!query) {
+    showNotification('Please enter a search term', 'warning');
     return;
   }
   
-  console.log(`🔍 Searching for: "${query}"`);
+  // Get selected stores
+  const selectedStores = getSelectedStores();
+  if (selectedStores.length === 0) {
+    showNotification('Please select at least one store', 'warning');
+    return;
+  }
+  
+  console.log(`🔍 Searching for "${query}" in ${selectedStores.length} stores`);
   
   // Show loading
   showLoading(true);
   hideSuggestions();
   
+  // Award points for search
+  awardPoints(APP_CONFIG.POINTS_PER_SEARCH, 'Search: ' + query);
+  
   try {
-    // 1. Get store selection
-    const selectedStores = getSelectedStores();
-    if (selectedStores.length === 0) {
-      showNotification("Please select at least one store", "warning");
-      return;
-    }
+    // Use scrape.do to search all stores
+    const results = await window.scrapeDo.searchAllStores(query, selectedStores);
     
-    // 2. Perform parallel searches (mock for now)
-    const results = await searchAllStores(query, selectedStores);
+    // Display results
+    displaySearchResults(results, query);
     
-    // 3. Process and display results
-    displayModernResults(results);
-    
-    // 4. Show page
-    showPage('home');
-    scrollToResults();
-    
-    // 5. Save search history
-    saveSearchHistory(query);
+    // Save search to history
+    saveSearchToHistory(query, results.length);
     
   } catch (error) {
-    console.error("Search error:", error);
-    showNotification("Search failed. Please try again.", "error");
+    console.error('❌ Search error:', error);
+    showNotification('Search failed. Please try again.', 'error');
   } finally {
     showLoading(false);
   }
 }
 
-async function searchAllStores(query, stores) {
-  console.log(`🌐 Searching ${stores.length} stores for: ${query}`);
-  
-  // For demo - generate realistic mock data
-  const allResults = [];
-  const baseProduct = PRODUCT_DATABASE[query.toLowerCase()] || {
-    name: query,
-    description: `Best ${query} available in UAE stores`,
-    basePrice: Math.random() * 1000 + 100
-  };
-  
-  stores.forEach((store, index) => {
-    // Realistic price variations per store
-    const storeModifiers = {
-      amazon: { discount: 0.9, shipping: "FREE Delivery" },
-      noon: { discount: 0.85, shipping: "Express Delivery" },
-      carrefour: { discount: 0.95, shipping: "Pickup Available" },
-      sharafdg: { discount: 0.88, shipping: "Installment Options" },
-      emax: { discount: 0.92, shipping: "Warranty Included" },
-      lulu: { discount: 0.87, shipping: "Free Installation" }
-    };
-    
-    const modifier = storeModifiers[store] || { discount: 0.9, shipping: "Standard" };
-    const price = Math.floor(baseProduct.basePrice * modifier.discount * (0.9 + Math.random() * 0.2));
-    const originalPrice = Math.floor(price * (1.1 + Math.random() * 0.2));
-    
-    // Real UAE store images (placeholder with real store logos)
-    const storeImages = {
-      amazon: `https://via.placeholder.com/300x200/FF9900/000000?text=Amazon.ae`,
-      noon: `https://via.placeholder.com/300x200/F37021/FFFFFF?text=Noon`,
-      carrefour: `https://via.placeholder.com/300x200/004D99/FFFFFF?text=Carrefour`,
-      sharafdg: `https://via.placeholder.com/300x200/00AEEF/FFFFFF?text=Sharaf+DG`,
-      emax: `https://via.placeholder.com/300x200/0033A0/FFFFFF?text=eMax`,
-      lulu: `https://via.placeholder.com/300x200/ED1C24/FFFFFF?text=Lulu`
-    };
-    
-    allResults.push({
-      id: `${store}-${Date.now()}-${index}`,
-      name: `${baseProduct.name} - ${store.charAt(0).toUpperCase() + store.slice(1)}`,
-      originalName: baseProduct.name,
-      store: store,
-      price: price,
-      originalPrice: originalPrice,
-      discount: Math.floor(((originalPrice - price) / originalPrice) * 100),
-      image: storeImages[store] || `https://via.placeholder.com/300x200/2C3E50/FFFFFF?text=${store}`,
-      description: baseProduct.description,
-      shipping: modifier.shipping,
-      rating: (Math.random() * 2 + 3).toFixed(1), // 3-5 stars
-      reviews: Math.floor(Math.random() * 1000),
-      inStock: Math.random() > 0.1,
-      affiliateLink: `https://${store}.com/product/${encodeURIComponent(query)}`,
-      timestamp: new Date().toISOString()
-    });
-  });
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  // Find best price
-  if (allResults.length > 0) {
-    const bestPrice = Math.min(...allResults.map(p => p.price));
-    allResults.forEach(product => {
-      product.isBestPrice = product.price === bestPrice;
-    });
-  }
-  
-  return allResults;
+// Get selected stores from checkboxes
+function getSelectedStores() {
+  const checkboxes = document.querySelectorAll('.store-option input[type="checkbox"]:checked');
+  return Array.from(checkboxes).map(cb => cb.dataset.store);
 }
 
-function displayModernResults(products) {
-  const resultsContainer = document.getElementById('resultsContainer');
+// Update store selection display
+function updateStoreSelection() {
+  const selectedCount = document.querySelectorAll('.store-option input[type="checkbox"]:checked').length;
+  console.log(`✅ ${selectedCount} stores selected`);
+}
+
+// Display search results
+function displaySearchResults(products, query) {
+  const resultsContainer = document.getElementById('searchResults');
+  const resultsCount = document.getElementById('resultsCount');
+  
   if (!resultsContainer) return;
   
   if (products.length === 0) {
     resultsContainer.innerHTML = `
-      <div class="no-results">
+      <div class="empty-results">
         <i class="fas fa-search"></i>
-        <h3>No products found</h3>
+        <h3>No products found for "${query}"</h3>
         <p>Try a different search term or check more stores</p>
+        <div class="trending-searches">
+          <span class="trending-tag" onclick="searchTrending('iPhone 15 Pro Max')">iPhone 15 Pro Max</span>
+          <span class="trending-tag" onclick="searchTrending('Samsung Galaxy S24')">Samsung Galaxy S24</span>
+          <span class="trending-tag" onclick="searchTrending('Arabic Oud Perfume')">Arabic Oud Perfume</span>
+        </div>
       </div>
     `;
+    
+    if (resultsCount) {
+      resultsCount.textContent = '0 results';
+    }
     return;
   }
   
-  // Group by product name (simplified)
+  // Update results count
+  if (resultsCount) {
+    resultsCount.textContent = `${products.length} results`;
+  }
+  
+  // Group products by name for better organization
   const productGroups = {};
   products.forEach(product => {
-    const key = product.originalName;
-    if (!productGroups[key]) productGroups[key] = [];
-    productGroups[key].push(product);
+    const baseName = product.name.split(' - ')[0];
+    if (!productGroups[baseName]) {
+      productGroups[baseName] = [];
+    }
+    productGroups[baseName].push(product);
   });
   
   let html = '';
   
-  Object.entries(productGroups).forEach(([productName, storeProducts]) => {
-    const bestProduct = storeProducts.find(p => p.isBestPrice) || storeProducts[0];
+  // Create product groups
+  Object.values(productGroups).forEach(productGroup => {
+    // Sort by price (lowest first)
+    productGroup.sort((a, b) => a.price - b.price);
+    
+    const bestProduct = productGroup[0];
+    const hasMultipleStores = productGroup.length > 1;
     
     html += `
-      <div class="product-group">
-        <div class="product-group-header">
-          <h3>${productName}</h3>
-          <span class="best-price-badge">Best Price: ${bestProduct.price} AED</span>
-        </div>
+      <div class="product-card ${bestProduct.isBestPrice ? 'best-price' : ''}">
+        <img src="${bestProduct.image}" alt="${bestProduct.name}" class="product-image">
         
-        <div class="store-comparison-grid">
+        <div class="product-info">
+          <div class="product-store">${bestProduct.store.toUpperCase()}</div>
+          <h3 class="product-title">${bestProduct.name}</h3>
+          <p class="product-description">${bestProduct.description}</p>
+          
+          <div class="price-section">
+            <span class="current-price">${bestProduct.price} AED</span>
+            ${bestProduct.discount > 0 ? `
+              <span class="original-price">${bestProduct.originalPrice} AED</span>
+              <span class="discount-badge">-${bestProduct.discount}%</span>
+            ` : ''}
+            ${bestProduct.isBestPrice ? `
+              <span class="best-price-tag">Best Price</span>
+            ` : ''}
+          </div>
+          
+          <div class="product-meta">
+            <span class="rating">⭐ ${bestProduct.rating} (${bestProduct.reviews})</span>
+            <span class="shipping">🚚 ${bestProduct.shipping}</span>
+            <span class="stock ${bestProduct.inStock ? 'in-stock' : 'out-stock'}">
+              ${bestProduct.inStock ? 'In Stock' : 'Out of Stock'}
+            </span>
+          </div>
+          
+          <div class="product-actions">
+            <button class="btn btn-primary" onclick="addToBasket(${JSON.stringify(bestProduct).replace(/"/g, '&quot;')})">
+              <i class="fas fa-cart-plus"></i> Add to Basket
+            </button>
+            <a href="${bestProduct.url}" target="_blank" class="btn btn-secondary">
+              <i class="fas fa-external-link-alt"></i> Visit Store
+            </a>
+          </div>
+        </div>
+      </div>
     `;
     
-    // Sort by price (lowest first)
-    storeProducts.sort((a, b) => a.price - b.price);
-    
-    storeProducts.forEach(product => {
+    // Show other store prices for the same product
+    if (hasMultipleStores && productGroup.length > 1) {
       html += `
-        <div class="store-product-card ${product.isBestPrice ? 'best-price' : ''}">
-          <div class="store-badge">${product.store.toUpperCase()}</div>
-          <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='https://via.placeholder.com/300x200/2C3E50/FFFFFF?text=Product+Image'">
-          
-          <div class="product-details">
-            <h4>${product.name}</h4>
-            <p class="product-description">${product.description}</p>
-            
-            <div class="price-section">
-              <span class="current-price">${product.price} AED</span>
-              ${product.discount > 0 ? `
-                <span class="original-price">${product.originalPrice} AED</span>
-                <span class="discount-badge">-${product.discount}%</span>
-              ` : ''}
-            </div>
-            
-            <div class="product-meta">
-              <span class="rating">⭐ ${product.rating} (${product.reviews})</span>
-              <span class="shipping">🚚 ${product.shipping}</span>
-              <span class="stock ${product.inStock ? 'in-stock' : 'out-stock'}">
-                ${product.inStock ? '✓ In Stock' : '✗ Out of Stock'}
-              </span>
-            </div>
-            
-            <div class="product-actions">
-              <button class="btn-add-to-basket" onclick="addToBasket(${JSON.stringify(product).replace(/"/g, '&quot;')})">
-                <i class="fas fa-cart-plus"></i> Add to Basket
-              </button>
-              <a href="${product.affiliateLink}" target="_blank" class="btn-visit-store">
-                <i class="fas fa-external-link-alt"></i> Visit Store
-              </a>
-            </div>
+        <div class="other-stores">
+          <p><strong>Also available at:</strong></p>
+          <div class="store-prices">
+      `;
+      
+      productGroup.slice(1).forEach(product => {
+        html += `
+          <div class="store-price ${product.isBestPrice ? 'best' : ''}">
+            <span>${product.store}:</span>
+            <strong>${product.price} AED</strong>
+            <button class="btn-small" onclick="addToBasket(${JSON.stringify(product).replace(/"/g, '&quot;')})">
+              <i class="fas fa-cart-plus"></i>
+            </button>
+          </div>
+        `;
+      });
+      
+      html += `
           </div>
         </div>
       `;
-    });
-    
-    html += `
-        </div>
-      </div>
-    `;
+    }
   });
   
   resultsContainer.innerHTML = html;
-  resultsContainer.classList.add('fade-in');
+  
+  // Scroll to results
+  setTimeout(() => {
+    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
 }
 
-// ============================================
-// BASKET SYSTEM (SEPARATE PAGE)
-// ============================================
-
-function renderBasketPage() {
-  const basketContainer = document.getElementById('basketPageContent');
-  if (!basketContainer) return;
-  
-  if (state.basket.length === 0) {
-    basketContainer.innerHTML = `
-      <div class="empty-basket">
-        <i class="fas fa-shopping-basket"></i>
-        <h3>Your basket is empty</h3>
-        <p>Add some products to get started!</p>
-        <button onclick="showPage('home')" class="btn-primary">
-          <i class="fas fa-search"></i> Start Shopping
-        </button>
-      </div>
-    `;
-    return;
-  }
-  
-  let total = 0;
-  let html = `
-    <div class="basket-header">
-      <h3>My Shopping Basket (${state.basket.length} items)</h3>
-      <button onclick="clearBasket()" class="btn-secondary">
-        <i class="fas fa-trash"></i> Clear All
-      </button>
-    </div>
-    
-    <div class="basket-items">
-  `;
-  
-  state.basket.forEach((item, index) => {
-    total += item.price * item.quantity;
-    
-    html += `
-      <div class="basket-item">
-        <img src="${item.image}" alt="${item.name}" class="basket-item-image">
-        
-        <div class="basket-item-info">
-          <h4>${item.name}</h4>
-          <p class="store-info">From: ${item.store}</p>
-          <p class="item-description">${item.description}</p>
-        </div>
-        
-        <div class="basket-item-quantity">
-          <button onclick="updateQuantity(${index}, -1)">-</button>
-          <span>${item.quantity}</span>
-          <button onclick="updateQuantity(${index}, 1)">+</button>
-        </div>
-        
-        <div class="basket-item-price">
-          <span class="price">${item.price * item.quantity} AED</span>
-          <span class="unit-price">${item.price} AED each</span>
-        </div>
-        
-        <button onclick="removeFromBasket(${index})" class="btn-remove-item">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    `;
-  });
-  
-  html += `
-    </div>
-    
-    <div class="basket-summary">
-      <div class="summary-row">
-        <span>Subtotal</span>
-        <span>${total} AED</span>
-      </div>
-      <div class="summary-row">
-        <span>Estimated Shipping</span>
-        <span>FREE</span>
-      </div>
-      <div class="summary-row total">
-        <span>Total</span>
-        <span>${total} AED</span>
-      </div>
-      
-      <button class="btn-checkout">
-        <i class="fas fa-lock"></i> Proceed to Checkout
-      </button>
-      
-      <p class="security-note">
-        <i class="fas fa-shield-alt"></i> Secure checkout · 256-bit encryption
-      </p>
-    </div>
-  `;
-  
-  basketContainer.innerHTML = html;
-}
-
-// ============================================
-// PROFILE PAGE (SEPARATE PAGE)
-// ============================================
-
-function renderProfilePage() {
-  const profileContainer = document.getElementById('profilePageContent');
-  if (!profileContainer) return;
-  
-  if (!state.user) {
-    profileContainer.innerHTML = `
-      <div class="login-prompt">
-        <i class="fas fa-user-lock"></i>
-        <h3>Please login to view your profile</h3>
-        <button onclick="showLoginModal()" class="btn-primary">
-          <i class="fas fa-sign-in-alt"></i> Login / Sign Up
-        </button>
-      </div>
-    `;
-    return;
-  }
-  
-  const userEmail = state.user.email || 'Not set';
-  const userName = state.user.displayName || userEmail.split('@')[0];
-  const joinDate = state.user.metadata?.creationTime 
-    ? new Date(state.user.metadata.creationTime).toLocaleDateString('en-AE')
-    : 'Today';
-  
-  profileContainer.innerHTML = `
-    <div class="profile-header">
-      <div class="profile-avatar">
-        ${userName.charAt(0).toUpperCase()}
-      </div>
-      <div class="profile-info">
-        <h2>${userName}</h2>
-        <p class="profile-email">${userEmail}</p>
-        <p class="profile-joined">Member since ${joinDate}</p>
-      </div>
-    </div>
-    
-    <div class="profile-stats">
-      <div class="stat-card">
-        <i class="fas fa-shopping-bag"></i>
-        <span class="stat-value">${state.basket.length}</span>
-        <span class="stat-label">Items in Basket</span>
-      </div>
-      <div class="stat-card">
-        <i class="fas fa-search"></i>
-        <span class="stat-value">12</span>
-        <span class="stat-label">Searches Today</span>
-      </div>
-      <div class="stat-card">
-        <i class="fas fa-money-bill-wave"></i>
-        <span class="stat-value">1,250</span>
-        <span class="stat-label">Points Earned</span>
-      </div>
-      <div class="stat-card">
-        <i class="fas fa-percentage"></i>
-        <span class="stat-value">5.8%</span>
-        <span class="stat-label">Avg. Savings</span>
-      </div>
-    </div>
-    
-    <div class="profile-actions">
-      <h3>Account Settings</h3>
-      <div class="settings-list">
-        <button class="setting-item">
-          <i class="fas fa-user-edit"></i>
-          <span>Edit Profile</span>
-          <i class="fas fa-chevron-right"></i>
-        </button>
-        <button class="setting-item">
-          <i class="fas fa-bell"></i>
-          <span>Notifications</span>
-          <i class="fas fa-chevron-right"></i>
-        </button>
-        <button class="setting-item">
-          <i class="fas fa-shield-alt"></i>
-          <span>Privacy & Security</span>
-          <i class="fas fa-chevron-right"></i>
-        </button>
-        <button class="setting-item">
-          <i class="fas fa-question-circle"></i>
-          <span>Help & Support</span>
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-    </div>
-    
-    <button onclick="logout()" class="btn-logout">
-      <i class="fas fa-sign-out-alt"></i> Logout
-    </button>
-  `;
-}
-
-// ============================================
-// REWARDS PAGE (SEPARATE PAGE)
-// ============================================
-
-function renderRewardsPage() {
-  const rewardsContainer = document.getElementById('rewardsPageContent');
-  if (!rewardsContainer) return;
-  
-  const points = state.user ? 1250 : 0;
-  
-  rewardsContainer.innerHTML = `
-    <div class="rewards-hero">
-      <div class="points-display-large">
-        <span class="points-value">${points}</span>
-        <span class="points-label">Points</span>
-      </div>
-      <p class="points-exchange">50 Points = 1 AED</p>
-    </div>
-    
-    <div class="rewards-info">
-      <h3>How to Earn Points</h3>
-      <div class="earning-methods">
-        <div class="method">
-          <i class="fas fa-search"></i>
-          <span>Search Products</span>
-          <span class="method-points">+10 points</span>
-        </div>
-        <div class="method">
-          <i class="fas fa-shopping-cart"></i>
-          <span>Add to Basket</span>
-          <span class="method-points">+50 points</span>
-        </div>
-        <div class="method">
-          <i class="fas fa-store"></i>
-          <span>Visit Store via Link</span>
-          <span class="method-points">+100 points</span>
-        </div>
-        <div class="method">
-          <i class="fas fa-gift"></i>
-          <span>Refer a Friend</span>
-          <span class="method-points">+500 points</span>
-        </div>
-      </div>
-    </div>
-    
-    <div class="rewards-catalog">
-      <h3>Redeem Points</h3>
-      <div class="rewards-grid">
-        <div class="reward-card">
-          <div class="reward-cost">250 pts</div>
-          <i class="fas fa-coffee"></i>
-          <h4>Coffee Voucher</h4>
-          <p>Starbucks UAE</p>
-        </div>
-        <div class="reward-card">
-          <div class="reward-cost">500 pts</div>
-          <i class="fas fa-shopping-bag"></i>
-          <h4>Carrefour Voucher</h4>
-          <p>50 AED Value</p>
-        </div>
-        <div class="reward-card">
-          <div class="reward-cost">1000 pts</div>
-          <i class="fas fa-plane"></i>
-          <h4>Air Miles</h4>
-          <p>Emirates Skywards</p>
-        </div>
-        <div class="reward-card">
-          <div class="reward-cost">2000 pts</div>
-          <i class="fas fa-mobile-alt"></i>
-          <h4>Etisalat Credit</h4>
-          <p>Mobile Recharge</p>
-        </div>
-      </div>
-    </div>
-    
-    <button class="btn-redeem" ${points < 250 ? 'disabled' : ''}>
-      <i class="fas fa-gift"></i> Redeem Points
-    </button>
-  `;
-}
-
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-
-function initUI() {
-  // Language toggle
-  document.getElementById('arabicBtn')?.addEventListener('click', () => {
-    setLanguage('arabic');
-  });
-  
-  document.getElementById('englishBtn')?.addEventListener('click', () => {
-    setLanguage('english');
-  });
-}
-
-function initEventListeners() {
-  // Store filter checkboxes
-  document.querySelectorAll('.store-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', updateSelectedStores);
-  });
-  
-  // Login modal
-  document.getElementById('showLogin')?.addEventListener('click', showLoginModal);
-  
-  // Login form
-  document.getElementById('loginBtn')?.addEventListener('click', handleLogin);
-  document.getElementById('signupBtn')?.addEventListener('click', handleSignup);
-}
-
-function updateSelectedStores() {
-  state.selectedStores = Array.from(document.querySelectorAll('.store-checkbox:checked'))
-    .map(cb => cb.value);
-  console.log("Updated selected stores:", state.selectedStores);
-}
-
-function getSelectedStores() {
-  return state.selectedStores;
-}
-
+// Show loading state
 function showLoading(show) {
   const loading = document.getElementById('loading');
+  const results = document.getElementById('searchResults');
+  
   if (loading) {
     loading.style.display = show ? 'block' : 'none';
   }
-}
-
-function showNotification(message, type = 'info') {
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.innerHTML = `
-    <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i>
-    <span>${message}</span>
-  `;
   
-  document.body.appendChild(notification);
-  
-  setTimeout(() => notification.classList.add('show'), 10);
-  setTimeout(() => {
-    notification.classList.remove('show');
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}
-
-function scrollToResults() {
-  const results = document.getElementById('resultsContainer');
-  if (results) {
-    results.scrollIntoView({ behavior: 'smooth' });
+  if (results && show) {
+    results.innerHTML = '';
   }
 }
 
-function saveSearchHistory(query) {
-  let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
-  history.unshift({
-    query: query,
-    timestamp: new Date().toISOString(),
-    results: state.searchResults.length
-  });
-  history = history.slice(0, 10); // Keep last 10 searches
-  localStorage.setItem('searchHistory', JSON.stringify(history));
-}
-
-function loadBasketFromStorage() {
-  const saved = localStorage.getItem('uae_price_hunter_basket');
-  if (saved) {
-    state.basket = JSON.parse(saved);
-    updateBasketCount();
-  }
-}
-
-function saveBasketToStorage() {
-  localStorage.setItem('uae_price_hunter_basket', JSON.stringify(state.basket));
-}
-
-function updateBasketCount() {
-  const count = state.basket.reduce((total, item) => total + item.quantity, 0);
-  const badge = document.querySelector('.basket-badge');
-  if (badge) {
-    badge.textContent = count;
-    badge.style.display = count > 0 ? 'flex' : 'none';
-  }
-}
-
+// Add product to basket
 function addToBasket(product) {
-  const existingIndex = state.basket.findIndex(item => item.id === product.id);
+  // Check if product already in basket
+  const existingIndex = appState.basket.findIndex(item => 
+    item.id === product.id || (item.name === product.name && item.store === product.store)
+  );
   
   if (existingIndex > -1) {
-    state.basket[existingIndex].quantity += 1;
+    // Update quantity
+    appState.basket[existingIndex].quantity += 1;
   } else {
-    state.basket.push({
+    // Add new item
+    appState.basket.push({
       ...product,
       quantity: 1,
       addedAt: new Date().toISOString()
     });
   }
   
-  saveBasketToStorage();
-  updateBasketCount();
-  showNotification(`Added ${product.name} to basket!`, 'success');
+  // Award points for adding to basket
+  awardPoints(APP_CONFIG.POINTS_PER_ADD_TO_BASKET, 'Add to basket: ' + product.name);
   
-  // If on basket page, refresh it
-  if (state.currentPage === 'basket') {
-    renderBasketPage();
+  // Save and update UI
+  saveAppState();
+  updateUI();
+  
+  // Show notification
+  showNotification(`Added ${product.name} to basket!`, 'success');
+}
+
+// Update basket quantity
+function updateBasketQuantity(itemId, change) {
+  const index = appState.basket.findIndex(item => item.id === itemId);
+  
+  if (index !== -1) {
+    appState.basket[index].quantity += change;
+    
+    if (appState.basket[index].quantity < 1) {
+      appState.basket.splice(index, 1);
+    }
+    
+    saveAppState();
+    updateUI();
   }
 }
 
-function removeFromBasket(index) {
-  state.basket.splice(index, 1);
-  saveBasketToStorage();
-  updateBasketCount();
-  renderBasketPage();
+// Remove item from basket
+function removeItemFromBasket(itemId) {
+  appState.basket = appState.basket.filter(item => item.id !== itemId);
+  saveAppState();
+  updateUI();
   showNotification('Item removed from basket', 'info');
 }
 
-function updateQuantity(index, change) {
-  const newQuantity = state.basket[index].quantity + change;
-  
-  if (newQuantity < 1) {
-    removeFromBasket(index);
-    return;
-  }
-  
-  state.basket[index].quantity = newQuantity;
-  saveBasketToStorage();
-  updateBasketCount();
-  renderBasketPage();
-}
-
+// Clear basket
 function clearBasket() {
-  if (confirm('Clear all items from basket?')) {
-    state.basket = [];
-    saveBasketToStorage();
-    updateBasketCount();
-    renderBasketPage();
+  if (appState.basket.length === 0) return;
+  
+  if (confirm('Are you sure you want to clear your basket?')) {
+    appState.basket = [];
+    saveAppState();
+    updateUI();
     showNotification('Basket cleared', 'info');
   }
 }
 
-function setLanguage(lang) {
-  state.language = lang;
-  document.documentElement.dir = lang === 'arabic' ? 'rtl' : 'ltr';
-  document.documentElement.lang = lang === 'arabic' ? 'ar' : 'en';
+// Save search to history
+function saveSearchToHistory(query, resultsCount) {
+  const searchEntry = {
+    query: query,
+    timestamp: new Date().toISOString(),
+    results: resultsCount
+  };
   
-  // Update active button
-  document.getElementById('arabicBtn')?.classList.toggle('active', lang === 'arabic');
-  document.getElementById('englishBtn')?.classList.toggle('active', lang === 'english');
+  appState.searchHistory.unshift(searchEntry);
   
-  // Update text content (simplified)
-  if (lang === 'arabic') {
-    document.querySelector('header h1').textContent = 'مقارن أسعار الإمارات';
-    document.getElementById('searchInput')?.setAttribute('placeholder', 'ابحث عن منتجات...');
-  } else {
-    document.querySelector('header h1').textContent = 'UAE PRICE HUNTER';
-    document.getElementById('searchInput')?.setAttribute('placeholder', 'Search for products...');
+  // Limit history size
+  if (appState.searchHistory.length > APP_CONFIG.SEARCH_HISTORY_LIMIT) {
+    appState.searchHistory = appState.searchHistory.slice(0, APP_CONFIG.SEARCH_HISTORY_LIMIT);
+  }
+  
+  saveAppState();
+  
+  // Also save to Firebase if user is logged in
+  if (appState.user && window.firebaseServices && window.firebaseServices.saveSearchHistory) {
+    window.firebaseServices.saveSearchHistory(appState.user.uid, searchEntry)
+      .catch(error => console.error('Error saving search to Firebase:', error));
   }
 }
 
-function showLoginModal() {
-  const modal = document.getElementById('loginModal');
+// Award points to user
+function awardPoints(points, reason) {
+  appState.points += points;
+  saveAppState();
+  updateUI();
+  
+  // Save to Firebase if user is logged in
+  if (appState.user && window.firebaseServices && window.firebaseServices.updatePoints) {
+    window.firebaseServices.updatePoints(appState.user.uid, points, reason)
+      .catch(error => console.error('Error updating points in Firebase:', error));
+  }
+  
+  console.log(`🎯 Awarded ${points} points for: ${reason}`);
+}
+
+// Update UI elements
+function updateUI() {
+  // Update basket count in navigation
+  const basketCount = appState.basket.reduce((total, item) => total + item.quantity, 0);
+  const basketElements = document.querySelectorAll('#navBasketCount, .basket-count');
+  
+  basketElements.forEach(element => {
+    element.textContent = basketCount;
+    element.style.display = basketCount > 0 ? 'inline-block' : 'none';
+  });
+  
+  // Update user name
+  const userNameElements = document.querySelectorAll('#userName, .user-name');
+  userNameElements.forEach(element => {
+    if (appState.user) {
+      element.textContent = appState.user.name;
+    } else {
+      element.textContent = 'Guest';
+    }
+  });
+  
+  // Update points display
+  const pointsElements = document.querySelectorAll('.points-value, #totalPoints, #availablePoints');
+  pointsElements.forEach(element => {
+    element.textContent = appState.points;
+  });
+}
+
+// Update navigation
+function updateNavigation() {
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  const navLinks = document.querySelectorAll('.nav-link');
+  
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href === currentPage || (currentPage === '' && href === 'index.html')) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+}
+
+// Show modal
+function showModal(modalId) {
+  const modal = document.getElementById(modalId);
   if (modal) {
     modal.style.display = 'flex';
   }
 }
 
-function hideLoginModal() {
-  const modal = document.getElementById('loginModal');
-  if (modal) {
+// Close modal
+function closeModal() {
+  document.querySelectorAll('.modal').forEach(modal => {
     modal.style.display = 'none';
-  }
+  });
 }
 
-async function handleLogin() {
-  const email = document.getElementById('loginEmail')?.value;
-  const password = document.getElementById('loginPassword')?.value;
+// Login user
+async function loginUser() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
   
   if (!email || !password) {
-    showNotification('Please enter email and password', 'error');
+    showNotification('Please enter email and password', 'warning');
     return;
   }
   
   try {
-    await auth.signInWithEmailAndPassword(email, password);
+    let user;
+    
+    if (window.firebaseServices && window.firebaseServices.loginUser) {
+      // Real Firebase login
+      user = await window.firebaseServices.loginUser(email, password);
+    } else {
+      // Mock login for demo
+      user = {
+        uid: 'demo-user-' + Date.now(),
+        email: email,
+        displayName: email.split('@')[0],
+        metadata: { creationTime: new Date().toISOString() }
+      };
+      
+      // Simulate delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
     showNotification('Login successful!', 'success');
-    hideLoginModal();
+    closeModal();
+    
   } catch (error) {
     console.error('Login error:', error);
     showNotification(`Login failed: ${error.message}`, 'error');
   }
 }
 
-async function handleSignup() {
-  const email = document.getElementById('loginEmail')?.value;
-  const password = document.getElementById('loginPassword')?.value;
+// Signup user
+async function signupUser() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
   
   if (!email || !password) {
-    showNotification('Please enter email and password', 'error');
+    showNotification('Please enter email and password', 'warning');
     return;
   }
   
   if (password.length < 6) {
-    showNotification('Password must be at least 6 characters', 'error');
+    showNotification('Password must be at least 6 characters', 'warning');
     return;
   }
   
   try {
-    await auth.createUserWithEmailAndPassword(email, password);
-    showNotification('Account created successfully!', 'success');
-    hideLoginModal();
+    let user;
+    
+    if (window.firebaseServices && window.firebaseServices.signupUser) {
+      // Real Firebase signup
+      user = await window.firebaseServices.signupUser(email, password);
+    } else {
+      // Mock signup for demo
+      user = {
+        uid: 'demo-user-' + Date.now(),
+        email: email,
+        displayName: email.split('@')[0],
+        metadata: { creationTime: new Date().toISOString() }
+      };
+      
+      // Simulate delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    showNotification('Account created successfully! Welcome!', 'success');
+    closeModal();
+    
   } catch (error) {
     console.error('Signup error:', error);
     showNotification(`Signup failed: ${error.message}`, 'error');
   }
 }
 
-function logout() {
-  auth.signOut();
-  showNotification('Logged out successfully', 'info');
-  showPage('home');
-}
-
-function updateUI() {
-  // Update user state
-  const userSection = document.getElementById('userSection');
-  const loginSection = document.getElementById('loginSection');
-  
-  if (state.user) {
-    userSection?.style.display = 'block';
-    loginSection?.style.display = 'none';
-  } else {
-    userSection?.style.display = 'none';
-    loginSection?.style.display = 'block';
+// Logout user
+async function logoutUser() {
+  try {
+    if (window.firebaseServices && window.firebaseServices.logoutUser) {
+      await window.firebaseServices.logoutUser();
+    }
+    
+    appState.user = null;
+    saveAppState();
+    updateUI();
+    
+    showNotification('Logged out successfully', 'info');
+    
+  } catch (error) {
+    console.error('Logout error:', error);
+    showNotification('Logout failed', 'error');
   }
-  
-  // Update basket count
-  updateBasketCount();
 }
 
-// Make functions available globally
-window.addToBasket = addToBasket;
-window.removeFromBasket = removeFromBasket;
-window.updateQuantity = updateQuantity;
-window.clearBasket = clearBasket;
-window.showPage = showPage;
-window.showLoginModal = showLoginModal;
-window.logout = logout;
-window.setLanguage = setLanguage;
-
-console.log("🎯 UAE Price Hunter 2025 - Ready for modern shopping!");
+// Show notification
+function showNotification(message, type = 'info') {
+  // Remove existing notification
+  const existing = document.querySelector('.notification');
+  if (existing) existing.remove();
+  
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  
+  // Set icon based on type
+  let icon = 'info-circle';
+  if (type === 'success') icon = 'check-circle';
+  if (type === 'error') icon = 'exclamation-circle';
+  if (type === 'warning') icon = 'exclamation-triangle';
+  
+  notification.innerHTML = `
+    <i class="fas fa-${icon}"></i>
+    <span>${message}</span>
+  `;
+  
+  // Add styles
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${getNotificationColor(type)};
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    animation: slideInRight
