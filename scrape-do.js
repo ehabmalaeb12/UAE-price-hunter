@@ -1,7 +1,7 @@
 // ENHANCED SCRAPE.DO - REAL IMAGES & DETAILS
 // 🔧 ADD YOUR SCRAPE.DO API KEY HERE
 
-const SCRAPEDO_API_KEY = "YOUR_SCRAPE.DO_API_KEY_HERE";
+const SCRAPEDO_API_KEY = "641c5334a7504c15abb0902cd23d0095b4dbb6711a3";
 
 // Enhanced store configurations with REAL selectors
 const STORE_CONFIGS = {
