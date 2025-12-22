@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Deals - UAE Price Hunter</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2C3E50;
+            --secondary: #3498DB;
+            --accent: #E74C3C;
+            --dark: #1A252F;
+            --light: #ECF0F1;
+            --success: #2ECC71;
+            --warning: #F39C12;
+        }
+        
+        .deal-badge {
+            background: linear-gradient(135deg, #E74C3C, #F39C12);
+            color: white;
+            font-weight: 800;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            font-size: 1.3rem;
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .hot-deal {
+            position: relative;
+            border: 3px solid #E74C3C;
+            box-shadow: 0 15px 40px rgba(231, 76, 60, 0.2);
+        }
+        
+        .hot-deal::before {
+            content: '🔥 HOT';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #E74C3C;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Language Button -->
+    <button id="languageToggle" class="floating-btn" onclick="toggleLanguage()">
+        <i class="fas fa-language"></i>
+        <span>عربي</span>
+    </button>
+
+    <!-- Header -->
+    <header class="glass-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="logo">
+                    <i class="fas fa-search-dollar"></i>
+                    <h1>UAE PRICE HUNTER</h1>
+                </div>
+                <p class="tagline">Discover Amazing Deals</p>
+            </div>
+            
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>Compare Prices</span>
+                </a>
+                <a href="deals.html" class="nav-link active">
+                    <i class="fas fa-fire"></i>
+                    <span>Top Deals</span>
+                </a>
+                <a href="basket.html" class="nav-link">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span>Basket</span>
+                    <span id="basketCount" class="nav-badge">0</span>
+                </a>
+                <a href="profile.html" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="rewards.html" class="nav-link">
+                    <i class="fas fa-gift"></i>
+                    <span>Rewards</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="deals-hero">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title">🔥 <span class="gradient-text">Top Deals</span> in UAE</h1>
+                    <p class="hero-subtitle">Discover products with huge discounts across all UAE stores</p>
+                    <div class="deal-countdown">
+                        <div class="countdown-card">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h3>Limited Time Offers</h3>
+                                <p>Deals refresh every hour</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-illustration">
+                    <i class="fas fa-percentage"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deal Filters -->
+        <section class="filters-section glass-card">
+            <div class="filters-header">
+                <h2><i class="fas fa-filter"></i> Filter Deals</h2>
+                <p>Customize deals based on discount percentage</p>
+            </div>
+            
+            <div class="discount-filters">
+                <div class="discount-slider-container">
+                    <div class="slider-header">
+                        <h3>Minimum Discount:</h3>
+                        <div class="discount-value">
+                            <span id="currentDiscount">60</span>%
+                        </div>
+                    </div>
+                    <input type="range" 
+                           id="discountSlider" 
+                           min="50" 
+                           max="90" 
+                           step="5" 
+                           value="60"
+                           oninput="updateDiscountValue(this.value)">
+                    <div class="slider-labels">
+                        <span>50%</span>
+                        <span>60%</span>
+                        <span>70%</span>
+                        <span>80%</span>
+                        <span>90%</span>
+                    </div>
+                </div>
+                
+                <div class="quick-filters">
+                    <h3>Quick Filters:</h3>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="setDiscountFilter(60)">
+                            <span class="deal-badge-small">60%+</span>
+                            Good Deals
+                        </button>
+                        <button class="filter-btn" onclick="setDiscountFilter(70)">
+                            <span class="deal-badge-small">70%+</span>
+                            Great Deals
+                        </button>
+                        <button class="filter-btn" onclick="setDiscountFilter(80)">
+                            <span class="deal-badge-small">80%+</span>
+                            Amazing Deals
+                        </button>
+                        <button class="filter-btn" onclick="setDiscountFilter(90)">
+                            <span class="deal-badge-small">90%+</span>
+                            Unbelievable
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="category-filters">
+                    <h3><i class="fas fa-tags"></i> Categories:</h3>
+                    <div class="category-tags">
+                        <span class="category-tag active" data-category="all">All</span>
+                        <span class="category-tag" data-category="electronics">📱 Electronics</span>
+                        <span class="category-tag" data-category="fashion">👗 Fashion</span>
+                        <span class="category-tag" data-category="home">🏠 Home</span>
+                        <span class="category-tag" data-category="beauty">💄 Beauty</span>
+                        <span class="category-tag" data-category="grocery">🛒 Grocery</span>
+                        <span class="category-tag" data-category="appliances">🔌 Appliances</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deals Section -->
+        <section class="deals-section">
+            <div class="deals-header">
+                <div>
+                    <h2><i class="fas fa-bolt"></i> Hot Deals</h2>
+                    <p id="dealsCount">Loading amazing deals...</p>
+                </div>
+                <div class="deals-controls">
+                    <button class="btn-secondary" onclick="refreshDeals()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                    <button class="btn-primary" onclick="loadMoreDeals()">
+                        <i class="fas fa-plus"></i> Load More
+                    </button>
+                </div>
+            </div>
+
+            <div id="dealsLoading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Finding the hottest deals for you...</p>
+                <div class="loading-stores">
+                    <span>Scanning Amazon</span>
+                    <span>Checking Noon</span>
+                    <span>Searching Carrefour</span>
+                </div>
+            </div>
+
+            <div id="dealsGrid" class="deals-grid">
+                <!-- Top deals will load here -->
+                <div class="empty-state">
+                    <div class="empty-illustration">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <h3>Loading Amazing Deals</h3>
+                    <p>We're finding products with huge discounts across UAE stores</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deal Alerts -->
+        <section class="alerts-section glass-card">
+            <div class="alerts-content">
+                <div class="alerts-text">
+                    <h3><i class="fas fa-bell"></i> Never Miss a Deal</h3>
+                    <p>Get notified when products you want go on sale</p>
+                </div>
+                <div class="alerts-form">
+                    <input type="email" placeholder="Your email for deal alerts">
+                    <button class="btn-primary">
+                        <i class="fas fa-paper-plane"></i> Get Alerts
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <i class="fas fa-search-dollar"></i>
+                    <h3>UAE Price Hunter</h3>
+                </div>
+                <p>Your destination for the best deals in UAE</p>
+            </div>
+            <div class="footer-section">
+                <h4>Deal Categories</h4>
+                <a href="#"><i class="fas fa-mobile"></i> Electronics</a>
+                <a href="#"><i class="fas fa-tshirt"></i> Fashion</a>
+                <a href="#"><i class="fas fa-home"></i> Home & Kitchen</a>
+                <a href="#"><i class="fas fa-heart"></i> Beauty & Health</a>
+                <a href="#"><i class="fas fa-utensils"></i> Grocery</a>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <a href="index.html"><i class="fas fa-balance-scale"></i> Compare Prices</a>
+                <a href="deals.html"><i class="fas fa-fire"></i> Top Deals</a>
+                <a href="basket.html"><i class="fas fa-shopping-basket"></i> My Basket</a>
+                <a href="rewards.html"><i class="fas fa-gift"></i> My Rewards</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024 UAE Price Hunter. All deals are limited time offers.</p>
+            <p class="disclaimer">Deals may expire quickly. Prices are subject to change.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="language.js"></script>
+    <script src="scraper.js"></script>
+    <script src="deals-script.js"></script>
+
+    <script>
+        // Initialize deals page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDealsPage();
+            loadLanguagePreference();
+        });
+
+        // Update discount value
+        function updateDiscountValue(value) {
+            document.getElementById('currentDiscount').textContent = value;
+            filterDeals();
+        }
+
+        // Set discount filter
+        function setDiscountFilter(discount) {
+            document.getElementById('discountSlider').value = discount;
+            updateDiscountValue(discount);
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            filterDeals();
+        }
+
+        // Filter deals
+        function filterDeals() {
+            const discount = parseInt(document.getElementById('discountSlider').value);
+            const activeCategory = document.querySelector('.category-tag.active').dataset.category;
+            filterDealsByCriteria(discount, activeCategory);
+        }
+
+        // Refresh deals
+        function refreshDeals() {
+            loadDeals();
+        }
+
+        // Load more deals
+        function loadMoreDeals() {
+            loadMoreDealsFromAPI();
+        }
+
+        // Toggle language
+        function toggleLanguage() {
+            const currentLang = document.documentElement.lang;
+            const newLang = currentLang === 'en' ? 'ar' : 'en';
+            setLanguage(newLang);
+        }
+
+        // Category filter
+        document.querySelectorAll('.category-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                document.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                filterDeals();
+            });
+        });
+    </script>
+</body>
+</html>
