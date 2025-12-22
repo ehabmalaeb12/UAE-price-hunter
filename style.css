@@ -1848,3 +1848,75 @@ body[dir="rtl"] {
         border-color: rgba(44, 62, 80, 0.1);
     }
     }
+/* UAE PRICE HUNTER - 2025 SAND & LUXURY DESIGN */
+:root {
+    /* Sand & Desert Palette */
+    --primary: #C5A059;       /* Desert Gold */
+    --secondary: #E3C58E;     /* Soft Sand */
+    --accent: #8E5A31;        /* Burnt Earth */
+    --dark: #1A1612;          /* Deep Onyx */
+    --light: #F9F4E8;         /* Creamy Sand */
+    --success: #6B8E23;       /* Oasis Olive */
+    --warning: #D4A017;       /* Sun Gold */
+    
+    /* Modern Gradients */
+    --gradient-primary: linear-gradient(135deg, #C5A059, #8E5A31);
+    --gradient-sand: linear-gradient(135deg, #F9F4E8, #E3C58E);
+    
+    /* Glass Effect (Warm) */
+    --glass-bg: rgba(26, 22, 18, 0.85);
+    --glass-border: rgba(197, 160, 89, 0.2);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    
+    --radius-lg: 16px;
+    --transition-normal: 0.3s ease;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #1A1612; /* Dark background for luxury feel */
+    background-image: radial-gradient(circle at 20% 30%, #2C241B 0%, #1A1612 100%);
+    color: var(--light);
+}
+
+/* Modal Fixes */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 2000;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--dark);
+    border: 1px solid var(--primary);
+    padding: 2.5rem;
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    box-shadow: var(--glass-shadow);
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.auth-tab {
+    padding: 1rem;
+    cursor: pointer;
+    color: var(--secondary);
+    font-weight: 700;
+}
+
+.auth-tab.active {
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+}
