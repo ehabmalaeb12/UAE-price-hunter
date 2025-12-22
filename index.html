@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UAE Price Hunter - Compare Prices & Find Best Deals</title>
+    <title>Compare Prices - UAE Price Hunter</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2C3E50;
@@ -15,434 +16,302 @@
             --light: #ECF0F1;
             --success: #2ECC71;
             --warning: #F39C12;
-        }
-        
-        .deal-badge {
-            background: linear-gradient(45deg, #E74C3C, #F39C12);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .gallery-container {
-            position: relative;
-            height: 200px;
-            overflow: hidden;
-            border-radius: 10px;
-        }
-        
-        .gallery-main {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-        
-        .gallery-main:hover {
-            transform: scale(1.05);
-        }
-        
-        .gallery-thumbnails {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        
-        .gallery-thumb {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 5px;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
-        
-        .gallery-thumb.active {
-            border-color: var(--secondary);
-        }
-        
-        .product-options {
-            display: flex;
-            gap: 0.5rem;
-            margin: 0.5rem 0;
-            flex-wrap: wrap;
-        }
-        
-        .option-chip {
-            padding: 0.3rem 0.8rem;
-            background: var(--light);
-            border-radius: 15px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            border: 1px solid transparent;
-        }
-        
-        .option-chip:hover {
-            border-color: var(--secondary);
-        }
-        
-        .option-chip.color {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-        }
-        
-        .specs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-        
-        .spec-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
 <body>
-    <!-- Top Navigation -->
-    <div class="top-nav">
-        <div class="nav-left">
-            <div class="logo">
-                <i class="fas fa-search-dollar"></i>
-                <h1>UAE PRICE HUNTER</h1>
-            </div>
-        </div>
-        <div class="nav-right">
-            <button class="lang-btn" onclick="toggleLanguage()">عربي</button>
-            <div class="user-menu" onclick="showAuthModal()">
-                <span id="userName">Guest</span>
-                <i class="fas fa-user-circle"></i>
-            </div>
-        </div>
-    </div>
+    <!-- Floating Language Button -->
+    <button id="languageToggle" class="floating-btn" onclick="toggleLanguage()">
+        <i class="fas fa-language"></i>
+        <span>عربي</span>
+    </button>
 
-    <!-- Authentication Modal -->
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal('authModal')">&times;</span>
-            <h2><i class="fas fa-user-plus"></i> Create Account / Login</h2>
-            
-            <div class="auth-tabs">
-                <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
-                <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+    <!-- Header -->
+    <header class="glass-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="logo">
+                    <i class="fas fa-search-dollar"></i>
+                    <h1>UAE PRICE HUNTER</h1>
+                </div>
+                <p class="tagline">Smart Shopping. Real Savings.</p>
             </div>
             
-            <div id="loginForm" class="auth-form">
-                <input type="email" id="loginEmail" placeholder="Your Email" required>
-                <input type="password" id="loginPassword" placeholder="Password" required>
-                <button class="btn-primary" onclick="loginUser()">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </button>
-                <p class="small-text">Don't have account? <a href="#" onclick="switchAuthTab('signup')">Sign up now</a></p>
-            </div>
-            
-            <div id="signupForm" class="auth-form" style="display: none;">
-                <input type="text" id="signupName" placeholder="Full Name" required>
-                <input type="email" id="signupEmail" placeholder="Email" required>
-                <input type="password" id="signupPassword" placeholder="Password (min 6 characters)" required>
-                <input type="password" id="signupConfirm" placeholder="Confirm Password" required>
-                <button class="btn-primary" onclick="signupUser()">
-                    <i class="fas fa-user-plus"></i> Create Account
-                </button>
-                <p class="small-text">Already have account? <a href="#" onclick="switchAuthTab('login')">Login here</a></p>
-            </div>
-            
-            <div class="auth-divider">
-                <span>OR</span>
-            </div>
-            
-            <button class="btn-secondary" onclick="signInWithGoogle()">
-                <i class="fab fa-google"></i> Continue with Google
-            </button>
-            
-            <p class="small-text terms">
-                By continuing, you agree to our <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>
-            </p>
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link active">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>Compare Prices</span>
+                </a>
+                <a href="deals.html" class="nav-link">
+                    <i class="fas fa-fire"></i>
+                    <span>Top Deals</span>
+                </a>
+                <a href="basket.html" class="nav-link">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span>Basket</span>
+                    <span id="basketCount" class="nav-badge">0</span>
+                </a>
+                <a href="profile.html" class="nav-link">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="rewards.html" class="nav-link">
+                    <i class="fas fa-gift"></i>
+                    <span>Rewards</span>
+                </a>
+            </nav>
         </div>
-    </div>
-
-    <!-- Main Navigation -->
-    <nav class="main-nav">
-        <a href="index.html" class="nav-link active">
-            <i class="fas fa-home"></i> Home
-        </a>
-        <a href="#search-section" class="nav-link" onclick="scrollToSection('search-section')">
-            <i class="fas fa-search"></i> Compare Prices
-        </a>
-        <a href="#deals-section" class="nav-link" onclick="scrollToSection('deals-section')">
-            <i class="fas fa-fire"></i> Best Deals
-        </a>
-        <a href="basket.html" class="nav-link">
-            <i class="fas fa-shopping-basket"></i> Basket 
-            <span id="navBasketCount" class="badge">0</span>
-        </a>
-        <a href="profile.html" class="nav-link">
-            <i class="fas fa-user"></i> Profile
-        </a>
-    </nav>
+    </header>
 
     <!-- Main Content -->
     <main class="container">
         <!-- Hero Section -->
-        <section class="hero">
+        <section class="hero-section">
             <div class="hero-content">
-                <h2 class="hero-title">Marhaba! 🇦🇪</h2>
-                <p class="hero-subtitle">Find the Best Prices & Deals Across UAE Stores</p>
-                <div class="points-display" id="pointsDisplay">
-                    <div class="points-card">
-                        <i class="fas fa-coins"></i>
-                        <div>
-                            <h3 id="userPoints">0 Points</h3>
-                            <p>Start comparing to earn points!</p>
+                <div class="hero-text">
+                    <h1 class="hero-title">Find the <span class="gradient-text">Best Price</span> in UAE</h1>
+                    <p class="hero-subtitle">Compare prices across 6+ UAE stores instantly. Real products. Real prices.</p>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <i class="fas fa-store"></i>
+                            <div>
+                                <h3>6+ Stores</h3>
+                                <p>Amazon, Noon, Carrefour & more</p>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-bolt"></i>
+                            <div>
+                                <h3>Real-time</h3>
+                                <p>Live price updates</p>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-coins"></i>
+                            <div>
+                                <h3>Earn Points</h3>
+                                <p>Get rewards for shopping</p>
+                            </div>
                         </div>
                     </div>
-                    <button class="btn-outline" onclick="showAuthModal()">
-                        <i class="fas fa-user-plus"></i> Create Account to Save Points
-                    </button>
+                </div>
+                <div class="hero-illustration">
+                    <i class="fas fa-search-dollar"></i>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION 1: Search & Compare Prices -->
-        <section id="search-section" class="search-section">
-            <div class="section-header">
-                <h2><i class="fas fa-search"></i> Compare Prices Across UAE Stores</h2>
-                <p>Search any product and compare prices from 6+ UAE retailers instantly</p>
+        <!-- Search Section -->
+        <section class="search-section glass-card">
+            <div class="search-header">
+                <h2><i class="fas fa-search"></i> Search & Compare</h2>
+                <p>Enter product name to compare prices across all stores</p>
             </div>
-
-            <div class="search-container">
-                <div class="search-box">
+            
+            <div class="smart-search">
+                <div class="search-input-group">
                     <input type="text" 
                            id="searchInput" 
-                           placeholder="What product are you looking for? (iPhone, TV, perfume, gold...)"
+                           placeholder="What are you looking for? (iPhone 15, Samsung TV, Arabic perfume...)"
                            autocomplete="off">
                     <button class="search-btn" onclick="performSearch()">
-                        <i class="fas fa-search"></i> Compare Prices
+                        <i class="fas fa-search"></i>
+                        <span>Compare Now</span>
                     </button>
                 </div>
+                
                 <div id="searchSuggestions" class="suggestions-box"></div>
+                
+                <!-- AI Suggestions -->
+                <div class="ai-suggestions">
+                    <h3><i class="fas fa-robot"></i> Popular in UAE:</h3>
+                    <div class="suggestion-tags">
+                        <span class="tag" onclick="searchProduct('iPhone 15 Pro Max')">
+                            <i class="fas fa-mobile"></i> iPhone 15
+                        </span>
+                        <span class="tag" onclick="searchProduct('Samsung Galaxy S24')">
+                            <i class="fas fa-mobile-alt"></i> Samsung S24
+                        </span>
+                        <span class="tag" onclick="searchProduct('Arabic Oud Perfume')">
+                            <i class="fas fa-spray-can"></i> Arabic Perfume
+                        </span>
+                        <span class="tag" onclick="searchProduct('Gold Jewelry 22K')">
+                            <i class="fas fa-gem"></i> Gold Jewelry
+                        </span>
+                        <span class="tag" onclick="searchProduct('PlayStation 5')">
+                            <i class="fas fa-gamepad"></i> PlayStation 5
+                        </span>
+                        <span class="tag" onclick="searchProduct('Dyson Airwrap')">
+                            <i class="fas fa-wind"></i> Dyson Airwrap
+                        </span>
+                    </div>
+                </div>
                 
                 <!-- Store Selection -->
                 <div class="store-selection">
-                    <h3>Select Stores to Compare:</h3>
+                    <h3><i class="fas fa-filter"></i> Select Stores to Compare:</h3>
                     <div class="store-grid">
-                        <div class="store-option">
-                            <input type="checkbox" id="storeAmazon" checked data-store="amazon">
-                            <label for="storeAmazon">
+                        <label class="store-option selected" data-store="amazon">
+                            <input type="checkbox" checked>
+                            <div class="store-card">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon">
                                 <span>Amazon.ae</span>
-                            </label>
-                        </div>
-                        <div class="store-option">
-                            <input type="checkbox" id="storeNoon" checked data-store="noon">
-                            <label for="storeNoon">
+                            </div>
+                        </label>
+                        <label class="store-option selected" data-store="noon">
+                            <input type="checkbox" checked>
+                            <div class="store-card">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Noon_%28company%29_logo.svg/2560px-Noon_%28company%29_logo.svg.png" alt="Noon">
                                 <span>Noon</span>
-                            </label>
-                        </div>
-                        <div class="store-option">
-                            <input type="checkbox" id="storeCarrefour" checked data-store="carrefour">
-                            <label for="storeCarrefour">
+                            </div>
+                        </label>
+                        <label class="store-option selected" data-store="carrefour">
+                            <input type="checkbox" checked>
+                            <div class="store-card">
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Carrefour_logo.svg/2560px-Carrefour_logo.svg.png" alt="Carrefour">
                                 <span>Carrefour</span>
-                            </label>
-                        </div>
-                        <div class="store-option">
-                            <input type="checkbox" id="storeSharafDG" checked data-store="sharafdg">
-                            <label for="storeSharafDG">
+                            </div>
+                        </label>
+                        <label class="store-option selected" data-store="sharafdg">
+                            <input type="checkbox" checked>
+                            <div class="store-card">
                                 <img src="https://www.sharafdg.com/static/version1712821587/frontend/Sdg/default/en_US/images/logo.svg" alt="Sharaf DG">
                                 <span>Sharaf DG</span>
-                            </label>
-                        </div>
-                        <div class="store-option">
-                            <input type="checkbox" id="storeEmax" checked data-store="emax">
-                            <label for="storeEmax">
+                            </div>
+                        </label>
+                        <label class="store-option selected" data-store="emax">
+                            <input type="checkbox" checked>
+                            <div class="store-card">
                                 <img src="https://www.emaxme.com/pub/static/version1704199543/frontend/Emax/default/en_US/images/logo.svg" alt="eMax">
                                 <span>eMax</span>
-                            </label>
-                        </div>
-                        <div class="store-option">
-                            <input type="checkbox" id="storeLulu" checked data-store="lulu">
-                            <label for="storeLulu">
+                            </div>
+                        </label>
+                        <label class="store-option selected" data-store="lulu">
+                            <input type="checkbox" checked>
+                            <div class="store-card">
                                 <img src="https://www.luluhypermarket.com/medias/Logo-Lulu-1-.png" alt="Lulu">
                                 <span>Lulu</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Search Results -->
-            <div class="results-container">
-                <div id="loading" class="loading-container" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>Searching UAE stores for real-time prices...</p>
-                    <div class="loading-stores">
-                        <span class="store-loading">Amazon.ae</span>
-                        <span class="store-loading">Noon</span>
-                        <span class="store-loading">Carrefour</span>
-                        <span class="store-loading">Sharaf DG</span>
-                        <span class="store-loading">eMax</span>
-                        <span class="store-loading">Lulu</span>
-                    </div>
-                </div>
-
-                <div id="searchResults" class="results-grid">
-                    <!-- Results will appear here -->
-                    <div class="empty-state">
-                        <i class="fas fa-search"></i>
-                        <h3>Start Your Price Comparison Journey</h3>
-                        <p>Search for any product to compare prices across UAE stores</p>
-                        <div class="trending-searches">
-                            <span class="trending-tag" onclick="searchProduct('iPhone 15 Pro Max')">iPhone 15 Pro Max</span>
-                            <span class="trending-tag" onclick="searchProduct('Samsung TV 65 inch')">Samsung TV 65"</span>
-                            <span class="trending-tag" onclick="searchProduct('Arabic Perfume Oud')">Arabic Perfume</span>
-                            <span class="trending-tag" onclick="searchProduct('Gold Jewelry 22K')">Gold Jewelry</span>
-                        </div>
+                            </div>
+                        </label>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SECTION 2: Best Deals (NEW) -->
-        <section id="deals-section" class="deals-section">
-            <div class="section-header">
-                <h2><i class="fas fa-fire"></i> 🔥 HOT DEALS & DISCOUNTS</h2>
-                <p>Discover products with huge discounts across UAE stores</p>
+        <!-- Results Section -->
+        <section class="results-section">
+            <div class="results-header">
+                <h2><i class="fas fa-chart-line"></i> Price Comparison Results</h2>
+                <div class="results-info" id="resultsInfo">
+                    <span id="resultsCount">Search for products to compare</span>
+                </div>
             </div>
 
-            <!-- Discount Filter -->
-            <div class="deals-filter">
-                <div class="filter-controls">
-                    <h3><i class="fas fa-filter"></i> Filter by Discount:</h3>
-                    <div class="discount-slider-container">
-                        <input type="range" 
-                               id="discountSlider" 
-                               min="50" 
-                               max="90" 
-                               step="5" 
-                               value="60"
-                               oninput="updateDiscountValue(this.value)">
-                        <div class="slider-labels">
-                            <span>50%</span>
-                            <span id="currentDiscount">60%</span>
-                            <span>90%</span>
-                        </div>
+            <div id="loading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Searching UAE stores for real-time prices...</p>
+                <div class="loading-stores">
+                    <span>Amazon.ae</span>
+                    <span>Noon</span>
+                    <span>Carrefour</span>
+                    <span>Sharaf DG</span>
+                    <span>eMax</span>
+                    <span>Lulu</span>
+                </div>
+            </div>
+
+            <div id="searchResults" class="comparison-grid">
+                <!-- Products grouped by similarity will appear here -->
+                <div class="empty-state">
+                    <div class="empty-illustration">
+                        <i class="fas fa-balance-scale"></i>
                     </div>
-                    <button class="btn-primary" onclick="loadBestDeals()">
-                        <i class="fas fa-bolt"></i> Find Deals
-                    </button>
-                </div>
-                
-                <div class="quick-discounts">
-                    <button class="discount-btn" onclick="setDiscount(70)">
-                        <span class="deal-badge">70% OFF</span>
-                        Super Deals
-                    </button>
-                    <button class="discount-btn" onclick="setDiscount(80)">
-                        <span class="deal-badge">80% OFF</span>
-                        Mega Deals
-                    </button>
-                    <button class="discount-btn" onclick="setDiscount(90)">
-                        <span class="deal-badge">90% OFF</span>
-                        Clearance
-                    </button>
-                </div>
-            </div>
-
-            <!-- Best Deals Results -->
-            <div class="deals-container">
-                <div id="dealsLoading" class="loading-container" style="display: none;">
-                    <div class="spinner"></div>
-                    <p>Finding the hottest deals for you...</p>
-                </div>
-
-                <div id="bestDeals" class="deals-grid">
-                    <!-- Deals will load here -->
-                    <div class="empty-state">
-                        <i class="fas fa-percentage"></i>
-                        <h3>Ready to Find Amazing Deals?</h3>
-                        <p>Adjust the discount slider and click "Find Deals" to discover products with huge discounts</p>
-                        <div class="deal-categories">
-                            <span class="category-tag">📱 Electronics</span>
-                            <span class="category-tag">👗 Fashion</span>
-                            <span class="category-tag">🏠 Home & Kitchen</span>
-                            <span class="category-tag">💄 Beauty</span>
-                            <span class="category-tag">🛒 Grocery</span>
-                        </div>
+                    <h3>Start Comparing Prices</h3>
+                    <p>Search for any product to see prices from all UAE stores</p>
+                    <div class="empty-actions">
+                        <button class="btn-primary" onclick="searchProduct('iPhone 15 Pro Max')">
+                            <i class="fas fa-mobile"></i> Compare iPhone
+                        </button>
+                        <button class="btn-secondary" onclick="searchProduct('Samsung TV 65 inch')">
+                            <i class="fas fa-tv"></i> Compare TV
+                        </button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- How It Works -->
+        <!-- Features Section -->
         <section class="features-section">
-            <h2 class="section-title"><i class="fas fa-star"></i> Why Choose UAE Price Hunter?</h2>
+            <h2 class="section-title">Why Compare With Us?</h2>
             <div class="features-grid">
                 <div class="feature-card">
-                    <i class="fas fa-search-dollar"></i>
-                    <h3>Real Price Comparison</h3>
-                    <p>Compare actual prices from 6+ UAE stores with real images and details</p>
+                    <div class="feature-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>Smart Grouping</h3>
+                    <p>Similar products grouped together for easy comparison</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-fire"></i>
-                    <h3>Hot Deals Finder</h3>
-                    <p>Discover products with 50-90% discounts across all stores</p>
+                    <div class="feature-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h3>Best Price Highlighted</h3>
+                    <p>Lowest price automatically marked in green</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-coins"></i>
-                    <h3>Earn Points & Rewards</h3>
-                    <p>Get points for every search and purchase, redeem for cash</p>
+                    <div class="feature-icon">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <h3>Real Product Images</h3>
+                    <p>Actual images from store pages, not placeholders</p>
                 </div>
                 <div class="feature-card">
-                    <i class="fas fa-shopping-basket"></i>
-                    <h3>Smart Basket</h3>
-                    <p>Group items by store and checkout directly with affiliate tracking</p>
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Real-time Updates</h3>
+                    <p>Prices updated live from store websites</p>
                 </div>
             </div>
         </section>
     </main>
 
     <!-- Footer -->
-    <footer>
+    <footer class="glass-footer">
         <div class="footer-content">
             <div class="footer-section">
-                <h3>UAE Price Hunter</h3>
-                <p>Your smart shopping companion in UAE</p>
-                <p>Compare prices, find deals, earn rewards</p>
+                <div class="footer-logo">
+                    <i class="fas fa-search-dollar"></i>
+                    <h3>UAE Price Hunter</h3>
+                </div>
+                <p class="footer-tagline">Smart shopping comparison for the UAE market</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
             </div>
             <div class="footer-section">
-                <h3>Quick Links</h3>
-                <a href="index.html#search-section">Compare Prices</a>
-                <a href="index.html#deals-section">Best Deals</a>
-                <a href="basket.html">My Basket</a>
-                <a href="profile.html">My Profile</a>
+                <h4>Navigation</h4>
+                <a href="index.html"><i class="fas fa-balance-scale"></i> Compare Prices</a>
+                <a href="deals.html"><i class="fas fa-fire"></i> Top Deals</a>
+                <a href="basket.html"><i class="fas fa-shopping-basket"></i> My Basket</a>
+                <a href="profile.html"><i class="fas fa-user"></i> My Profile</a>
+                <a href="rewards.html"><i class="fas fa-gift"></i> My Rewards</a>
             </div>
             <div class="footer-section">
-                <h3>Support</h3>
-                <a href="contact.html">Contact Us</a>
-                <a href="faq.html">FAQ</a>
-                <a href="privacy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Service</a>
+                <h4>Legal</h4>
+                <a href="privacy.html"><i class="fas fa-shield-alt"></i> Privacy Policy</a>
+                <a href="terms.html"><i class="fas fa-file-contract"></i> Terms of Service</a>
+                <a href="disclaimer.html"><i class="fas fa-exclamation-triangle"></i> Disclaimer</a>
+                <a href="contact.html"><i class="fas fa-envelope"></i> Contact Us</a>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>© 2024 UAE Price Hunter | All prices in AED | Real-time comparison</p>
-            <p class="small-text">Note: Prices may vary. Always check store for final pricing.</p>
+            <p>© 2024 UAE Price Hunter. All rights reserved. Prices in AED.</p>
+            <p class="disclaimer">Prices are updated in real-time but may vary. Always check store for final pricing.</p>
         </div>
     </footer>
 
@@ -452,60 +321,38 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
     <script src="firebase-config.js"></script>
-    <script src="scrape-do-enhanced.js"></script>
-    <script src="script-enhanced.js"></script>
+    <script src="language.js"></script>
+    <script src="scraper.js"></script>
+    <script src="script.js"></script>
 
     <script>
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
-            initializeEnhancedApp();
-            updateNavigation();
-            // Load best deals on page load with default discount
-            loadBestDeals();
+            initializeApp();
+            loadLanguagePreference();
         });
 
-        // Auth functions
-        function showAuthModal() {
-            showModal('authModal');
-        }
-
-        function switchAuthTab(tab) {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            if (tab === 'login') {
-                document.getElementById('loginForm').style.display = 'block';
-                document.getElementById('signupForm').style.display = 'none';
-            } else {
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('signupForm').style.display = 'block';
-            }
-        }
-
-        function signInWithGoogle() {
-            alert('Google sign-in would be implemented with Firebase');
-            // Implementation for Google OAuth
-        }
-
-        // Discount functions
-        function updateDiscountValue(value) {
-            document.getElementById('currentDiscount').textContent = value + '%';
-        }
-
-        function setDiscount(value) {
-            document.getElementById('discountSlider').value = value;
-            updateDiscountValue(value);
-            loadBestDeals();
-        }
-
-        function scrollToSection(sectionId) {
-            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
-        }
-
+        // Search product function
         function searchProduct(query) {
             document.getElementById('searchInput').value = query;
             performSearch();
         }
+
+        // Toggle language
+        function toggleLanguage() {
+            const currentLang = document.documentElement.lang;
+            const newLang = currentLang === 'en' ? 'ar' : 'en';
+            setLanguage(newLang);
+        }
+
+        // Store selection
+        document.querySelectorAll('.store-option').forEach(option => {
+            option.addEventListener('click', function() {
+                this.classList.toggle('selected');
+                const checkbox = this.querySelector('input');
+                checkbox.checked = !checkbox.checked;
+            });
+        });
     </script>
 </body>
 </html>
