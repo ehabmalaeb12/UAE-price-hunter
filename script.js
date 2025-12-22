@@ -246,7 +246,7 @@ function selectSuggestion(suggestion) {
   }
 }
 
-// Perform search - FIXED LINE 158!
+// Perform REAL product comparison
 async function performSearch() {
   const searchInput = document.getElementById('searchInput');
   if (!searchInput) return;
@@ -256,6 +256,264 @@ async function performSearch() {
     showNotification('Please enter a search term', 'warning');
     return;
   }
+  
+  // Get selected stores
+  const selectedStores = getSelectedStores();
+  if (selectedStores.length === 0) {
+    showNotification('Please select at least one store', 'warning');
+    return;
+  }
+  
+  console.log(`🔍 Comparing "${query}" across ${selectedStores.length} UAE stores`);
+  
+  // Show loading
+  showLoading(true);
+  hideSuggestions();
+  
+  // Award points for search
+  awardPoints(APP_CONFIG.POINTS_PER_SEARCH, 'Search: ' + query);
+  
+  try {
+    // === REAL PRODUCT COMPARISON ===
+    if (window.realComparison && window.realComparison.findProductAcrossStores) {
+      const comparisonResult = await window.realComparison.findProductAcrossStores(query, selectedStores);
+      
+      if (comparisonResult.isFallback) {
+        showNotification('Showing demo comparison. Real data requires scrape.do API.', 'info');
+      }
+      
+      // Display grouped comparison results
+      displayComparisonResults(comparisonResult);
+      
+      // Save search to history
+      saveSearchToHistory(query, comparisonResult.totalProducts);
+      
+    } else {
+      throw new Error('Real comparison system not available');
+    }
+    
+  } catch (error) {
+    console.error('❌ Comparison error:', error);
+    showNotification('Comparison failed. Using demo mode.', 'error');
+    
+    // Fallback to demo comparison
+    displayFallbackComparison(query, selectedStores);
+  } finally {
+    showLoading(false);
+  }
+}
+
+// Display grouped comparison results
+function displayComparisonResults(comparisonResult) {
+  const resultsContainer = document.getElementById('searchResults');
+  const resultsCount = document.getElementById('resultsCount');
+  
+  if (!resultsContainer) return;
+  
+  // Clear previous results
+  resultsContainer.innerHTML = '';
+  
+  if (!comparisonResult || !comparisonResult.groupedProducts || 
+      Object.keys(comparisonResult.groupedProducts).length === 0) {
+    
+    resultsContainer.innerHTML = `
+      <div class="empty-results">
+        <i class="fas fa-search"></i>
+        <h3>No comparison found for "${comparisonResult?.query || 'your search'}"</h3>
+        <p>Try a different search term or check more stores</p>
+        <div class="trending-searches">
+          <span class="trending-tag" onclick="searchProduct('iPhone 15 Pro Max')">iPhone 15</span>
+          <span class="trending-tag" onclick="searchProduct('Samsung Galaxy S24')">Samsung S24</span>
+          <span class="trending-tag" onclick="searchProduct('Arabic Oud Perfume')">Arabic Perfume</span>
+        </div>
+      </div>
+    `;
+    
+    if (resultsCount) {
+      resultsCount.textContent = '0 results';
+    }
+    return;
+  }
+  
+  // Update results count
+  if (resultsCount) {
+    const groupCount = Object.keys(comparisonResult.groupedProducts).length;
+    resultsCount.textContent = 
+      `${comparisonResult.totalProducts} products in ${groupCount} comparison groups`;
+  }
+  
+  let html = '';
+  
+  // Display each product group
+  Object.values(comparisonResult.groupedProducts).forEach((group, groupIndex) => {
+    if (!group.products || group.products.length === 0) return;
+    
+    const cheapestProduct = group.products[0]; // First is cheapest (sorted)
+    const otherProducts = group.products.slice(1);
+    
+    html += `
+      <div class="comparison-group">
+        <div class="group-header">
+          <h3 class="group-title">${cheapestProduct.normalizedName || cheapestProduct.name}</h3>
+          <div class="group-info">
+            <span class="store-count">Available in ${group.stores.size} stores</span>
+            <span class="price-range">From ${cheapestProduct.price} AED</span>
+          </div>
+        </div>
+        
+        <div class="comparison-content">
+          <!-- CHEAPEST PRODUCT (HIGHLIGHTED) -->
+          <div class="product-card best-price">
+            <div class="best-price-badge">
+              <i class="fas fa-crown"></i> BEST PRICE
+            </div>
+            
+            <img src="${cheapestProduct.image}" alt="${cheapestProduct.name}" 
+                 class="product-image" 
+                 onerror="this.src='https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400&h=300&fit=crop'">
+            
+            <div class="product-info">
+              <div class="store-badge">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Amazon_icon.svg" alt="${cheapestProduct.store}">
+                <span>${cheapestProduct.store}</span>
+              </div>
+              
+              <h4 class="product-name">${cheapestProduct.name}</h4>
+              
+              <div class="price-section">
+                <span class="current-price">${cheapestProduct.price} AED</span>
+                ${cheapestProduct.originalPrice ? `
+                  <span class="original-price">${cheapestProduct.originalPrice} AED</span>
+                  <span class="discount-badge">Save ${cheapestProduct.originalPrice - cheapestProduct.price} AED</span>
+                ` : ''}
+              </div>
+              
+              <div class="product-meta">
+                <span class="shipping">🚚 ${cheapestProduct.shipping}</span>
+                <span class="rating">⭐ ${cheapestProduct.rating || '4.0'}</span>
+                <span class="stock in-stock">In Stock</span>
+              </div>
+              
+              <div class="product-actions">
+                <button class="btn btn-primary" onclick="addToBasket(${JSON.stringify(cheapestProduct).replace(/"/g, '&quot;')})">
+                  <i class="fas fa-cart-plus"></i> Add to Basket
+                </button>
+                <a href="${cheapestProduct.link}" target="_blank" class="btn btn-success" onclick="trackAffiliateClick('${cheapestProduct.id}', '${cheapestProduct.store}')">
+                  <i class="fas fa-external-link-alt"></i> Buy Now
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- OTHER STORES (IF AVAILABLE) -->
+          ${otherProducts.length > 0 ? `
+            <div class="alternative-stores">
+              <h4><i class="fas fa-store-alt"></i> Also available at:</h4>
+              
+              <div class="alternatives-grid">
+                ${otherProducts.map(product => `
+                  <div class="alternative-card">
+                    <div class="store-info">
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Amazon_icon.svg" alt="${product.store}">
+                      <span>${product.store}</span>
+                    </div>
+                    
+                    <div class="price-info">
+                      <span class="price">${product.price} AED</span>
+                      ${product.price > cheapestProduct.price ? `
+                        <span class="price-diff">+${product.price - cheapestProduct.price} AED</span>
+                      ` : ''}
+                    </div>
+                    
+                    <div class="alternative-actions">
+                      <a href="${product.link}" target="_blank" class="btn btn-outline" onclick="trackAffiliateClick('${product.id}', '${product.store}')">
+                        <i class="fas fa-external-link-alt"></i> View
+                      </a>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+          
+          <!-- DIFFERENT PRODUCT OPTIONS -->
+          ${groupIndex === 0 ? `
+            <div class="product-options">
+              <h4><i class="fas fa-layer-group"></i> Similar products you might like:</h4>
+              <div class="options-grid">
+                <div class="option-card">
+                  <span>${cheapestProduct.name} 128GB</span>
+                  <span class="option-price">${cheapestProduct.price + 200} AED</span>
+                </div>
+                <div class="option-card">
+                  <span>${cheapestProduct.name} 256GB</span>
+                  <span class="option-price">${cheapestProduct.price + 400} AED</span>
+                </div>
+                <div class="option-card">
+                  <span>${cheapestProduct.name} Pro Edition</span>
+                  <span class="option-price">${cheapestProduct.price + 600} AED</span>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  });
+  
+  resultsContainer.innerHTML = html;
+  
+  // Add comparison summary
+  const summary = document.createElement('div');
+  summary.className = 'comparison-summary';
+  summary.innerHTML = `
+    <div class="summary-card">
+      <i class="fas fa-chart-line"></i>
+      <div>
+        <h4>Comparison Complete</h4>
+        <p>Found ${comparisonResult.totalProducts} products across ${Object.keys(comparisonResult.groupedProducts).length} product groups</p>
+        <p class="summary-note">Real prices updated: ${new Date().toLocaleTimeString()}</p>
+      </div>
+    </div>
+  `;
+  
+  resultsContainer.insertBefore(summary, resultsContainer.firstChild);
+  
+  // Scroll to results
+  setTimeout(() => {
+    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+// Track affiliate clicks for commission
+function trackAffiliateClick(productId, storeName) {
+  console.log(`📊 Affiliate click tracked: ${productId} from ${storeName}`);
+  
+  // Save to localStorage
+  const affiliateClicks = JSON.parse(localStorage.getItem('affiliate_clicks') || '[]');
+  affiliateClicks.push({
+    productId,
+    store: storeName,
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent
+  });
+  localStorage.setItem('affiliate_clicks', JSON.stringify(affiliateClicks.slice(-100))); // Keep last 100
+  
+  // Send to Firebase if available
+  if (window.firebaseEnhanced && window.firebaseEnhanced.db) {
+    window.firebaseEnhanced.db.collection('affiliate_clicks').add({
+      productId,
+      store: storeName,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      userId: window.appState?.user?.uid || 'anonymous'
+    }).catch(err => console.error('Error saving affiliate click:', err));
+  }
+  
+  // Award points for store visit
+  if (window.appState) {
+    awardPoints(100, `Visited ${storeName} via affiliate link`);
+  }
+}
   
   // Get selected stores
   const selectedStores = getSelectedStores();
