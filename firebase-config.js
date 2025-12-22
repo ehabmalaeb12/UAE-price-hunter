@@ -13,197 +13,207 @@ const firebaseConfig = {
 
 
 // Initialize Firebase
-let firebaseApp, auth, db;
-
-try {
-  if (typeof firebase !== 'undefined') {
-    firebaseApp = firebase.initializeApp(firebaseConfig);
-    auth = firebase.auth();
-    db = firebase.firestore();
-    
-    console.log("✅ Firebase initialized successfully");
-    
-    // Enable offline persistence
-    db.enablePersistence()
-      .catch((err) => {
-        console.warn("⚠️ Offline persistence not supported:", err.code);
-      });
-  } else {
-    console.warn("⚠️ Firebase SDK not loaded");
-  }
-} catch (error) {
-  console.error("❌ Firebase initialization error:", error);
+if (typeof firebase !== 'undefined') {
+  firebase.initializeApp(firebaseConfig);
+  console.log("✅ Firebase initialized");
 }
 
-// Firebase Authentication Functions
-async function loginUser(email, password) {
-  try {
-    const userCredential = await auth.signInWithEmailAndPassword(email, password);
-    console.log("✅ User logged in:", userCredential.user.email);
-    return userCredential.user;
-  } catch (error) {
-    console.error("❌ Login error:", error);
-    throw error;
-  }
-}
+// Enhanced user management
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-async function signupUser(email, password) {
+// Create user account with additional data
+async function createUserAccount(userData) {
   try {
-    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-    console.log("✅ User created:", userCredential.user.email);
+    // Create auth user
+    const userCredential = await auth.createUserWithEmailAndPassword(
+      userData.email, 
+      userData.password
+    );
     
-    // Create user document in Firestore
-    await db.collection('users').doc(userCredential.user.uid).set({
-      email: email,
-      name: email.split('@')[0],
-      points: 100, // Welcome bonus
-      joined: firebase.firestore.FieldValue.serverTimestamp(),
-      updated: firebase.firestore.FieldValue.serverTimestamp(),
-      basket: []
+    const user = userCredential.user;
+    
+    // Update profile
+    await user.updateProfile({
+      displayName: userData.name
     });
     
-    return userCredential.user;
+    // Create user document with enhanced data
+    await db.collection('users').doc(user.uid).set({
+      uid: user.uid,
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone || '',
+      location: userData.location || 'UAE',
+      points: 200, // Welcome bonus
+      level: 'Bronze',
+      preferences: {
+        favoriteStores: ['amazon', 'noon', 'carrefour'],
+        categories: [],
+        priceAlerts: true,
+        dealNotifications: true
+      },
+      stats: {
+        searches: 0,
+        purchases: 0,
+        moneySaved: 0,
+        pointsEarned: 200
+      },
+      settings: {
+        language: 'en',
+        currency: 'AED',
+        theme: 'light',
+        notifications: {
+          priceDrops: true,
+          newDeals: true,
+          pointsUpdates: true
+        }
+      },
+      security: {
+        twoFactorEnabled: false,
+        lastLogin: new Date().toISOString(),
+        devices: []
+      },
+      joined: firebase.firestore.FieldValue.serverTimestamp(),
+      updated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    // Create points transaction
+    await db.collection('points_transactions').add({
+      userId: user.uid,
+      points: 200,
+      type: 'welcome_bonus',
+      description: 'Welcome to UAE Price Hunter!',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    console.log("✅ Account created successfully");
+    return { success: true, user: user };
+    
   } catch (error) {
-    console.error("❌ Signup error:", error);
+    console.error("❌ Account creation error:", error);
     throw error;
   }
 }
 
-async function logoutUser() {
+// Enhanced login with security
+async function enhancedLogin(email, password) {
   try {
-    await auth.signOut();
-    console.log("✅ User logged out");
+    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+    const user = userCredential.user;
+    
+    // Update last login
+    await db.collection('users').doc(user.uid).update({
+      'security.lastLogin': new Date().toISOString()
+    });
+    
+    // Log login activity
+    await db.collection('user_activity').add({
+      userId: user.uid,
+      action: 'login',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      device: navigator.userAgent
+    });
+    
+    return { success: true, user: user };
   } catch (error) {
-    console.error("❌ Logout error:", error);
     throw error;
   }
 }
 
-// Firestore Functions
-async function saveUserData(userId, data) {
+// Enhanced user data management
+async function updateUserProfile(userId, data) {
   try {
     await db.collection('users').doc(userId).update({
       ...data,
       updated: firebase.firestore.FieldValue.serverTimestamp()
     });
-    console.log("✅ User data saved");
-  } catch (error) {
-    console.error("❌ Save user data error:", error);
-    throw error;
-  }
-}
-
-async function getUserData(userId) {
-  try {
-    const doc = await db.collection('users').doc(userId).get();
-    if (doc.exists) {
-      return doc.data();
+    
+    // Also update auth profile if name changed
+    if (data.name) {
+      await auth.currentUser.updateProfile({
+        displayName: data.name
+      });
     }
-    return null;
+    
+    return { success: true };
   } catch (error) {
-    console.error("❌ Get user data error:", error);
     throw error;
   }
 }
 
-async function saveSearchHistory(userId, searchData) {
+// Enhanced points system
+async function awardEnhancedPoints(userId, points, reason, metadata = {}) {
   try {
-    await db.collection('search_history').add({
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) return;
+    
+    const userData = userDoc.data();
+    const newPoints = (userData.points || 0) + points;
+    
+    // Update points
+    await userRef.update({
+      points: newPoints,
+      'stats.pointsEarned': (userData.stats?.pointsEarned || 0) + points
+    });
+    
+    // Create detailed transaction
+    await db.collection('points_transactions').add({
       userId: userId,
-      ...searchData,
+      points: points,
+      newBalance: newPoints,
+      type: 'earned',
+      reason: reason,
+      metadata: metadata,
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
-    console.log("✅ Search history saved");
-  } catch (error) {
-    console.error("❌ Save search history error:", error);
-    throw error;
-  }
-}
-
-async function getSearchHistory(userId, limit = 20) {
-  try {
-    const snapshot = await db.collection('search_history')
-      .where('userId', '==', userId)
-      .orderBy('timestamp', 'desc')
-      .limit(limit)
-      .get();
     
-    return snapshot.docs.map(doc => doc.data());
+    // Check for level upgrade
+    await checkLevelUpgrade(userId, newPoints);
+    
+    return newPoints;
   } catch (error) {
-    console.error("❌ Get search history error:", error);
+    console.error("Points error:", error);
     throw error;
   }
 }
 
-async function saveBasket(userId, basket) {
+// User levels based on points
+async function checkLevelUpgrade(userId, points) {
+  const levels = [
+    { level: 'Bronze', min: 0, max: 999 },
+    { level: 'Silver', min: 1000, max: 4999 },
+    { level: 'Gold', min: 5000, max: 9999 },
+    { level: 'Platinum', min: 10000, max: Infinity }
+  ];
+  
+  const currentLevel = levels.find(l => points >= l.min && points <= l.max)?.level || 'Bronze';
+  
   try {
     await db.collection('users').doc(userId).update({
-      basket: basket,
-      basketUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      level: currentLevel
     });
-    console.log("✅ Basket saved");
-  } catch (error) {
-    console.error("❌ Save basket error:", error);
-    throw error;
-  }
-}
-
-async function getBasket(userId) {
-  try {
-    const doc = await db.collection('users').doc(userId).get();
-    if (doc.exists) {
-      return doc.data().basket || [];
-    }
-    return [];
-  } catch (error) {
-    console.error("❌ Get basket error:", error);
-    throw error;
-  }
-}
-
-async function updatePoints(userId, pointsChange, reason) {
-  try {
-    const userDoc = await db.collection('users').doc(userId).get();
-    if (userDoc.exists) {
-      const currentPoints = userDoc.data().points || 0;
-      const newPoints = currentPoints + pointsChange;
-      
-      await db.collection('users').doc(userId).update({
-        points: newPoints
-      });
-      
-      // Log points transaction
-      await db.collection('points_transactions').add({
-        userId: userId,
-        pointsChange: pointsChange,
-        reason: reason,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        newBalance: newPoints
-      });
-      
-      console.log(`✅ Points updated: ${pointsChange} (${reason})`);
-      return newPoints;
+    
+    // Award bonus for level upgrade
+    if (points >= 1000 && points < 1500) {
+      await awardEnhancedPoints(userId, 500, 'Silver Level Upgrade!');
     }
   } catch (error) {
-    console.error("❌ Update points error:", error);
-    throw error;
+    console.error("Level check error:", error);
   }
 }
 
-// Export Firebase services
-window.firebaseServices = {
+// Export enhanced functions
+window.firebaseEnhanced = {
   auth: auth,
   db: db,
-  loginUser: loginUser,
-  signupUser: signupUser,
-  logoutUser: logoutUser,
-  saveUserData: saveUserData,
-  getUserData: getUserData,
-  saveSearchHistory: saveSearchHistory,
-  getSearchHistory: getSearchHistory,
-  saveBasket: saveBasket,
-  getBasket: getBasket,
-  updatePoints: updatePoints
+  createUserAccount: createUserAccount,
+  enhancedLogin: enhancedLogin,
+  updateUserProfile: updateUserProfile,
+  awardEnhancedPoints: awardEnhancedPoints,
+  checkLevelUpgrade: checkLevelUpgrade
 };
 
-console.log("🚀 Firebase services ready");
+console.log("🚀 Enhanced Firebase system ready");
