@@ -1,8 +1,8 @@
-// UAE PRICE HUNTER - MAIN APPLICATION LOGIC
+// UAE PRICE HUNTER - MAIN APPLICATION LOGIC (FIXED)
 
 // Configuration
 const APP_CONFIG = {
-  // Points system
+  // Points system - 50 points = 1 AED
   POINTS_PER_SEARCH: 10,
   POINTS_PER_ADD_TO_BASKET: 50,
   POINTS_PER_CHECKOUT: 100,
@@ -16,8 +16,7 @@ const APP_CONFIG = {
   LS_BASKET: 'uae_price_hunter_basket',
   LS_USER: 'current_user',
   LS_POINTS: 'user_points',
-  LS_SEARCH_HISTORY: 'search_history',
-  LS_POINTS_ACTIVITY: 'points_activity'
+  LS_SEARCH_HISTORY: 'search_history'
 };
 
 // Application state
@@ -117,8 +116,10 @@ function setupFirebaseAuth() {
         
         console.log("✅ User authenticated:", appState.user.email);
         
-        // Load user data from Firestore
-        loadUserDataFromFirebase(user.uid);
+        // Load user data from Firestore if available
+        if (window.firebaseEnhanced && window.firebaseEnhanced.db) {
+          loadUserDataFromFirebase(user.uid);
+        }
       } else {
         // User is signed out
         appState.user = null;
@@ -135,17 +136,20 @@ function setupFirebaseAuth() {
 
 // Load user data from Firebase
 async function loadUserDataFromFirebase(userId) {
-  if (!window.firebaseServices || !window.firebaseServices.getUserData) {
+  if (!window.firebaseEnhanced || !window.firebaseEnhanced.db) {
     console.warn("⚠️ Firebase services not available");
     return;
   }
   
   try {
-    const userData = await window.firebaseServices.getUserData(userId);
-    if (userData) {
+    const userDoc = await window.firebaseEnhanced.db.collection('users').doc(userId).get();
+    
+    if (userDoc.exists) {
+      const userData = userDoc.data();
       // Merge Firebase data with local state
       appState.points = userData.points || appState.points;
-      appState.basket = userData.basket || appState.basket;
+      // Note: You might want to sync basket too
+      // appState.basket = userData.basket || appState.basket;
       
       console.log("📊 User data loaded from Firebase");
       saveAppState();
@@ -242,7 +246,7 @@ function selectSuggestion(suggestion) {
   }
 }
 
-// Perform search
+// Perform search - FIXED LINE 158!
 async function performSearch() {
   const searchInput = document.getElementById('searchInput');
   if (!searchInput) return;
@@ -270,8 +274,10 @@ async function performSearch() {
   awardPoints(APP_CONFIG.POINTS_PER_SEARCH, 'Search: ' + query);
   
   try {
-    // Use scrape.do to search all stores
-    const results = await window.scrapeDo.searchAllStores(query, selectedStores);
+    // === FIXED LINE 158 ===
+    // Use the REAL scrape.do function
+    const results = await window.scrapeDoEnhanced.searchAllStoresReal(query, selectedStores);
+    // ======================
     
     // Display results
     displaySearchResults(results, query);
@@ -282,15 +288,66 @@ async function performSearch() {
   } catch (error) {
     console.error('❌ Search error:', error);
     showNotification('Search failed. Please try again.', 'error');
+    
+    // Fallback to mock data if scrape.do fails
+    displayFallbackResults(query);
   } finally {
     showLoading(false);
   }
 }
 
+// Fallback mock results if scrape.do fails
+function displayFallbackResults(query) {
+  const resultsContainer = document.getElementById('searchResults');
+  const resultsCount = document.getElementById('resultsCount');
+  
+  if (!resultsContainer) return;
+  
+  // Create simple mock results
+  const mockResults = [
+    {
+      id: 'mock_1',
+      name: `${query} - Amazon.ae`,
+      store: 'Amazon.ae',
+      price: 999,
+      originalPrice: 1299,
+      discount: 23,
+      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop',
+      description: `Popular ${query} available on Amazon UAE with fast delivery.`,
+      shipping: 'FREE Delivery Tomorrow',
+      rating: '4.5',
+      reviews: 128,
+      inStock: true
+    },
+    {
+      id: 'mock_2',
+      name: `${query} - Noon`,
+      store: 'Noon',
+      price: 949,
+      originalPrice: 1199,
+      discount: 21,
+      image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&h=400&fit=crop',
+      description: `Great deal on ${query} at Noon with express shipping.`,
+      shipping: 'Express Delivery',
+      rating: '4.3',
+      reviews: 89,
+      inStock: true
+    }
+  ];
+  
+  displaySearchResults(mockResults, query);
+  
+  if (resultsCount) {
+    resultsCount.textContent = `${mockResults.length} results (demo mode)`;
+  }
+  
+  showNotification('Showing demo results. Real search requires scrape.do API.', 'info');
+}
+
 // Get selected stores from checkboxes
 function getSelectedStores() {
   const checkboxes = document.querySelectorAll('.store-option input[type="checkbox"]:checked');
-  return Array.from(checkboxes).map(cb => cb.dataset.store);
+  return Array.from(checkboxes).map(cb => cb.closest('.store-option').dataset.store);
 }
 
 // Update store selection display
@@ -306,16 +363,19 @@ function displaySearchResults(products, query) {
   
   if (!resultsContainer) return;
   
-  if (products.length === 0) {
+  // Clear previous results
+  resultsContainer.innerHTML = '';
+  
+  if (!products || products.length === 0) {
     resultsContainer.innerHTML = `
       <div class="empty-results">
         <i class="fas fa-search"></i>
         <h3>No products found for "${query}"</h3>
         <p>Try a different search term or check more stores</p>
         <div class="trending-searches">
-          <span class="trending-tag" onclick="searchTrending('iPhone 15 Pro Max')">iPhone 15 Pro Max</span>
-          <span class="trending-tag" onclick="searchTrending('Samsung Galaxy S24')">Samsung Galaxy S24</span>
-          <span class="trending-tag" onclick="searchTrending('Arabic Oud Perfume')">Arabic Oud Perfume</span>
+          <span class="trending-tag" onclick="searchProduct('iPhone 15 Pro Max')">iPhone 15 Pro Max</span>
+          <span class="trending-tag" onclick="searchProduct('Samsung Galaxy S24')">Samsung Galaxy S24</span>
+          <span class="trending-tag" onclick="searchProduct('Arabic Oud Perfume')">Arabic Oud Perfume</span>
         </div>
       </div>
     `;
@@ -328,97 +388,57 @@ function displaySearchResults(products, query) {
   
   // Update results count
   if (resultsCount) {
-    resultsCount.textContent = `${products.length} results`;
+    resultsCount.textContent = `${products.length} results found`;
   }
   
-  // Group products by name for better organization
-  const productGroups = {};
+  // Create product cards
   products.forEach(product => {
-    const baseName = product.name.split(' - ')[0];
-    if (!productGroups[baseName]) {
-      productGroups[baseName] = [];
+    const productCard = document.createElement('div');
+    productCard.className = 'product-card';
+    if (product.isBestPrice) {
+      productCard.classList.add('best-price');
     }
-    productGroups[baseName].push(product);
-  });
-  
-  let html = '';
-  
-  // Create product groups
-  Object.values(productGroups).forEach(productGroup => {
-    // Sort by price (lowest first)
-    productGroup.sort((a, b) => a.price - b.price);
     
-    const bestProduct = productGroup[0];
-    const hasMultipleStores = productGroup.length > 1;
-    
-    html += `
-      <div class="product-card ${bestProduct.isBestPrice ? 'best-price' : ''}">
-        <img src="${bestProduct.image}" alt="${bestProduct.name}" class="product-image">
+    productCard.innerHTML = `
+      <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400&h=300&fit=crop'">
+      
+      <div class="product-info">
+        <div class="product-store">${product.store}</div>
+        <h3 class="product-title">${product.name}</h3>
+        <p class="product-description">${product.description}</p>
         
-        <div class="product-info">
-          <div class="product-store">${bestProduct.store.toUpperCase()}</div>
-          <h3 class="product-title">${bestProduct.name}</h3>
-          <p class="product-description">${bestProduct.description}</p>
-          
-          <div class="price-section">
-            <span class="current-price">${bestProduct.price} AED</span>
-            ${bestProduct.discount > 0 ? `
-              <span class="original-price">${bestProduct.originalPrice} AED</span>
-              <span class="discount-badge">-${bestProduct.discount}%</span>
-            ` : ''}
-            ${bestProduct.isBestPrice ? `
-              <span class="best-price-tag">Best Price</span>
-            ` : ''}
-          </div>
-          
-          <div class="product-meta">
-            <span class="rating">⭐ ${bestProduct.rating} (${bestProduct.reviews})</span>
-            <span class="shipping">🚚 ${bestProduct.shipping}</span>
-            <span class="stock ${bestProduct.inStock ? 'in-stock' : 'out-stock'}">
-              ${bestProduct.inStock ? 'In Stock' : 'Out of Stock'}
-            </span>
-          </div>
-          
-          <div class="product-actions">
-            <button class="btn btn-primary" onclick="addToBasket(${JSON.stringify(bestProduct).replace(/"/g, '&quot;')})">
-              <i class="fas fa-cart-plus"></i> Add to Basket
-            </button>
-            <a href="${bestProduct.url}" target="_blank" class="btn btn-secondary">
-              <i class="fas fa-external-link-alt"></i> Visit Store
-            </a>
-          </div>
+        <div class="price-section">
+          <span class="current-price">${product.price} AED</span>
+          ${product.originalPrice && product.originalPrice > product.price ? `
+            <span class="original-price">${product.originalPrice} AED</span>
+            <span class="discount-badge">-${product.discount || Math.round((product.originalPrice - product.price) / product.originalPrice * 100)}%</span>
+          ` : ''}
+          ${product.isBestPrice ? `
+            <span class="best-price-tag">💰 Best Price</span>
+          ` : ''}
+        </div>
+        
+        <div class="product-meta">
+          <span class="rating">⭐ ${product.rating || '4.0'} (${product.reviews || '0'})</span>
+          <span class="shipping">🚚 ${product.shipping || 'Standard Delivery'}</span>
+          <span class="stock ${product.inStock ? 'in-stock' : 'out-stock'}">
+            ${product.inStock ? 'In Stock' : 'Out of Stock'}
+          </span>
+        </div>
+        
+        <div class="product-actions">
+          <button class="btn btn-primary" onclick="addToBasket(${JSON.stringify(product).replace(/"/g, '&quot;')})">
+            <i class="fas fa-cart-plus"></i> Add to Basket
+          </button>
+          <a href="${product.link || '#'}" target="_blank" class="btn btn-secondary">
+            <i class="fas fa-external-link-alt"></i> Visit Store
+          </a>
         </div>
       </div>
     `;
     
-    // Show other store prices for the same product
-    if (hasMultipleStores && productGroup.length > 1) {
-      html += `
-        <div class="other-stores">
-          <p><strong>Also available at:</strong></p>
-          <div class="store-prices">
-      `;
-      
-      productGroup.slice(1).forEach(product => {
-        html += `
-          <div class="store-price ${product.isBestPrice ? 'best' : ''}">
-            <span>${product.store}:</span>
-            <strong>${product.price} AED</strong>
-            <button class="btn-small" onclick="addToBasket(${JSON.stringify(product).replace(/"/g, '&quot;')})">
-              <i class="fas fa-cart-plus"></i>
-            </button>
-          </div>
-        `;
-      });
-      
-      html += `
-          </div>
-        </div>
-      `;
-    }
+    resultsContainer.appendChild(productCard);
   });
-  
-  resultsContainer.innerHTML = html;
   
   // Scroll to results
   setTimeout(() => {
@@ -432,7 +452,7 @@ function showLoading(show) {
   const results = document.getElementById('searchResults');
   
   if (loading) {
-    loading.style.display = show ? 'block' : 'none';
+    loading.style.display = show ? 'flex' : 'none';
   }
   
   if (results && show) {
@@ -454,6 +474,7 @@ function addToBasket(product) {
     // Add new item
     appState.basket.push({
       ...product,
+      id: product.id || `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       quantity: 1,
       addedAt: new Date().toISOString()
     });
@@ -467,7 +488,7 @@ function addToBasket(product) {
   updateUI();
   
   // Show notification
-  showNotification(`Added ${product.name} to basket!`, 'success');
+  showNotification(`Added ${product.name} to basket! +${APP_CONFIG.POINTS_PER_ADD_TO_BASKET} points`, 'success');
 }
 
 // Update basket quantity
@@ -522,12 +543,6 @@ function saveSearchToHistory(query, resultsCount) {
   }
   
   saveAppState();
-  
-  // Also save to Firebase if user is logged in
-  if (appState.user && window.firebaseServices && window.firebaseServices.saveSearchHistory) {
-    window.firebaseServices.saveSearchHistory(appState.user.uid, searchEntry)
-      .catch(error => console.error('Error saving search to Firebase:', error));
-  }
 }
 
 // Award points to user
@@ -537,43 +552,46 @@ function awardPoints(points, reason) {
   updateUI();
   
   // Save to Firebase if user is logged in
-  if (appState.user && window.firebaseServices && window.firebaseServices.updatePoints) {
-    window.firebaseServices.updatePoints(appState.user.uid, points, reason)
+  if (appState.user && window.firebaseEnhanced && window.firebaseEnhanced.awardEnhancedPoints) {
+    window.firebaseEnhanced.awardEnhancedPoints(appState.user.uid, points, reason)
       .catch(error => console.error('Error updating points in Firebase:', error));
   }
   
   console.log(`🎯 Awarded ${points} points for: ${reason}`);
+  showNotification(`+${points} points!`, 'success');
 }
 
 // Update UI elements
 function updateUI() {
   // Update basket count in navigation
   const basketCount = appState.basket.reduce((total, item) => total + item.quantity, 0);
-  const basketElements = document.querySelectorAll('#navBasketCount, .basket-count');
+  const basketElements = document.querySelectorAll('#basketCount, .nav-badge, .basket-count');
   
   basketElements.forEach(element => {
     element.textContent = basketCount;
-    element.style.display = basketCount > 0 ? 'inline-block' : 'none';
-  });
-  
-  // Update user name
-  const userNameElements = document.querySelectorAll('#userName, .user-name');
-  userNameElements.forEach(element => {
-    if (appState.user) {
-      element.textContent = appState.user.name;
+    if (basketCount > 0) {
+      element.style.display = 'inline-block';
     } else {
-      element.textContent = 'Guest';
+      element.style.display = 'none';
     }
   });
   
+  // Update user name if logged in
+  if (appState.user) {
+    const userNameElements = document.querySelectorAll('#userName, .user-name');
+    userNameElements.forEach(element => {
+      element.textContent = appState.user.name;
+    });
+  }
+  
   // Update points display
-  const pointsElements = document.querySelectorAll('.points-value, #totalPoints, #availablePoints');
+  const pointsElements = document.querySelectorAll('.points-value, #totalPoints');
   pointsElements.forEach(element => {
     element.textContent = appState.points;
   });
 }
 
-// Update navigation
+// Update navigation active state
 function updateNavigation() {
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
   const navLinks = document.querySelectorAll('.nav-link');
@@ -588,22 +606,41 @@ function updateNavigation() {
   });
 }
 
-// Show modal
-function showModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    modal.style.display = 'flex';
-  }
+// Show notification
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${type === 'success' ? '#2ECC71' : type === 'error' ? '#E74C3C' : '#3498DB'};
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 9999;
+    animation: slideIn 0.3s ease;
+  `;
+  
+  notification.innerHTML = `
+    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+    <span style="margin-left: 10px;">${message}</span>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto remove after 3 seconds
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
 }
 
-// Close modal
-function closeModal() {
-  document.querySelectorAll('.modal').forEach(modal => {
-    modal.style.display = 'none';
-  });
-}
+// === AUTHENTICATION FUNCTIONS (USING REAL FIREBASE) ===
 
-// Login user
+// Login user with real Firebase
 async function loginUser() {
   const email = document.getElementById('loginEmail').value;
   const password = document.getElementById('loginPassword').value;
@@ -614,37 +651,27 @@ async function loginUser() {
   }
   
   try {
-    let user;
-    
-    if (window.firebaseServices && window.firebaseServices.loginUser) {
-      // Real Firebase login
-      user = await window.firebaseServices.loginUser(email, password);
+    // Use the REAL Firebase function from firebase-config.js
+    if (window.firebaseEnhanced && window.firebaseEnhanced.enhancedLogin) {
+      const result = await window.firebaseEnhanced.enhancedLogin(email, password);
+      showNotification('Login successful!', 'success');
+      closeModal();
+      return result;
     } else {
-      // Mock login for demo
-      user = {
-        uid: 'demo-user-' + Date.now(),
-        email: email,
-        displayName: email.split('@')[0],
-        metadata: { creationTime: new Date().toISOString() }
-      };
-      
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      throw new Error('Firebase authentication not available');
     }
-    
-    showNotification('Login successful!', 'success');
-    closeModal();
-    
   } catch (error) {
     console.error('Login error:', error);
     showNotification(`Login failed: ${error.message}`, 'error');
+    throw error;
   }
 }
 
-// Signup user
+// Signup user with real Firebase
 async function signupUser() {
-  const email = document.getElementById('loginEmail').value;
-  const password = document.getElementById('loginPassword').value;
+  const email = document.getElementById('signupEmail')?.value || document.getElementById('loginEmail')?.value;
+  const password = document.getElementById('signupPassword')?.value || document.getElementById('loginPassword')?.value;
+  const name = document.getElementById('signupName')?.value || email.split('@')[0];
   
   if (!email || !password) {
     showNotification('Please enter email and password', 'warning');
@@ -657,141 +684,60 @@ async function signupUser() {
   }
   
   try {
-    let user;
-    
-    if (window.firebaseServices && window.firebaseServices.signupUser) {
-      // Real Firebase signup
-      user = await window.firebaseServices.signupUser(email, password);
-    } else {
-      // Mock signup for demo
-      user = {
-        uid: 'demo-user-' + Date.now(),
+    // Use the REAL Firebase function from firebase-config.js
+    if (window.firebaseEnhanced && window.firebaseEnhanced.createUserAccount) {
+      const result = await window.firebaseEnhanced.createUserAccount({
         email: email,
-        displayName: email.split('@')[0],
-        metadata: { creationTime: new Date().toISOString() }
-      };
+        password: password,
+        name: name,
+        location: 'UAE'
+      });
       
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      showNotification('Account created successfully! Welcome!', 'success');
+      closeModal();
+      return result;
+    } else {
+      throw new Error('Firebase authentication not available');
     }
-    
-    showNotification('Account created successfully! Welcome!', 'success');
-    closeModal();
-    
   } catch (error) {
     console.error('Signup error:', error);
     showNotification(`Signup failed: ${error.message}`, 'error');
+    throw error;
   }
 }
 
 // Logout user
 async function logoutUser() {
   try {
-    if (window.firebaseServices && window.firebaseServices.logoutUser) {
-      await window.firebaseServices.logoutUser();
+    if (firebase.auth()) {
+      await firebase.auth().signOut();
+      appState.user = null;
+      saveAppState();
+      updateUI();
+      showNotification('Logged out successfully', 'info');
     }
-    
-    appState.user = null;
-    saveAppState();
-    updateUI();
-    
-    showNotification('Logged out successfully', 'info');
-    
   } catch (error) {
     console.error('Logout error:', error);
     showNotification('Logout failed', 'error');
   }
 }
 
-// Show notification
-function showNotification(message, type = 'info') {
-  // Remove existing notification
-  const existing = document.querySelector('.notification');
-  if (existing) existing.remove();
-  
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = `notification notification-${type}`;
-  
-  // Set icon based on type
-  let icon = 'info-circle';
-  if (type === 'success') icon = 'check-circle';
-  if (type === 'error') icon = 'exclamation-circle';
-  if (type === 'warning') icon = 'exclamation-triangle';
-  
-  notification.innerHTML = `
-    <i class="fas fa-${icon}"></i>
-    <span>${message}</span>
-  `;
-  
-  // Add styles
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: ${getNotificationColor(type)};
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 9999;
-    animation: slideInRight 0.3s ease;
-    max-width: 400px;
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Add animation styles
-  if (!document.querySelector('#notification-styles')) {
-    const style = document.createElement('style');
-    style.id = 'notification-styles';
-    style.textContent = `
-      @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-  
-  // Auto remove after 3 seconds
-  setTimeout(() => {
-    notification.style.animation = 'slideOutRight 0.3s ease';
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}
+// === EXPORT FUNCTIONS TO WINDOW ===
 
-// Get notification color
-function getNotificationColor(type) {
-  const colors = {
-    'success': '#2ECC71',
-    'error': '#E74C3C',
-    'warning': '#F39C12',
-    'info': '#3498DB'
-  };
-  return colors[type] || '#3498DB';
-}
-
-// Export functions to window
 window.initializeApp = initializeApp;
 window.performSearch = performSearch;
+window.searchProduct = function(query) {
+  document.getElementById('searchInput').value = query;
+  performSearch();
+};
 window.addToBasket = addToBasket;
 window.updateBasketQuantity = updateBasketQuantity;
 window.removeItemFromBasket = removeItemFromBasket;
 window.clearBasket = clearBasket;
-window.showModal = showModal;
-window.closeModal = closeModal;
 window.loginUser = loginUser;
 window.signupUser = signupUser;
 window.logoutUser = logoutUser;
 window.selectSuggestion = selectSuggestion;
 window.showNotification = showNotification;
 
-console.log("🎯 UAE Price Hunter main script loaded");
+console.log("🎯 UAE Price Hunter main script loaded (FIXED VERSION)");
