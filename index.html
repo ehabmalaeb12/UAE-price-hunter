@@ -351,5 +351,36 @@
             alert(`Language switched to ${newLang === 'en' ? 'English' : 'Arabic'}`);
         }
     </script>
+    <script>
+    // Diagnostic Test - Add this to index.html before </body>
+    console.log("🔄 UAE Price Hunter Diagnostics Running...");
+    
+    // 1. Check if core files loaded
+    console.log("1. UAE_CONFIG loaded:", window.UAE_CONFIG ? "✅ YES" : "❌ NO");
+    console.log("2. fixedSearchEngine loaded:", window.fixedSearchEngine ? "✅ YES" : "❌ NO");
+    console.log("3. simpleSearch function:", typeof simpleSearch);
+    
+    // 2. Locate the search button and input field
+    const searchBtn = document.querySelector('button[onclick*="performSearch"], button[onclick*="simpleSearch"]');
+    const searchInput = document.getElementById('searchInput');
+    
+    console.log("4. Found Search Button:", searchBtn ? "✅ YES" : "❌ NO");
+    console.log("5. Found Search Input (searchInput):", searchInput ? "✅ YES" : "❌ NO");
+    
+    // 3. Override the search function with logging
+    if (window.simpleSearch) {
+        const originalSearch = window.simpleSearch;
+        window.simpleSearch = function(query) {
+            console.log("🔍 simpleSearch() was called with query:", query);
+            // Call the original function
+            return originalSearch(query);
+        };
+        console.log("6. ✅ Attached logger to simpleSearch.");
+    } else {
+        console.log("6. ❌ simpleSearch is NOT defined. Engine didn't load.");
+    }
+    
+    console.log("✅ Diagnostics complete. Try a search and check for logs above.");
+    </script>
 </body>
 </html>
