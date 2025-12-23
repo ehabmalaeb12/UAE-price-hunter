@@ -1,320 +1,198 @@
-// UAE Price Hunter - Main Search Service (Coordinator)
+// UAE Price Hunter — Search Service V1 (Frontend-Safe, Intelligent)
+
 class SearchService {
     constructor() {
-        console.log("🚀 Initializing Intelligent Search Service...");
-        
-        // Initialize engines
-        this.engines = [];
-        this.initializeEngines();
-        
-        // Results cache
+        console.log("🚀 SearchService V1 initializing...");
+
+        this.stores = [
+            { id: "amazon", name: "Amazon UAE", multiplier: 1.0 },
+            { id: "noon", name: "Noon UAE", multiplier: 0.97 },
+            { id: "carrefour", name: "Carrefour UAE", multiplier: 1.03 },
+            { id: "sharaf", name: "Sharaf DG", multiplier: 1.02 },
+            { id: "aliexpress", name: "AliExpress", multiplier: 0.92 }
+        ];
+
         this.cache = new Map();
-        this.cacheDuration = 5 * 60 * 1000; // 5 minutes
-        
-        // Statistics
-        this.stats = {
-            totalSearches: 0,
-            successfulSearches: 0,
-            failedSearches: 0,
-            engineUsage: {}
+        this.cacheTTL = 5 * 60 * 1000; // 5 minutes
+
+        this.lastGroups = [];
+    }
+
+    /* ===============================
+       MAIN SEARCH ENTRY
+    =============================== */
+    async search(query) {
+        console.log(`🔍 Searching for: ${query}`);
+
+        const cacheKey = query.toLowerCase().trim();
+        const cached = this.getCache(cacheKey);
+        if (cached) return cached;
+
+        const intent = ProductResolver.resolve(query);
+        const rawProducts = [];
+
+        for (const store of this.stores) {
+            const price = PriceEngine.estimate(intent, store);
+            rawProducts.push(
+                ProductFactory.create(intent, store, price)
+            );
+        }
+
+        const grouped = ProductGrouper.group(rawProducts, intent);
+        this.lastGroups = grouped;
+
+        const flatResults = grouped.flatMap(g => g.products);
+        this.saveCache(cacheKey, flatResults);
+
+        return flatResults;
+    }
+
+    /* ===============================
+       CACHE
+    =============================== */
+    getCache(key) {
+        const item = this.cache.get(key);
+        if (!item) return null;
+        if (Date.now() - item.time > this.cacheTTL) {
+            this.cache.delete(key);
+            return null;
+        }
+        return item.data;
+    }
+
+    saveCache(key, data) {
+        this.cache.set(key, { data, time: Date.now() });
+    }
+}
+
+/* ===============================
+   PRODUCT RESOLVER (INTENT)
+=============================== */
+class ProductResolver {
+    static resolve(query) {
+        const lower = query.toLowerCase();
+
+        return {
+            query,
+            category: this.detectCategory(lower),
+            brand: this.detectBrand(lower),
+            model: query,
+            premium: /pro|max|ultra|plus/.test(lower)
         };
     }
-    
-    initializeEngines() {
-        // Layer 1: Scrape.do (Primary)
-        if (window.ScrapeDoEngine) {
-            this.engines.push(new window.ScrapeDoEngine());
-        }
-        
-        // Layer 2: Proxy Engine (We'll create next)
-        // Layer 3: API Engine (We'll create next)
-        // Layer 4: Cache Engine (We'll create next)
-        
-        console.log(`✅ ${this.engines.length} search engines initialized`);
+
+    static detectCategory(q) {
+        if (q.includes("iphone") || q.includes("samsung")) return "smartphone";
+        if (q.includes("tv")) return "tv";
+        if (q.includes("laptop")) return "laptop";
+        if (q.includes("perfume")) return "perfume";
+        return "general";
     }
-    
-    // MAIN SEARCH FUNCTION - SMART COORDINATION
-    async search(query, stores = ['amazon', 'noon', 'carrefour']) {
-        console.log(`🔍 Intelligent search for: "${query}"`);
-        this.stats.totalSearches++;
-        
-        // 1. Check cache first
-        const cacheKey = this.createCacheKey(query, stores);
-        const cached = this.getFromCache(cacheKey);
-        
-        if (cached) {
-            console.log("📦 Returning cached results");
-            return cached;
-        }
-        
-        // 2. Try engines in priority order
-        let allResults = [];
-        
-        for (const store of stores) {
-            console.log(`🛍️ Searching ${store}...`);
-            
-            const storeResults = await this.searchStoreWithEngines(query, store);
-            allResults.push(...storeResults);
-            
-            // Show progress
-            this.updateSearchProgress(store, storeResults.length);
-        }
-        
-        // In services/search-service.js - REPLACE the processResults method
-processResults(products, originalQuery) {
-    if (!products || products.length === 0) {
-        return this.generateFallbackResults(originalQuery);
-    }
-    
-    // Use the intelligent grouper
-    if (window.ProductGrouper) {
-        const grouper = new window.ProductGrouper();
-        const groups = grouper.groupProducts(products, originalQuery);
-        
-        // Convert groups to flat array for display
-        const flattened = groups.flatMap(group => group.products);
-        
-        // Store groups for smart display
-        this.lastGroups = groups;
-        
-        return flattened;
-    } else {
-        // Fallback to simple grouping
-        return this.simpleGroupProducts(products);
-    }
-}
-        
-        // 4. Cache the results
-        this.saveToCache(cacheKey, processedResults);
-        
-        // 5. Update statistics
-        this.stats.successfulSearches++;
-        this.updateStats();
-        
-        console.log(`✅ Search complete: ${processedResults.length} products found`);
-        return processedResults;
-    }
-    
-    // Try multiple engines for one store
-    async searchStoreWithEngines(query, storeId) {
-        const results = [];
-        
-        // Sort engines by priority
-        const sortedEngines = [...this.engines].sort((a, b) => a.priority - b.priority);
-        
-        for (const engine of sortedEngines) {
-            if (!engine.isReady()) {
-                console.log(`⏸️ Skipping ${engine.name} (not ready)`);
-                continue;
-            }
-            
-            try {
-                const engineResults = await engine.searchProduct(query, storeId);
-                
-                if (engineResults && engineResults.length > 0) {
-                    console.log(`✅ ${engine.name} found ${engineResults.length} results`);
-                    
-                    // Track engine usage
-                    this.stats.engineUsage[engine.name] = 
-                        (this.stats.engineUsage[engine.name] || 0) + 1;
-                    
-                    results.push(...engineResults);
-                    
-                    // If we got good results, we can stop trying other engines
-                    if (engineResults.length >= 2) {
-                        break;
-                    }
-                }
-            } catch (error) {
-                console.error(`${engine.name} failed for ${storeId}:`, error.message);
-            }
-        }
-        
-        return results;
-    }
-    
-    // Process and group similar products
-    processResults(products, originalQuery) {
-        if (!products || products.length === 0) {
-            return this.generateFallbackResults(originalQuery);
-        }
-        
-        // Group by product name similarity
-        const groups = {};
-        
-        products.forEach(product => {
-            const groupKey = this.createProductGroupKey(product);
-            
-            if (!groups[groupKey]) {
-                groups[groupKey] = {
-                    products: [],
-                    stores: new Set(),
-                    cheapestPrice: Infinity,
-                    cheapestProduct: null
-                };
-            }
-            
-            groups[groupKey].products.push(product);
-            groups[groupKey].stores.add(product.store);
-            
-            // Track cheapest product
-            if (product.price < groups[groupKey].cheapestPrice) {
-                groups[groupKey].cheapestPrice = product.price;
-                groups[groupKey].cheapestProduct = product;
-            }
-        });
-        
-        // Mark cheapest products
-        Object.values(groups).forEach(group => {
-            if (group.cheapestProduct) {
-                group.cheapestProduct.isCheapest = true;
-                group.cheapestProduct.bestPriceBadge = '💰 Best Price';
-            }
-        });
-        
-        // Flatten groups back to array
-        const flattened = Object.values(groups).flatMap(group => group.products);
-        
-        return flattened;
-    }
-    
-    // Generate fallback if all engines fail
-    generateFallbackResults(query) {
-        console.log("🛡️ Generating intelligent fallback results");
-        
-        const fallbackProducts = [];
-        const stores = ['Amazon UAE', 'Noon UAE', 'Carrefour UAE'];
-        
-        stores.forEach((store, index) => {
-            fallbackProducts.push({
-                id: `fallback_${store}_${Date.now()}_${index}`,
-                name: `${query} - Available in UAE`,
-                store: store,
-                price: 1999 + (index * 300),
-                originalPrice: 2499 + (index * 400),
-                discount: 15 + (index * 5),
-                image: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=600&fit=crop',
-                link: '#',
-                description: `Available at ${store}. Check store for exact pricing.`,
-                shipping: 'Standard UAE Delivery',
-                rating: '4.0',
-                reviews: 100,
-                inStock: true,
-                source: 'fallback',
-                isFallback: true
-            });
-        });
-        
-        return fallbackProducts;
-    }
-    
-    // Cache management
-    createCacheKey(query, stores) {
-        return `search_${query.toLowerCase().replace(/\s+/g, '_')}_${stores.sort().join('_')}`;
-    }
-    
-    getFromCache(key) {
-        const cached = this.cache.get(key);
-        
-        if (cached && (Date.now() - cached.timestamp) < this.cacheDuration) {
-            return cached.data;
-        }
-        
-        // Remove expired cache
-        if (cached) {
-            this.cache.delete(key);
-        }
-        
-        return null;
-    }
-    
-    saveToCache(key, data) {
-        this.cache.set(key, {
-            data: data,
-            timestamp: Date.now()
-        });
-        
-        // Limit cache size
-        if (this.cache.size > 50) {
-            const firstKey = this.cache.keys().next().value;
-            this.cache.delete(firstKey);
-        }
-    }
-    
-    createProductGroupKey(product) {
-        // Create a key based on product name similarity
-        const name = product.name.toLowerCase()
-            .replace(/[^a-z0-9\s]/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .substring(0, 50);
-        
-        return name;
-    }
-    
-    // UI helpers
-    updateSearchProgress(store, count) {
-        const progressEl = document.getElementById('searchProgress');
-        if (progressEl) {
-            progressEl.innerHTML += `<div>✓ ${store}: ${count} products</div>`;
-        }
-    }
-    
-    updateStats() {
-        console.log("📊 Search Statistics:", this.stats);
-        
-        // Could update a stats display on page
-        const statsEl = document.getElementById('searchStats');
-        if (statsEl) {
-            statsEl.innerHTML = `
-                <div>Total Searches: ${this.stats.totalSearches}</div>
-                <div>Success Rate: ${Math.round((this.stats.successfulSearches / this.stats.totalSearches) * 100)}%</div>
-            `;
-        }
-    }
-    
-    // Public API
-    async simpleSearch(query) {
-        return await this.search(query);
-    }
-    
-    getStats() {
-        return { ...this.stats };
-    }
-    
-    clearCache() {
-        this.cache.clear();
-        console.log("🧹 Cache cleared");
+
+    static detectBrand(q) {
+        if (q.includes("apple")) return "Apple";
+        if (q.includes("samsung")) return "Samsung";
+        if (q.includes("sony")) return "Sony";
+        return "Generic";
     }
 }
 
-// Initialize global search service
+/* ===============================
+   PRICE ENGINE (INTELLIGENT ESTIMATE)
+=============================== */
+class PriceEngine {
+    static estimate(intent, store) {
+        let base;
+
+        switch (intent.category) {
+            case "smartphone": base = intent.premium ? 4300 : 3500; break;
+            case "tv": base = 3000; break;
+            case "laptop": base = 4200; break;
+            case "perfume": base = 350; break;
+            default: base = 2000;
+        }
+
+        const variance = Math.random() * 150;
+        const price = Math.round((base + variance) * store.multiplier);
+
+        return price;
+    }
+}
+
+/* ===============================
+   PRODUCT FACTORY
+=============================== */
+class ProductFactory {
+    static create(intent, store, price) {
+        return {
+            id: `${store.id}_${Date.now()}`,
+            name: intent.model,
+            store: store.name,
+            storeId: store.id,
+            price,
+            originalPrice: Math.round(price * 1.12),
+            discount: Math.round(((price * 1.12 - price) / (price * 1.12)) * 100),
+            image: ImageEngine.get(intent),
+            affiliateLink: AffiliateEngine.link(store.id, intent.query),
+            estimated: true,
+            rating: (4 + Math.random()).toFixed(1),
+            reviews: Math.floor(Math.random() * 500 + 50)
+        };
+    }
+}
+
+/* ===============================
+   PRODUCT GROUPER
+=============================== */
+class ProductGrouper {
+    static group(products, intent) {
+        const mainGroup = {
+            title: intent.model,
+            products: [...products]
+        };
+
+        // Mark cheapest
+        let cheapest = mainGroup.products[0];
+        mainGroup.products.forEach(p => {
+            if (p.price < cheapest.price) cheapest = p;
+        });
+        cheapest.bestPrice = true;
+
+        return [mainGroup];
+    }
+}
+
+/* ===============================
+   IMAGE ENGINE
+=============================== */
+class ImageEngine {
+    static get(intent) {
+        if (intent.category === "smartphone")
+            return "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600";
+        if (intent.category === "laptop")
+            return "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600";
+        return "https://images.unsplash.com/photo-1556656793-08538906a9f8?w=600";
+    }
+}
+
+/* ===============================
+   AFFILIATE ENGINE (PLACEHOLDER)
+=============================== */
+class AffiliateEngine {
+    static link(storeId, query) {
+        const encoded = encodeURIComponent(query);
+        if (storeId === "amazon")
+            return `https://www.amazon.ae/s?k=${encoded}&tag=YOURTAG-21`;
+        if (storeId === "noon")
+            return `https://www.noon.com/uae-en/search?q=${encoded}`;
+        return "#";
+    }
+}
+
+/* ===============================
+   GLOBAL EXPORT
+=============================== */
 window.searchService = new SearchService();
+window.simpleSearch = q => window.searchService.search(q);
 
-// Make simpleSearch available globally
-window.simpleSearch = async function(query) {
-    const results = await window.searchService.simpleSearch(query);
-    
-    // Display results (you can replace this with your display function)
-    const container = document.getElementById('searchResults');
-    if (container && results) {
-        container.innerHTML = `<h3>Found ${results.length} products</h3>`;
-        
-        results.forEach(product => {
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <div style="border:1px solid #ccc;padding:10px;margin:10px;">
-                    <strong>${product.name}</strong><br>
-                    Store: ${product.store}<br>
-                    Price: ${product.price} AED<br>
-                    Source: ${product.source}
-                </div>
-            `;
-            container.appendChild(div);
-        });
-    }
-    
-    return results;
-};
-
-console.log("✅ Intelligent Search Service Ready!");
+console.log("✅ SearchService V1 READY");
