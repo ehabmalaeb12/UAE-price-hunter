@@ -1,9 +1,9 @@
-// UAE Price Hunter — Search Service V1.1
-// Full file — copy & replace completely
+// UAE Price Hunter — Search Service V2
+// FULL FILE — Replace everything
 
 class SearchService {
     constructor() {
-        console.log("🚀 SearchService initializing...");
+        console.log("🚀 SearchService V2 initializing...");
 
         this.stores = [
             { id: "amazon", name: "Amazon UAE", multiplier: 1.0 },
@@ -28,7 +28,23 @@ class SearchService {
 
         for (const store of this.stores) {
             const price = PriceEngine.estimate(intent, store);
+
+            // Main product
             products.push(ProductFactory.create(intent, store, price));
+
+            // Variant (simulate different storage/size)
+            const variantIntent = { ...intent, variant: intent.variant === "256GB" ? "128GB" : "256GB" };
+            const variantPrice = Math.round(price * 0.93);
+            products.push(ProductFactory.create(variantIntent, store, variantPrice));
+
+            // Related product (previous model)
+            const relatedIntent = {
+                ...intent,
+                baseModel: intent.baseModel.replace(/\d+/, m => parseInt(m) - 1),
+                variant: null
+            };
+            const relatedPrice = Math.round(price * 0.8);
+            products.push(ProductFactory.create(relatedIntent, store, relatedPrice, true));
         }
 
         const groups = ProductGrouper.group(products, intent);
@@ -63,7 +79,7 @@ class ProductResolver {
         const q = query.toLowerCase();
 
         const storageMatch = q.match(/(64|128|256|512|1024)\s?gb/);
-        const storage = storageMatch ? storageMatch[0].toUpperCase() : null;
+        const storage = storageMatch ? storageMatch[0].toUpperCase() : "256GB";
 
         const baseModel = query
             .replace(/(64|128|256|512|1024)\s?gb/i, "")
@@ -117,7 +133,7 @@ class PriceEngine {
    PRODUCT FACTORY
 =============================== */
 class ProductFactory {
-    static create(intent, store, price) {
+    static create(intent, store, price, related = false) {
         return {
             id: `${store.id}_${Date.now()}_${Math.random()}`,
             name: intent.variant
@@ -127,8 +143,8 @@ class ProductFactory {
             store: store.name,
             storeId: store.id,
             price,
-            originalPrice: Math.round(price * 1.12),
-            discount: Math.round(((price * 1.12 - price) / (price * 1.12)) * 100),
+            originalPrice: Math.round(price * 1.15),
+            discount: Math.round(((price * 1.15 - price) / (price * 1.15)) * 100),
 
             image: ImageEngine.get(intent),
             affiliateLink: AffiliateEngine.link(store.id, intent.query),
@@ -140,6 +156,7 @@ class ProductFactory {
                 category: intent.category
             },
 
+            groupType: related ? "related" : "exact",
             estimated: true,
             rating: (4 + Math.random()).toFixed(1),
             reviews: Math.floor(Math.random() * 500 + 50)
@@ -151,31 +168,51 @@ class ProductFactory {
    PRODUCT GROUPER
 =============================== */
 class ProductGrouper {
-    static group(products) {
-        const groups = {};
-        const result = [];
+    static group(products, intent) {
+        const exact = {};
+        const variants = {};
+        const related = [];
 
         products.forEach(p => {
-            const key = `${p.identity.brand}_${p.identity.baseModel}`;
-            if (!groups[key]) groups[key] = [];
-            groups[key].push(p);
+            const exactKey = `${p.identity.baseModel}_${p.identity.variant}`;
+            const variantKey = p.identity.baseModel;
+
+            if (p.groupType === "related") {
+                related.push(p);
+            } else {
+                if (!exact[exactKey]) exact[exactKey] = [];
+                exact[exactKey].push(p);
+
+                if (!variants[variantKey]) variants[variantKey] = [];
+                variants[variantKey].push(p);
+            }
         });
 
-        Object.values(groups).forEach(items => {
+        const groups = [];
+
+        Object.values(exact).forEach(items => {
             let cheapest = items[0];
             items.forEach(p => {
                 if (p.price < cheapest.price) cheapest = p;
             });
             cheapest.bestPrice = true;
 
-            result.push({
+            groups.push({
                 type: "exact",
-                title: items[0].identity.baseModel,
+                title: items[0].name,
                 products: items
             });
         });
 
-        return result;
+        if (related.length) {
+            groups.push({
+                type: "related",
+                title: "Related Products",
+                products: related
+            });
+        }
+
+        return groups;
     }
 }
 
@@ -212,4 +249,4 @@ class AffiliateEngine {
 window.searchService = new SearchService();
 window.simpleSearch = q => window.searchService.search(q);
 
-console.log("✅ SearchService V1.1 ready");
+console.log("✅ SearchService V2 ready");
