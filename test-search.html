@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Search</title>
+</head>
+<body>
+    <h1>Test UAE Search Engine</h1>
+    <input type="text" id="testInput" placeholder="Enter product...">
+    <button onclick="testSearch()">Test Search</button>
+    
+    <div id="testResults" style="margin-top: 20px;"></div>
+    
+    <script src="config.js"></script>
+    <script src="search-engine.js"></script>
+    
+    <script>
+        async function testSearch() {
+            const query = document.getElementById('testInput').value || 'iPhone';
+            console.log(`Testing search for: ${query}`);
+            
+            const results = await window.fixedSearchEngine.searchProducts(query);
+            console.log('Results:', results);
+            
+            document.getElementById('testResults').innerHTML = `
+                <h3>Found ${results.length} results:</h3>
+                <pre>${JSON.stringify(results, null, 2)}</pre>
+            `;
+        }
+        
+        // Auto-test on load
+        window.onload = function() {
+            console.log("✅ Test page loaded");
+            testSearch();
+        };
+    </script>
+</body>
+</html>
