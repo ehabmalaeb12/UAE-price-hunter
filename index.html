@@ -382,5 +382,39 @@
     
     console.log("✅ Diagnostics complete. Try a search and check for logs above.");
     </script>
+    <script>
+// MOBILE DIAGNOSTICS - Shows errors on screen
+(function() {
+    console.log = function(msg) {
+        // Show logs on screen for mobile debugging
+        const logDiv = document.getElementById('mobile-logs') || (function() {
+            const div = document.createElement('div');
+            div.id = 'mobile-logs';
+            div.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;padding:10px;font-size:12px;z-index:9999;max-height:200px;overflow:auto;';
+            document.body.appendChild(div);
+            return div;
+        })();
+        
+        logDiv.innerHTML += msg + '<br>';
+    };
+    
+    console.error = function(msg) {
+        console.log('❌ ERROR: ' + msg);
+    };
+    
+    // Test if search functions exist
+    setTimeout(function() {
+        console.log('=== MOBILE DIAGNOSTICS ===');
+        console.log('Time: ' + new Date().toLocaleTimeString());
+        console.log('Window loaded: ' + (window.loaded || 'No'));
+        console.log('performSearch exists: ' + (typeof performSearch !== 'undefined'));
+        console.log('simpleSearch exists: ' + (typeof simpleSearch !== 'undefined'));
+        console.log('searchInput exists: ' + (document.getElementById('searchInput') ? 'Yes' : 'No'));
+        console.log('searchButton exists: ' + (document.querySelector('[onclick*="earch"]') ? 'Yes' : 'No'));
+        console.log('Config loaded: ' + (window.UAE_CONFIG ? 'Yes' : 'No'));
+        console.log('=== END DIAGNOSTICS ===');
+    }, 2000);
+})();
+    </script>
 </body>
 </html>
