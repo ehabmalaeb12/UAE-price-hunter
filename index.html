@@ -416,5 +416,54 @@
     }, 2000);
 })();
     </script>
+    <script>
+// CRITICAL FIX: Create performSearch function
+console.log("🔧 Creating missing performSearch function...");
+
+// Option 1: If your search button calls performSearch()
+window.performSearch = function() {
+    console.log("🔍 performSearch() called");
+    
+    // Get the search input value
+    const searchInput = document.getElementById('searchInput');
+    const query = searchInput ? searchInput.value.trim() : '';
+    
+    if (!query) {
+        alert('Please enter a search term');
+        return;
+    }
+    
+    console.log("Searching for:", query);
+    
+    // Call the actual search function
+    if (window.simpleSearch && typeof window.simpleSearch === 'function') {
+        window.simpleSearch(query);
+    } else {
+        alert('Search engine is still loading. Try again in a moment.');
+    }
+};
+
+// Option 2: Also connect any trending tags
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🔗 Connecting search functionality...");
+    
+    // Make trending tags work
+    const trendingTags = document.querySelectorAll('.trending-tag, .suggestion-tags .tag');
+    trendingTags.forEach(tag => {
+        const onclick = tag.getAttribute('onclick');
+        if (onclick && onclick.includes('searchProduct')) {
+            // Update to use simpleSearch
+            const match = onclick.match(/searchProduct\('([^']+)'\)/);
+            if (match) {
+                const product = match[1];
+                tag.setAttribute('onclick', `window.simpleSearch('${product}')`);
+                console.log("Updated tag for:", product);
+            }
+        }
+    });
+});
+
+console.log("✅ performSearch function created successfully!");
+    </script>
 </body>
 </html>
