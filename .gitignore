@@ -1,0 +1,11 @@
+# UAE Price Hunter - Private Files
+config.js
+api-keys.js
+secrets.js
+*.key
+*.env
+
+# Development files
+node_modules/
+.DS_Store
+*.log
