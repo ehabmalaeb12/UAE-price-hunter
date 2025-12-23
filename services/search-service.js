@@ -1,8 +1,9 @@
-// UAE Price Hunter — Search Service V1 (Frontend-Safe, Intelligent)
+// UAE Price Hunter — Search Service V1.1
+// Full file — copy & replace completely
 
 class SearchService {
     constructor() {
-        console.log("🚀 SearchService V1 initializing...");
+        console.log("🚀 SearchService initializing...");
 
         this.stores = [
             { id: "amazon", name: "Amazon UAE", multiplier: 1.0 },
@@ -13,43 +14,32 @@ class SearchService {
         ];
 
         this.cache = new Map();
-        this.cacheTTL = 5 * 60 * 1000; // 5 minutes
-
+        this.cacheTTL = 5 * 60 * 1000;
         this.lastGroups = [];
     }
 
-    /* ===============================
-       MAIN SEARCH ENTRY
-    =============================== */
     async search(query) {
-        console.log(`🔍 Searching for: ${query}`);
-
-        const cacheKey = query.toLowerCase().trim();
-        const cached = this.getCache(cacheKey);
+        const key = query.toLowerCase().trim();
+        const cached = this.getCache(key);
         if (cached) return cached;
 
         const intent = ProductResolver.resolve(query);
-        const rawProducts = [];
+        const products = [];
 
         for (const store of this.stores) {
             const price = PriceEngine.estimate(intent, store);
-            rawProducts.push(
-                ProductFactory.create(intent, store, price)
-            );
+            products.push(ProductFactory.create(intent, store, price));
         }
 
-        const grouped = ProductGrouper.group(rawProducts, intent);
-        this.lastGroups = grouped;
+        const groups = ProductGrouper.group(products, intent);
+        this.lastGroups = groups;
 
-        const flatResults = grouped.flatMap(g => g.products);
-        this.saveCache(cacheKey, flatResults);
+        const flat = groups.flatMap(g => g.products);
+        this.saveCache(key, flat);
 
-        return flatResults;
+        return flat;
     }
 
-    /* ===============================
-       CACHE
-    =============================== */
     getCache(key) {
         const item = this.cache.get(key);
         if (!item) return null;
@@ -66,19 +56,35 @@ class SearchService {
 }
 
 /* ===============================
-   PRODUCT RESOLVER (INTENT)
+   PRODUCT RESOLVER
 =============================== */
 class ProductResolver {
     static resolve(query) {
-        const lower = query.toLowerCase();
+        const q = query.toLowerCase();
+
+        const storageMatch = q.match(/(64|128|256|512|1024)\s?gb/);
+        const storage = storageMatch ? storageMatch[0].toUpperCase() : null;
+
+        const baseModel = query
+            .replace(/(64|128|256|512|1024)\s?gb/i, "")
+            .replace(/\s+/g, " ")
+            .trim();
 
         return {
             query,
-            category: this.detectCategory(lower),
-            brand: this.detectBrand(lower),
-            model: query,
-            premium: /pro|max|ultra|plus/.test(lower)
+            brand: this.detectBrand(q),
+            category: this.detectCategory(q),
+            baseModel,
+            variant: storage,
+            premium: /pro|max|ultra|plus/.test(q)
         };
+    }
+
+    static detectBrand(q) {
+        if (q.includes("apple")) return "Apple";
+        if (q.includes("samsung")) return "Samsung";
+        if (q.includes("sony")) return "Sony";
+        return "Generic";
     }
 
     static detectCategory(q) {
@@ -88,34 +94,22 @@ class ProductResolver {
         if (q.includes("perfume")) return "perfume";
         return "general";
     }
-
-    static detectBrand(q) {
-        if (q.includes("apple")) return "Apple";
-        if (q.includes("samsung")) return "Samsung";
-        if (q.includes("sony")) return "Sony";
-        return "Generic";
-    }
 }
 
 /* ===============================
-   PRICE ENGINE (INTELLIGENT ESTIMATE)
+   PRICE ENGINE
 =============================== */
 class PriceEngine {
     static estimate(intent, store) {
-        let base;
+        let base = 2000;
 
-        switch (intent.category) {
-            case "smartphone": base = intent.premium ? 4300 : 3500; break;
-            case "tv": base = 3000; break;
-            case "laptop": base = 4200; break;
-            case "perfume": base = 350; break;
-            default: base = 2000;
-        }
+        if (intent.category === "smartphone") base = intent.premium ? 4300 : 3500;
+        if (intent.category === "tv") base = 3000;
+        if (intent.category === "laptop") base = 4200;
+        if (intent.category === "perfume") base = 350;
 
         const variance = Math.random() * 150;
-        const price = Math.round((base + variance) * store.multiplier);
-
-        return price;
+        return Math.round((base + variance) * store.multiplier);
     }
 }
 
@@ -125,15 +119,27 @@ class PriceEngine {
 class ProductFactory {
     static create(intent, store, price) {
         return {
-            id: `${store.id}_${Date.now()}`,
-            name: intent.model,
+            id: `${store.id}_${Date.now()}_${Math.random()}`,
+            name: intent.variant
+                ? `${intent.baseModel} ${intent.variant}`
+                : intent.baseModel,
+
             store: store.name,
             storeId: store.id,
             price,
             originalPrice: Math.round(price * 1.12),
             discount: Math.round(((price * 1.12 - price) / (price * 1.12)) * 100),
+
             image: ImageEngine.get(intent),
             affiliateLink: AffiliateEngine.link(store.id, intent.query),
+
+            identity: {
+                brand: intent.brand,
+                baseModel: intent.baseModel,
+                variant: intent.variant,
+                category: intent.category
+            },
+
             estimated: true,
             rating: (4 + Math.random()).toFixed(1),
             reviews: Math.floor(Math.random() * 500 + 50)
@@ -145,20 +151,31 @@ class ProductFactory {
    PRODUCT GROUPER
 =============================== */
 class ProductGrouper {
-    static group(products, intent) {
-        const mainGroup = {
-            title: intent.model,
-            products: [...products]
-        };
+    static group(products) {
+        const groups = {};
+        const result = [];
 
-        // Mark cheapest
-        let cheapest = mainGroup.products[0];
-        mainGroup.products.forEach(p => {
-            if (p.price < cheapest.price) cheapest = p;
+        products.forEach(p => {
+            const key = `${p.identity.brand}_${p.identity.baseModel}`;
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(p);
         });
-        cheapest.bestPrice = true;
 
-        return [mainGroup];
+        Object.values(groups).forEach(items => {
+            let cheapest = items[0];
+            items.forEach(p => {
+                if (p.price < cheapest.price) cheapest = p;
+            });
+            cheapest.bestPrice = true;
+
+            result.push({
+                type: "exact",
+                title: items[0].identity.baseModel,
+                products: items
+            });
+        });
+
+        return result;
     }
 }
 
@@ -176,15 +193,15 @@ class ImageEngine {
 }
 
 /* ===============================
-   AFFILIATE ENGINE (PLACEHOLDER)
+   AFFILIATE ENGINE
 =============================== */
 class AffiliateEngine {
     static link(storeId, query) {
-        const encoded = encodeURIComponent(query);
+        const q = encodeURIComponent(query);
         if (storeId === "amazon")
-            return `https://www.amazon.ae/s?k=${encoded}&tag=YOURTAG-21`;
+            return `https://www.amazon.ae/s?k=${q}&tag=YOURTAG-21`;
         if (storeId === "noon")
-            return `https://www.noon.com/uae-en/search?q=${encoded}`;
+            return `https://www.noon.com/uae-en/search?q=${q}`;
         return "#";
     }
 }
@@ -195,4 +212,4 @@ class AffiliateEngine {
 window.searchService = new SearchService();
 window.simpleSearch = q => window.searchService.search(q);
 
-console.log("✅ SearchService V1 READY");
+console.log("✅ SearchService V1.1 ready");
