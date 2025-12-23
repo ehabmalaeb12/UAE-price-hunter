@@ -306,8 +306,27 @@ async function performSearch() {
     // SIMPLIFIED - Use fallback function directly
     const results = await searchAllStoresMock(query, selectedStores);
     
-    // Display results
-    displaySearchResults(results, query);
+    // In your script.js - update the display function
+async function displayResults(results, query) {
+    const container = document.getElementById('searchResults');
+    if (!container) return;
+    
+    if (window.ProductDisplay && window.searchService?.lastGroups) {
+        // Use smart grouped display
+        const display = new window.ProductDisplay();
+        display.displayGroupedResults(window.searchService.lastGroups);
+    } else {
+        // Fallback to simple display
+        const display = new window.ProductDisplay();
+        display.displayGroupedResults([{
+            groupId: 'single_group',
+            groupName: query,
+            products: results,
+            stores: new Set(results.map(r => r.store)),
+            storeCount: new Set(results.map(r => r.store)).size
+        }]);
+    }
+}
     
     // Save search to history
     saveSearchToHistory(query, results.length);
