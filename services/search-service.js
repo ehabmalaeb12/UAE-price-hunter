@@ -60,8 +60,29 @@ class SearchService {
             this.updateSearchProgress(store, storeResults.length);
         }
         
-        // 3. Process and group results
-        const processedResults = this.processResults(allResults, query);
+        // In services/search-service.js - REPLACE the processResults method
+processResults(products, originalQuery) {
+    if (!products || products.length === 0) {
+        return this.generateFallbackResults(originalQuery);
+    }
+    
+    // Use the intelligent grouper
+    if (window.ProductGrouper) {
+        const grouper = new window.ProductGrouper();
+        const groups = grouper.groupProducts(products, originalQuery);
+        
+        // Convert groups to flat array for display
+        const flattened = groups.flatMap(group => group.products);
+        
+        // Store groups for smart display
+        this.lastGroups = groups;
+        
+        return flattened;
+    } else {
+        // Fallback to simple grouping
+        return this.simpleGroupProducts(products);
+    }
+}
         
         // 4. Cache the results
         this.saveToCache(cacheKey, processedResults);
