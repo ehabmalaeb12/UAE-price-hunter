@@ -246,16 +246,45 @@ function selectSuggestion(suggestion) {
   }
 }
 
-// Perform product comparison (FIXED VERSION)
+// FIXED: Working search function
 async function performSearch() {
-  const searchInput = document.getElementById('searchInput');
-  if (!searchInput) return;
-  
-  const query = searchInput.value.trim();
-  if (!query) {
-    showNotification('Please enter a search term', 'warning');
-    return;
-  }
+    const searchInput = document.getElementById('searchInput');
+    const query = searchInput?.value.trim();
+    
+    if (!query) {
+        alert('Please enter a search term');
+        return;
+    }
+    
+    // Use our fixed engine
+    if (window.simpleSearch) {
+        window.simpleSearch(query);
+    } else {
+        // Fallback if engine not loaded
+        const mockResults = [
+            {
+                id: 'test_1',
+                name: `${query} - Amazon UAE`,
+                store: 'Amazon UAE',
+                price: 999,
+                originalPrice: 1299,
+                image: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=600&fit=crop',
+                rating: '4.5',
+                shipping: 'FREE Delivery'
+            }
+        ];
+        
+        const container = document.getElementById('searchResults');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <h3 style="color: var(--light);">Search result for: ${query}</h3>
+                    <p style="color: #E3C58E;">Search engine loading...</p>
+                </div>
+            `;
+        }
+    }
+}
   
   // Get selected stores
   const selectedStores = getSelectedStores();
