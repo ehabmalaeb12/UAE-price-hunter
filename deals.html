@@ -7,51 +7,110 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #2C3E50;
-            --secondary: #3498DB;
-            --accent: #E74C3C;
-            --dark: #1A252F;
-            --light: #ECF0F1;
-            --success: #2ECC71;
-            --warning: #F39C12;
+        .compact-deals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
         
-        .deal-badge {
-            background: linear-gradient(135deg, #E74C3C, #F39C12);
-            color: white;
-            font-weight: 800;
-            padding: 0.8rem 1.5rem;
-            border-radius: 30px;
-            font-size: 1.3rem;
-            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
-            animation: pulse 2s infinite;
+        .compact-deal-card {
+            background: rgba(26, 22, 18, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 1.2rem;
+            transition: all 0.3s ease;
         }
         
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .compact-deal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
         }
         
-        .hot-deal {
-            position: relative;
-            border: 3px solid #E74C3C;
-            box-shadow: 0 15px 40px rgba(231, 76, 60, 0.2);
+        .compact-deal-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
         }
         
-        .hot-deal::before {
-            content: '🔥 HOT';
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #E74C3C;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+        .deal-store-tag {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: rgba(197, 160, 89, 0.1);
+            color: var(--primary);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+        }
+        
+        .compact-deal-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--light);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+        
+        .compact-deal-price {
+            font-size: 1.5rem;
             font-weight: 700;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+        
+        .compact-original-price {
+            text-decoration: line-through;
+            color: #94a3b8;
             font-size: 0.9rem;
-            z-index: 2;
+            margin-right: 0.5rem;
+        }
+        
+        .deal-discount-badge {
+            background: var(--gradient-accent);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .direct-buy-btn {
+            width: 100%;
+            margin-top: 1rem;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            text-align: center;
+        }
+        
+        .direct-buy-btn:hover {
+            background: linear-gradient(135deg, #8E5A31, #C5A059);
+            transform: translateY(-2px);
+        }
+        
+        .deal-timer {
+            background: rgba(212, 160, 23, 0.1);
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+            margin: 0.8rem 0;
+            font-size: 0.8rem;
+            color: var(--warning);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
     </style>
 </head>
@@ -76,11 +135,11 @@
             <nav class="main-nav">
                 <a href="index.html" class="nav-link">
                     <i class="fas fa-balance-scale"></i>
-                    <span>Compare Prices</span>
+                    <span>Compare</span>
                 </a>
                 <a href="deals.html" class="nav-link active">
                     <i class="fas fa-fire"></i>
-                    <span>Top Deals</span>
+                    <span>Deals</span>
                 </a>
                 <a href="basket.html" class="nav-link">
                     <i class="fas fa-shopping-basket"></i>
@@ -91,164 +150,61 @@
                     <i class="fas fa-user"></i>
                     <span>Profile</span>
                 </a>
-                <a href="rewards.html" class="nav-link">
-                    <i class="fas fa-gift"></i>
-                    <span>Rewards</span>
-                </a>
             </nav>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container">
+    <main class="container" style="padding: 1rem;">
         <!-- Hero Section -->
-        <section class="deals-hero">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <h1 class="hero-title">🔥 <span class="gradient-text">Top Deals</span> in UAE</h1>
-                    <p class="hero-subtitle">Discover products with huge discounts across all UAE stores</p>
-                    <div class="deal-countdown">
-                        <div class="countdown-card">
-                            <i class="fas fa-clock"></i>
-                            <div>
-                                <h3>Limited Time Offers</h3>
-                                <p>Deals refresh every hour</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="hero-illustration">
-                    <i class="fas fa-percentage"></i>
-                </div>
-            </div>
-        </section>
-
-        <!-- Deal Filters -->
-        <section class="filters-section glass-card">
-            <div class="filters-header">
-                <h2><i class="fas fa-filter"></i> Filter Deals</h2>
-                <p>Customize deals based on discount percentage</p>
-            </div>
+        <section style="text-align: center; padding: 2rem 0;">
+            <h1 style="font-size: 2.2rem; margin-bottom: 1rem; color: var(--light);">
+                <i class="fas fa-fire" style="color: var(--accent);"></i>
+                <span style="background: var(--gradient-accent); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    Hot Deals
+                </span>
+            </h1>
+            <p style="color: #E3C58E; margin-bottom: 2rem;">Direct links to store products with biggest discounts</p>
             
-            <div class="discount-filters">
-                <div class="discount-slider-container">
-                    <div class="slider-header">
-                        <h3>Minimum Discount:</h3>
-                        <div class="discount-value">
-                            <span id="currentDiscount">60</span>%
-                        </div>
-                    </div>
-                    <input type="range" 
-                           id="discountSlider" 
-                           min="50" 
-                           max="90" 
-                           step="5" 
-                           value="60"
-                           oninput="updateDiscountValue(this.value)">
-                    <div class="slider-labels">
-                        <span>50%</span>
-                        <span>60%</span>
-                        <span>70%</span>
-                        <span>80%</span>
-                        <span>90%</span>
-                    </div>
-                </div>
-                
-                <div class="quick-filters">
-                    <h3>Quick Filters:</h3>
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" onclick="setDiscountFilter(60)">
-                            <span class="deal-badge-small">60%+</span>
-                            Good Deals
-                        </button>
-                        <button class="filter-btn" onclick="setDiscountFilter(70)">
-                            <span class="deal-badge-small">70%+</span>
-                            Great Deals
-                        </button>
-                        <button class="filter-btn" onclick="setDiscountFilter(80)">
-                            <span class="deal-badge-small">80%+</span>
-                            Amazing Deals
-                        </button>
-                        <button class="filter-btn" onclick="setDiscountFilter(90)">
-                            <span class="deal-badge-small">90%+</span>
-                            Unbelievable
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="category-filters">
-                    <h3><i class="fas fa-tags"></i> Categories:</h3>
-                    <div class="category-tags">
-                        <span class="category-tag active" data-category="all">All</span>
-                        <span class="category-tag" data-category="electronics">📱 Electronics</span>
-                        <span class="category-tag" data-category="fashion">👗 Fashion</span>
-                        <span class="category-tag" data-category="home">🏠 Home</span>
-                        <span class="category-tag" data-category="beauty">💄 Beauty</span>
-                        <span class="category-tag" data-category="grocery">🛒 Grocery</span>
-                        <span class="category-tag" data-category="appliances">🔌 Appliances</span>
-                    </div>
-                </div>
+            <!-- Filter Buttons -->
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
+                <button class="btn btn-outline" onclick="filterDeals('all')">All Deals</button>
+                <button class="btn btn-outline" onclick="filterDeals('electronics')">
+                    <i class="fas fa-mobile"></i> Electronics
+                </button>
+                <button class="btn btn-outline" onclick="filterDeals('fashion')">
+                    <i class="fas fa-tshirt"></i> Fashion
+                </button>
+                <button class="btn btn-outline" onclick="filterDeals('home')">
+                    <i class="fas fa-home"></i> Home
+                </button>
             </div>
         </section>
 
-        <!-- Deals Section -->
-        <section class="deals-section">
-            <div class="deals-header">
-                <div>
-                    <h2><i class="fas fa-bolt"></i> Hot Deals</h2>
-                    <p id="dealsCount">Loading amazing deals...</p>
-                </div>
-                <div class="deals-controls">
-                    <button class="btn-secondary" onclick="refreshDeals()">
-                        <i class="fas fa-sync"></i> Refresh
-                    </button>
-                    <button class="btn-primary" onclick="loadMoreDeals()">
-                        <i class="fas fa-plus"></i> Load More
-                    </button>
-                </div>
-            </div>
-
-            <div id="dealsLoading" class="loading-state">
-                <div class="spinner"></div>
-                <p>Finding the hottest deals for you...</p>
-                <div class="loading-stores">
-                    <span>Scanning Amazon</span>
-                    <span>Checking Noon</span>
-                    <span>Searching Carrefour</span>
-                </div>
-            </div>
-
-            <div id="dealsGrid" class="deals-grid">
-                <!-- Top deals will load here -->
-                <div class="empty-state">
-                    <div class="empty-illustration">
-                        <i class="fas fa-percentage"></i>
-                    </div>
-                    <h3>Loading Amazing Deals</h3>
-                    <p>We're finding products with huge discounts across UAE stores</p>
-                </div>
+        <!-- Deals Grid -->
+        <section id="dealsContainer" class="compact-deals-grid">
+            <!-- Deals will load here -->
+            <div class="empty-state">
+                <i class="fas fa-percentage" style="font-size: 3rem; color: var(--primary); opacity: 0.5;"></i>
+                <h3>Loading Hot Deals...</h3>
+                <p>Fetching best discounts from UAE stores</p>
             </div>
         </section>
 
-        <!-- Deal Alerts -->
-        <section class="alerts-section glass-card">
-            <div class="alerts-content">
-                <div class="alerts-text">
-                    <h3><i class="fas fa-bell"></i> Never Miss a Deal</h3>
-                    <p>Get notified when products you want go on sale</p>
-                </div>
-                <div class="alerts-form">
-                    <input type="email" placeholder="Your email for deal alerts">
-                    <button class="btn-primary">
-                        <i class="fas fa-paper-plane"></i> Get Alerts
-                    </button>
-                </div>
-            </div>
+        <!-- Info Section -->
+        <section style="background: rgba(26, 22, 18, 0.7); padding: 2rem; border-radius: var(--radius-md); margin-top: 3rem;">
+            <h3 style="text-align: center; margin-bottom: 1rem; color: var(--light);">
+                <i class="fas fa-info-circle"></i> How Our Deals Work
+            </h3>
+            <p style="text-align: center; color: #E3C58E;">
+                All "Buy Now" buttons take you directly to the store product page. 
+                We earn a small commission when you purchase, which helps us provide this free service.
+            </p>
         </section>
     </main>
 
     <!-- Footer -->
-    <footer class="glass-footer">
+    <footer class="glass-footer" style="margin-top: 3rem;">
         <div class="footer-content">
             <div class="footer-section">
                 <div class="footer-logo">
@@ -258,24 +214,14 @@
                 <p>Your destination for the best deals in UAE</p>
             </div>
             <div class="footer-section">
-                <h4>Deal Categories</h4>
-                <a href="#"><i class="fas fa-mobile"></i> Electronics</a>
-                <a href="#"><i class="fas fa-tshirt"></i> Fashion</a>
-                <a href="#"><i class="fas fa-home"></i> Home & Kitchen</a>
-                <a href="#"><i class="fas fa-heart"></i> Beauty & Health</a>
-                <a href="#"><i class="fas fa-utensils"></i> Grocery</a>
-            </div>
-            <div class="footer-section">
                 <h4>Quick Links</h4>
                 <a href="index.html"><i class="fas fa-balance-scale"></i> Compare Prices</a>
                 <a href="deals.html"><i class="fas fa-fire"></i> Top Deals</a>
                 <a href="basket.html"><i class="fas fa-shopping-basket"></i> My Basket</a>
-                <a href="rewards.html"><i class="fas fa-gift"></i> My Rewards</a>
             </div>
         </div>
         <div class="footer-bottom">
             <p>© 2024 UAE Price Hunter. All deals are limited time offers.</p>
-            <p class="disclaimer">Deals may expire quickly. Prices are subject to change.</p>
         </div>
     </footer>
 
@@ -284,70 +230,230 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     
-    <script src="firebase-config.js"></script>
-    <script src="language.js"></script>
-    <script src="scraper.js"></script>
-    <script src="deals-script.js"></script>
-
     <script>
-        // Initialize deals page
+        // Direct deals data - NO REDIRECT, goes straight to store
+        const UAE_DEALS = [
+            {
+                id: 'deal1',
+                title: 'iPhone 15 Pro Max 256GB',
+                store: 'Amazon UAE',
+                price: 4299,
+                originalPrice: 4799,
+                discount: 11,
+                image: 'https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch?wid=5120&hei=2880&fmt=webp&qlt=70',
+                link: 'https://amazon.ae/dp/B0CHX6W8H9?tag=uaehunter-21',
+                category: 'electronics',
+                timeLeft: '2 days',
+                shipping: 'FREE Delivery Tomorrow'
+            },
+            {
+                id: 'deal2',
+                title: 'Samsung Galaxy S24 Ultra',
+                store: 'Noon UAE',
+                price: 3899,
+                originalPrice: 4599,
+                discount: 15,
+                image: 'https://images.samsung.com/is/image/samsung/p6pim/ae/2401/gallery/ae-galaxy-s24-s928-sm-s928bztgmea-539157404',
+                link: 'https://noon.com/uae-en/samsung-galaxy-s24-ultra/p?utm_source=uaehunter',
+                category: 'electronics',
+                timeLeft: '1 day',
+                shipping: 'Express 2-4 Hours'
+            },
+            {
+                id: 'deal3',
+                title: 'Arabic Oud Perfume Collection',
+                store: 'Carrefour UAE',
+                price: 199,
+                originalPrice: 399,
+                discount: 50,
+                image: 'https://www.yrparfums.com/cdn/shop/files/YSL-YEux_Intense_Gold_100ml_1_1400x.jpg?v=1693225217',
+                link: 'https://carrefouruae.com/arabic-perfume?source=uaehunter',
+                category: 'beauty',
+                timeLeft: '3 days',
+                shipping: 'Same Day Delivery'
+            },
+            {
+                id: 'deal4',
+                title: 'Samsung 65" QLED 4K TV',
+                store: 'Sharaf DG',
+                price: 2999,
+                originalPrice: 3999,
+                discount: 25,
+                image: 'https://m.media-amazon.com/images/I/81QpkIctqPL._AC_SL1500_.jpg',
+                link: 'https://sharafdg.com/samsung-tv-65?aff=uaehunter',
+                category: 'electronics',
+                timeLeft: '5 days',
+                shipping: 'Free Installation'
+            },
+            {
+                id: 'deal5',
+                title: 'Gold 22K Necklace Set',
+                store: 'Amazon UAE',
+                price: 2499,
+                originalPrice: 3499,
+                discount: 29,
+                image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&fit=crop',
+                link: 'https://amazon.ae/gold-necklace-22k?tag=uaehunter-21',
+                category: 'fashion',
+                timeLeft: '7 days',
+                shipping: 'Insured Delivery'
+            },
+            {
+                id: 'deal6',
+                title: 'Dyson Airwrap Complete',
+                store: 'Noon UAE',
+                price: 1899,
+                originalPrice: 2499,
+                discount: 24,
+                image: 'https://m.media-amazon.com/images/I/71UoRZk7FaL._AC_SL1500_.jpg',
+                link: 'https://noon.com/uae-en/dyson-airwrap/p?utm_source=uaehunter',
+                category: 'beauty',
+                timeLeft: '4 days',
+                shipping: 'Express Delivery'
+            }
+        ];
+
+        // Load deals on page load
         document.addEventListener('DOMContentLoaded', function() {
-            initializeDealsPage();
-            loadLanguagePreference();
+            loadDeals();
+            updateBasketCount();
         });
 
-        // Update discount value
-        function updateDiscountValue(value) {
-            document.getElementById('currentDiscount').textContent = value;
-            filterDeals();
-        }
-
-        // Set discount filter
-        function setDiscountFilter(discount) {
-            document.getElementById('discountSlider').value = discount;
-            updateDiscountValue(discount);
+        function loadDeals() {
+            const container = document.getElementById('dealsContainer');
+            container.innerHTML = '';
             
-            // Update active button
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
+            UAE_DEALS.forEach(deal => {
+                const dealCard = document.createElement('div');
+                dealCard.className = 'compact-deal-card';
+                
+                dealCard.innerHTML = `
+                    <div class="deal-store-tag">${deal.store}</div>
+                    <img src="${deal.image}" alt="${deal.title}" class="compact-deal-image"
+                         onerror="this.src='https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=300&fit=crop'">
+                    
+                    <h3 class="compact-deal-title">${deal.title}</h3>
+                    
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span class="compact-original-price">${deal.originalPrice} AED</span>
+                        <span class="compact-deal-price">${deal.price} AED</span>
+                        <span class="deal-discount-badge">${deal.discount}% OFF</span>
+                    </div>
+                    
+                    <div class="deal-timer">
+                        <i class="fas fa-clock"></i>
+                        <span>Ends in ${deal.timeLeft}</span>
+                    </div>
+                    
+                    <p style="font-size: 0.9rem; color: #E3C58E; margin-bottom: 0.5rem;">
+                        <i class="fas fa-shipping-fast"></i> ${deal.shipping}
+                    </p>
+                    
+                    <!-- DIRECT LINK TO STORE - NO REDIRECT -->
+                    <a href="${deal.link}" 
+                       target="_blank" 
+                       class="direct-buy-btn"
+                       onclick="trackDealClick('${deal.id}')">
+                        <i class="fas fa-external-link-alt"></i> BUY NOW AT ${deal.store}
+                    </a>
+                `;
+                
+                container.appendChild(dealCard);
             });
-            event.target.classList.add('active');
+        }
+
+        function filterDeals(category) {
+            const container = document.getElementById('dealsContainer');
+            container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>Filtering deals...</p></div>';
             
-            filterDeals();
+            setTimeout(() => {
+                if (category === 'all') {
+                    loadDeals();
+                } else {
+                    const filtered = UAE_DEALS.filter(deal => deal.category === category);
+                    if (filtered.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <h3>No ${category} deals found</h3>
+                                <p>Try another category</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    filtered.forEach(deal => {
+                        const dealCard = document.createElement('div');
+                        dealCard.className = 'compact-deal-card';
+                        // Same card HTML as above
+                        dealCard.innerHTML = `
+                            <div class="deal-store-tag">${deal.store}</div>
+                            <img src="${deal.image}" alt="${deal.title}" class="compact-deal-image"
+                                 onerror="this.src='https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400&h=300&fit=crop'">
+                            
+                            <h3 class="compact-deal-title">${deal.title}</h3>
+                            
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <span class="compact-original-price">${deal.originalPrice} AED</span>
+                                <span class="compact-deal-price">${deal.price} AED</span>
+                                <span class="deal-discount-badge">${deal.discount}% OFF</span>
+                            </div>
+                            
+                            <div class="deal-timer">
+                                <i class="fas fa-clock"></i>
+                                <span>Ends in ${deal.timeLeft}</span>
+                            </div>
+                            
+                            <p style="font-size: 0.9rem; color: #E3C58E; margin-bottom: 0.5rem;">
+                                <i class="fas fa-shipping-fast"></i> ${deal.shipping}
+                            </p>
+                            
+                            <a href="${deal.link}" 
+                               target="_blank" 
+                               class="direct-buy-btn"
+                               onclick="trackDealClick('${deal.id}')">
+                                <i class="fas fa-external-link-alt"></i> BUY NOW AT ${deal.store}
+                            </a>
+                        `;
+                        container.appendChild(dealCard);
+                    });
+                }
+            }, 500);
         }
 
-        // Filter deals
-        function filterDeals() {
-            const discount = parseInt(document.getElementById('discountSlider').value);
-            const activeCategory = document.querySelector('.category-tag.active').dataset.category;
-            filterDealsByCriteria(discount, activeCategory);
+        function trackDealClick(dealId) {
+            console.log(`Deal clicked: ${dealId}`);
+            // Track in localStorage
+            const dealClicks = JSON.parse(localStorage.getItem('deal_clicks') || '[]');
+            dealClicks.push({ dealId, timestamp: new Date().toISOString() });
+            localStorage.setItem('deal_clicks', JSON.stringify(dealClicks));
+            
+            // Award points if user is logged in
+            if (localStorage.getItem('current_user')) {
+                const currentPoints = parseInt(localStorage.getItem('user_points') || '0');
+                localStorage.setItem('user_points', (currentPoints + 10).toString());
+            }
         }
 
-        // Refresh deals
-        function refreshDeals() {
-            loadDeals();
+        function updateBasketCount() {
+            const basket = JSON.parse(localStorage.getItem('uae_price_hunter_basket') || '[]');
+            const count = basket.reduce((total, item) => total + (item.quantity || 1), 0);
+            document.getElementById('basketCount').textContent = count;
         }
 
-        // Load more deals
-        function loadMoreDeals() {
-            loadMoreDealsFromAPI();
-        }
-
-        // Toggle language
         function toggleLanguage() {
             const currentLang = document.documentElement.lang;
             const newLang = currentLang === 'en' ? 'ar' : 'en';
-            setLanguage(newLang);
+            document.documentElement.lang = newLang;
+            
+            // Update button text
+            const btn = document.getElementById('languageToggle');
+            btn.querySelector('span').textContent = newLang === 'en' ? 'عربي' : 'English';
+            
+            // Show notification
+            alert(`Language switched to ${newLang === 'en' ? 'English' : 'Arabic'}`);
         }
-
-        // Category filter
-        document.querySelectorAll('.category-tag').forEach(tag => {
-            tag.addEventListener('click', function() {
-                document.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                filterDeals();
-            });
-        });
     </script>
 </body>
 </html>
