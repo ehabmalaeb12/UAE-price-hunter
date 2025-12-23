@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Search</title>
+</head>
+<body style="background: #1A1612; color: #F9F4E8; padding: 2rem;">
+    <h1>🧪 UAE Price Hunter - Search Test</h1>
+    
+    <input type="text" id="searchBox" placeholder="Test: iPhone, perfume, gold..." 
+           style="padding: 1rem; width: 300px; margin-right: 1rem;">
+    <button onclick="runTest()" style="padding: 1rem; background: #C5A059; border: none; color: white;">
+        🔍 Test Search
+    </button>
+    
+    <div id="results" style="margin-top: 2rem;"></div>
+    
+    <script>
+        // Direct test without external files
+        async function runTest() {
+            const query = document.getElementById('searchBox').value || 'iPhone';
+            const results = await testSearchEngine(query);
+            displayResults(results);
+        }
+        
+        async function testSearchEngine(query) {
+            console.log(`Testing: ${query}`);
+            
+            // Simulate search delay
+            await new Promise(r => setTimeout(r, 1000));
+            
+            // Return UAE test data
+            return [
+                {
+                    id: 'test1',
+                    name: `${query} - Amazon UAE`,
+                    store: 'Amazon UAE',
+                    price: 4299,
+                    discount: 11,
+                    shipping: 'FREE Delivery Tomorrow',
+                    rating: '4.7'
+                },
+                {
+                    id: 'test2',
+                    name: `${query} - Noon UAE`,
+                    store: 'Noon UAE',
+                    price: 4199,
+                    discount: 13,
+                    shipping: 'Express 2-4 Hours',
+                    rating: '4.6'
+                }
+            ];
+        }
+        
+        function displayResults(products) {
+            const container = document.getElementById('results');
+            let html = `<h3>Found ${products.length} UAE Products:</h3>`;
+            
+            products.forEach(p => {
+                html += `
+                    <div style="background: rgba(26, 22, 18, 0.7); padding: 1rem; margin: 1rem 0; border-radius: 8px;">
+                        <strong>${p.name}</strong><br>
+                        Store: ${p.store}<br>
+                        Price: ${p.price} AED (${p.discount}% OFF)<br>
+                        Shipping: ${p.shipping}<br>
+                        Rating: ⭐ ${p.rating}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Auto-run test
+        window.onload = () => {
+            console.log("✅ Test page ready");
+            runTest();
+        };
+    </script>
+</body>
+</html>
