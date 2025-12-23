@@ -3,21 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compare Prices - UAE Price Hunter</title>
+    <title>UAE Price Hunter - Compare Prices</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #2C3E50;
-            --secondary: #3498DB;
-            --accent: #E74C3C;
-            --dark: #1A252F;
-            --light: #ECF0F1;
-            --success: #2ECC71;
-            --warning: #F39C12;
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+        /* Compact Professional Styles */
+        .compact-header {
+            padding: 1rem 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .compact-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        
+        .compact-logo h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .compact-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .compact-nav .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .compact-search-section {
+            padding: 2rem 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .search-box {
+            background: rgba(26, 22, 18, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+        
+        .search-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .search-input-group input {
+            flex: 1;
+            padding: 0.8rem 1.2rem;
+            font-size: 1rem;
+        }
+        
+        .search-btn {
+            padding: 0 2rem;
+        }
+        
+        .trending-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .trending-tag {
+            padding: 0.5rem 1rem;
+            background: rgba(227, 197, 142, 0.05);
+            border: 1px solid rgba(197, 160, 89, 0.2);
+            border-radius: var(--radius-xl);
+            color: #E3C58E;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .trending-tag:hover {
+            background: rgba(227, 197, 142, 0.1);
+            color: var(--light);
+        }
+        
+        .compact-products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .compact-product-card {
+            background: rgba(26, 22, 18, 0.7);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .compact-product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary);
+        }
+        
+        .compact-product-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
+        }
+        
+        .product-store-tag {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: rgba(197, 160, 89, 0.1);
+            color: var(--primary);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .compact-product-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--light);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+        
+        .compact-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+        
+        .compact-original-price {
+            text-decoration: line-through;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+        }
+        
+        .compact-product-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin: 0.5rem 0;
+        }
+        
+        .compact-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .compact-actions .btn {
+            flex: 1;
+            padding: 0.6rem;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+        
+        .info-section {
+            background: rgba(26, 22, 18, 0.7);
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            margin: 2rem auto;
+            max-width: 1200px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .header-inner {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .compact-nav {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .compact-products-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .search-input-group {
+                flex-direction: column;
+            }
+            
+            .search-btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .compact-products-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -28,367 +234,118 @@
         <span>عربي</span>
     </button>
 
-    <!-- Header -->
-    <header class="glass-header">
-        <div class="header-container">
-            <div class="logo-section">
-                <div class="logo">
-                    <i class="fas fa-search-dollar"></i>
-                    <h1>UAE PRICE HUNTER</h1>
-                </div>
-                <p class="tagline">Smart Shopping. Real Savings.</p>
+    <!-- Compact Header -->
+    <header class="compact-header">
+        <div class="header-inner">
+            <div class="compact-logo">
+                <i class="fas fa-search-dollar" style="color: var(--primary);"></i>
+                <h1>UAE Price Hunter</h1>
             </div>
             
-            <nav class="main-nav">
-                <a href="index.html" class="nav-link active">
-                    <i class="fas fa-balance-scale"></i>
-                    <span>Compare Prices</span>
+            <div class="compact-nav">
+                <a href="deals.html" class="btn btn-outline">
+                    <i class="fas fa-fire"></i> Deals
                 </a>
-                <a href="deals.html" class="nav-link">
-                    <i class="fas fa-fire"></i>
-                    <span>Top Deals</span>
+                <a href="basket.html" class="btn btn-outline">
+                    <i class="fas fa-shopping-basket"></i> 
+                    <span id="basketCount">0</span>
                 </a>
-                <a href="basket.html" class="nav-link">
-                    <i class="fas fa-shopping-basket"></i>
-                    <span>Basket</span>
-                    <span id="basketCount" class="nav-badge">0</span>
-                </a>
-                <a href="profile.html" class="nav-link">
+                <a href="profile.html" class="btn btn-outline">
                     <i class="fas fa-user"></i>
-                    <span>Profile</span>
                 </a>
-                <a href="rewards.html" class="nav-link">
-                    <i class="fas fa-gift"></i>
-                    <span>Rewards</span>
-                </a>
-            </nav>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="container">
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="hero-content">
-                <div class="hero-text">
-                    <h1 class="hero-title">Find the <span class="gradient-text">Best Price</span> in UAE</h1>
-                    <p class="hero-subtitle">Compare prices across 6+ UAE stores instantly. Real products. Real prices.</p>
-                    <div class="hero-stats">
-                        <div class="stat">
-                            <i class="fas fa-store"></i>
-                            <div>
-                                <h3>6+ Stores</h3>
-                                <p>Amazon, Noon, Carrefour & more</p>
-                            </div>
-                        </div>
-                        <div class="stat">
-                            <i class="fas fa-bolt"></i>
-                            <div>
-                                <h3>Real-time</h3>
-                                <p>Live price updates</p>
-                            </div>
-                        </div>
-                        <div class="stat">
-                            <i class="fas fa-coins"></i>
-                            <div>
-                                <h3>Earn Points</h3>
-                                <p>Get rewards for shopping</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="hero-illustration">
-                    <i class="fas fa-search-dollar"></i>
-                </div>
-            </div>
-        </section>
-
+    <main>
         <!-- Search Section -->
-        <section class="search-section glass-card">
-            <div class="search-header">
-                <h2><i class="fas fa-search"></i> Search & Compare</h2>
-                <p>Enter product name to compare prices across all stores</p>
-            </div>
-            
-            <div class="smart-search">
+        <section class="compact-search-section">
+            <div class="search-box">
+                <h2 style="text-align: center; margin-bottom: 1.5rem; color: var(--light);">
+                    Find the Best Price in UAE
+                </h2>
+                
                 <div class="search-input-group">
                     <input type="text" 
                            id="searchInput" 
-                           placeholder="What are you looking for? (iPhone 15, Samsung TV, Arabic perfume...)"
+                           placeholder="Search iPhone, TV, perfume, gold..."
                            autocomplete="off">
-                    <button class="search-btn" onclick="performSearch()">
-                        <i class="fas fa-search"></i>
-                        <span>Compare Now</span>
+                    <button class="search-btn btn-primary" onclick="performSearch()">
+                        <i class="fas fa-search"></i> Compare
                     </button>
                 </div>
                 
-                <div id="searchSuggestions" class="suggestions-box"></div>
-                
-                <!-- AI Suggestions -->
-                <div class="ai-suggestions">
-                    <h3><i class="fas fa-robot"></i> Popular in UAE:</h3>
-                    <div class="suggestion-tags">
-                        <span class="tag" onclick="searchProduct('iPhone 15 Pro Max')">
-                            <i class="fas fa-mobile"></i> iPhone 15
-                        </span>
-                        <span class="tag" onclick="searchProduct('Samsung Galaxy S24')">
-                            <i class="fas fa-mobile-alt"></i> Samsung S24
-                        </span>
-                        <span class="tag" onclick="searchProduct('Arabic Oud Perfume')">
-                            <i class="fas fa-spray-can"></i> Arabic Perfume
-                        </span>
-                        <span class="tag" onclick="searchProduct('Gold Jewelry 22K')">
-                            <i class="fas fa-gem"></i> Gold Jewelry
-                        </span>
-                        <span class="tag" onclick="searchProduct('PlayStation 5')">
-                            <i class="fas fa-gamepad"></i> PlayStation 5
-                        </span>
-                        <span class="tag" onclick="searchProduct('Dyson Airwrap')">
-                            <i class="fas fa-wind"></i> Dyson Airwrap
-                        </span>
-                    </div>
-                </div>
-                
-                <!-- Store Selection -->
-                <div class="store-selection">
-                    <h3><i class="fas fa-filter"></i> Select Stores to Compare:</h3>
-                    <div class="store-grid">
-                        <label class="store-option selected" data-store="amazon">
-                            <input type="checkbox" checked>
-                            <div class="store-card">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon">
-                                <span>Amazon.ae</span>
-                            </div>
-                        </label>
-                        <label class="store-option selected" data-store="noon">
-                            <input type="checkbox" checked>
-                            <div class="store-card">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Noon_%28company%29_logo.svg/2560px-Noon_%28company%29_logo.svg.png" alt="Noon">
-                                <span>Noon</span>
-                            </div>
-                        </label>
-                        <label class="store-option selected" data-store="carrefour">
-                            <input type="checkbox" checked>
-                            <div class="store-card">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Carrefour_logo.svg/2560px-Carrefour_logo.svg.png" alt="Carrefour">
-                                <span>Carrefour</span>
-                            </div>
-                        </label>
-                        <label class="store-option selected" data-store="sharafdg">
-                            <input type="checkbox" checked>
-                            <div class="store-card">
-                                <img src="https://www.sharafdg.com/static/version1712821587/frontend/Sdg/default/en_US/images/logo.svg" alt="Sharaf DG">
-                                <span>Sharaf DG</span>
-                            </div>
-                        </label>
-                        <label class="store-option selected" data-store="emax">
-                            <input type="checkbox" checked>
-                            <div class="store-card">
-                                <img src="https://www.emaxme.com/pub/static/version1704199543/frontend/Emax/default/en_US/images/logo.svg" alt="eMax">
-                                <span>eMax</span>
-                            </div>
-                        </label>
-                        <label class="store-option selected" data-store="lulu">
-                            <input type="checkbox" checked>
-                            <div class="store-card">
-                                <img src="https://www.luluhypermarket.com/medias/Logo-Lulu-1-.png" alt="Lulu">
-                                <span>Lulu</span>
-                            </div>
-                        </label>
-                    </div>
+                <div class="trending-tags">
+                    <span class="trending-tag" onclick="searchProduct('iPhone 15 Pro Max')">
+                        iPhone 15
+                    </span>
+                    <span class="trending-tag" onclick="searchProduct('Samsung Galaxy S24')">
+                        Samsung S24
+                    </span>
+                    <span class="trending-tag" onclick="searchProduct('Arabic Perfume')">
+                        Arabic Perfume
+                    </span>
+                    <span class="trending-tag" onclick="searchProduct('Gold Jewelry')">
+                        Gold Jewelry
+                    </span>
+                    <span class="trending-tag" onclick="searchProduct('Samsung TV 65')">
+                        Samsung TV
+                    </span>
                 </div>
             </div>
         </section>
 
         <!-- Results Section -->
-        <section class="results-section">
-            <div class="results-header">
-                <h2><i class="fas fa-chart-line"></i> Price Comparison Results</h2>
-                <div class="results-info" id="resultsInfo">
-                    <span id="resultsCount">Search for products to compare</span>
-                </div>
-            </div>
-
-            <div id="loading" class="loading-state">
-                <div class="spinner"></div>
-                <p>Searching UAE stores for real-time prices...</p>
-                <div class="loading-stores">
-                    <span>Amazon.ae</span>
-                    <span>Noon</span>
-                    <span>Carrefour</span>
-                    <span>Sharaf DG</span>
-                    <span>eMax</span>
-                    <span>Lulu</span>
-                </div>
-            </div>
-
-            <div id="searchResults" class="comparison-grid">
-                <!-- Products grouped by similarity will appear here -->
-                <div class="empty-state">
-                    <div class="empty-illustration">
-                        <i class="fas fa-balance-scale"></i>
-                    </div>
-                    <h3>Start Comparing Prices</h3>
-                    <p>Search for any product to see prices from all UAE stores</p>
-                    <div class="empty-actions">
-                        <button class="btn-primary" onclick="searchProduct('iPhone 15 Pro Max')">
-                            <i class="fas fa-mobile"></i> Compare iPhone
-                        </button>
-                        <button class="btn-secondary" onclick="searchProduct('Samsung TV 65 inch')">
-                            <i class="fas fa-tv"></i> Compare TV
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Features Section -->
-        <section class="features-section">
-            <h2 class="section-title">Why Compare With Us?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-layer-group"></i>
-                    </div>
-                    <h3>Smart Grouping</h3>
-                    <p>Similar products grouped together for easy comparison</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-crown"></i>
-                    </div>
-                    <h3>Best Price Highlighted</h3>
-                    <p>Lowest price automatically marked in green</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-images"></i>
-                    </div>
-                    <h3>Real Product Images</h3>
-                    <p>Actual images from store pages, not placeholders</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <h3>Real-time Updates</h3>
-                    <p>Prices updated live from store websites</p>
-                </div>
+        <section id="searchResults" class="compact-products-grid">
+            <!-- Results will load here -->
+            <div class="info-section">
+                <i class="fas fa-search" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3 style="color: var(--light); margin-bottom: 0.5rem;">Start Comparing Prices</h3>
+                <p style="color: #E3C58E;">Search for any product to see prices from UAE stores</p>
             </div>
         </section>
     </main>
 
     <!-- Footer -->
-    <footer class="glass-footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <div class="footer-logo">
-                    <i class="fas fa-search-dollar"></i>
-                    <h3>UAE Price Hunter</h3>
-                </div>
-                <p class="footer-tagline">Smart shopping comparison for the UAE market</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-linkedin"></i></a>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h4>Navigation</h4>
-                <a href="index.html"><i class="fas fa-balance-scale"></i> Compare Prices</a>
-                <a href="deals.html"><i class="fas fa-fire"></i> Top Deals</a>
-                <a href="basket.html"><i class="fas fa-shopping-basket"></i> My Basket</a>
-                <a href="profile.html"><i class="fas fa-user"></i> My Profile</a>
-                <a href="rewards.html"><i class="fas fa-gift"></i> My Rewards</a>
-            </div>
-            <div class="footer-section">
-                <h4>Legal</h4>
-                <a href="privacy.html"><i class="fas fa-shield-alt"></i> Privacy Policy</a>
-                <a href="terms.html"><i class="fas fa-file-contract"></i> Terms of Service</a>
-                <a href="disclaimer.html"><i class="fas fa-exclamation-triangle"></i> Disclaimer</a>
-                <a href="contact.html"><i class="fas fa-envelope"></i> Contact Us</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>© 2024 UAE Price Hunter. All rights reserved. Prices in AED.</p>
-            <p class="disclaimer">Prices are updated in real-time but may vary. Always check store for final pricing.</p>
-        </div>
+    <footer style="background: var(--dark); padding: 2rem 1rem; margin-top: 3rem; text-align: center;">
+        <p style="color: #E3C58E; margin-bottom: 0.5rem;">© 2024 UAE Price Hunter</p>
+        <p style="color: #94a3b8; font-size: 0.9rem;">Compare prices across Amazon, Noon, Carrefour & more</p>
     </footer>
 
     <!-- Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
-    <script src="firebase-config.js"></script>
-    <script src="language.js"></script>
-    <script src="scraper.js"></script>
     <script src="script.js"></script>
-
+    
     <script>
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-            loadLanguagePreference();
+            // Load basket count
+            const basket = JSON.parse(localStorage.getItem('uae_price_hunter_basket') || '[]');
+            const count = basket.reduce((total, item) => total + (item.quantity || 1), 0);
+            document.getElementById('basketCount').textContent = count;
         });
 
-        // Search product function
+        // Search product
         function searchProduct(query) {
             document.getElementById('searchInput').value = query;
-            performSearch();
+            if (typeof performSearch === 'function') {
+                performSearch();
+            } else {
+                alert('Search function not loaded. Please refresh the page.');
+            }
         }
 
         // Toggle language
         function toggleLanguage() {
             const currentLang = document.documentElement.lang;
             const newLang = currentLang === 'en' ? 'ar' : 'en';
-            setLanguage(newLang);
+            document.documentElement.lang = newLang;
+            
+            const btn = document.getElementById('languageToggle');
+            btn.querySelector('span').textContent = newLang === 'en' ? 'عربي' : 'English';
+            
+            alert(`Language switched to ${newLang === 'en' ? 'English' : 'Arabic'}`);
         }
-
-        // Store selection
-        document.querySelectorAll('.store-option').forEach(option => {
-            option.addEventListener('click', function() {
-                this.classList.toggle('selected');
-                const checkbox = this.querySelector('input');
-                checkbox.checked = !checkbox.checked;
-            });
-        });
     </script>
-
-    <div id="authModal" class="modal">
-    <div class="modal-content glass-card">
-        <button class="close-modal" onclick="closeAuthModal()">&times;</button>
-        
-        <div class="auth-tabs">
-            <div class="auth-tab active" onclick="switchAuth('login')">Login</div>
-            <div class="auth-tab" onclick="switchAuth('signup')">Sign Up</div>
-        </div>
-
-        <form id="loginForm" class="auth-form">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" placeholder="Enter your email" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" placeholder="••••••••" required>
-            </div>
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Enter Hunter Mode</button>
-        </form>
-
-        <form id="signupForm" class="auth-form" style="display: none;">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" placeholder="John Doe">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" placeholder="name@email.com">
-            </div>
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Create Account</button>
-        </form>
-    </div>
-</div>
-
 </body>
 </html>
