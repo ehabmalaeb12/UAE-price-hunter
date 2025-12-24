@@ -1,4 +1,4 @@
-// UAE PRICE HUNTER — CLEAN STABLE VERSION
+// UAE PRICE HUNTER — UI-ALIGNED STABLE VERSION
 
 const APP_CONFIG = {
   POINTS_PER_SEARCH: 10,
@@ -16,7 +16,6 @@ let appState = {
 
 function initializeApp() {
   loadState();
-  setupEvents();
   updateUI();
   console.log('✅ App initialized');
 }
@@ -38,71 +37,100 @@ async function performSearch() {
   const query = input?.value.trim();
 
   if (!query) {
-    showNotification('Enter a product name', 'warning');
+    alert('Enter a product name');
     return;
   }
 
-  showLoading(true);
   awardPoints(APP_CONFIG.POINTS_PER_SEARCH);
 
-  let results;
+  let response;
 
   if (window.simpleSearch) {
-    results = await window.simpleSearch(query);
+    response = await window.simpleSearch(query);
   } else {
-    results = generateDemoResults(query);
+    response = {
+      products: generateDemoResults(query)
+    };
   }
 
-  displayResults(results, query);
-  showLoading(false);
+  displayResults(response.products || []);
 }
+
+/* ---------------- FALLBACK DATA ---------------- */
 
 function generateDemoResults(query) {
   return [
     {
-      id: 'a1',
-      name: `${query} - Amazon UAE`,
+      id: 'amazon-1',
+      title: `${query} (128GB)`,
       store: 'Amazon UAE',
       price: 999,
       originalPrice: 1299,
       image: 'https://m.media-amazon.com/images/I/71TPda7cwUL._AC_SL1500_.jpg',
       link: 'https://amazon.ae',
-      rating: '4.5',
-      shipping: 'FREE Tomorrow'
+      rating: 4.5,
+      delivery: 'Free Tomorrow'
     },
     {
-      id: 'a2',
-      name: `${query} - Noon UAE`,
+      id: 'noon-1',
+      title: `${query} (128GB)`,
       store: 'Noon UAE',
       price: 1049,
+      originalPrice: 1199,
       image: 'https://cdn.nooncdn.com/products/tr:n-t_240/v165.jpg',
       link: 'https://noon.com',
-      rating: '4.3',
-      shipping: 'Same Day'
+      rating: 4.3,
+      delivery: 'Same Day'
     }
   ];
 }
 
 /* ---------------- DISPLAY ---------------- */
 
-function displayResults(products, query) {
+function displayResults(products) {
   const container = document.getElementById('searchResults');
   container.innerHTML = '';
 
+  if (!products.length) {
+    container.innerHTML = `<p style="color:#E3C58E;text-align:center;">No results found</p>`;
+    return;
+  }
+
   products.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'product-card';
-    div.innerHTML = `
-      <img src="${p.image}" onerror="this.src='https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400'">
-      <h3>${p.name}</h3>
-      <p>${p.store}</p>
-      <strong>${p.price} AED</strong>
-      <div class="actions">
-        <button onclick='addToBasket(${JSON.stringify(p).replace(/"/g, '&quot;')})'>Add</button>
-        <a href="${p.link}" target="_blank">Buy</a>
+    const card = document.createElement('div');
+    card.className = 'compact-product-card';
+
+    card.innerHTML = `
+      <img 
+        src="${p.image}" 
+        class="compact-product-image"
+        onerror="this.src='https://images.unsplash.com/photo-1556656793-08538906a9f8?w=400'"
+      />
+
+      <span class="product-store-tag">${p.store}</span>
+
+      <div class="compact-product-title">${p.title}</div>
+
+      <div class="compact-price">${p.price} AED</div>
+
+      ${p.originalPrice ? `<div class="compact-original-price">${p.originalPrice} AED</div>` : ''}
+
+      <div class="compact-product-meta">
+        <span>⭐ ${p.rating || '—'}</span>
+        <span>${p.delivery || ''}</span>
+      </div>
+
+      <div class="compact-actions">
+        <button class="btn btn-outline" onclick='addToBasket(${JSON.stringify(p).replace(/"/g, '&quot;')})'>
+          Add
+        </button>
+        <a class="btn btn-primary" href="${p.link}" target="_blank">
+          Buy
+        </a>
       </div>
     `;
-    container.appendChild(div);
+
+    container.appendChild(card);
   });
 
   container.scrollIntoView({ behavior: 'smooth' });
@@ -119,11 +147,6 @@ function addToBasket(product) {
 
 /* ---------------- UI ---------------- */
 
-function showLoading(state) {
-  const el = document.getElementById('loading');
-  if (el) el.style.display = state ? 'flex' : 'none';
-}
-
 function updateUI() {
   const count = document.getElementById('basketCount');
   if (count) count.textContent = appState.basket.length;
@@ -137,14 +160,10 @@ function awardPoints(p) {
   saveState();
 }
 
-function showNotification(msg) {
-  alert(msg);
-}
-
 /* ---------------- EXPORT ---------------- */
 
-window.initializeApp = initializeApp;
 window.performSearch = performSearch;
 window.addToBasket = addToBasket;
+window.initializeApp = initializeApp;
 
-console.log('🚀 script.js loaded cleanly');
+console.log('🚀 script.js loaded — compact UI aligned');
