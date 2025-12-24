@@ -5,104 +5,43 @@
   <title>UAE Price Hunter</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Styles -->
+  <!-- STYLES -->
   <link rel="stylesheet" href="style.css" />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
-</head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+</head>
 <body>
 
-<!-- ================= HEADER ================= -->
-<header class="compact-header">
-  <div class="header-inner">
-    <div class="compact-logo">
-      <i class="fas fa-search-dollar"></i>
-      <h1>UAE Price Hunter</h1>
-    </div>
-
-    <div class="compact-nav">
-      <a href="#" class="btn btn-outline">
-        <i class="fas fa-fire"></i> Deals
-      </a>
-      <a href="#" class="btn btn-outline">
-        <i class="fas fa-shopping-basket"></i>
-        <span id="basketCount">0</span>
-      </a>
-      <a href="#" class="btn btn-outline">
-        <i class="fas fa-user"></i>
-      </a>
-    </div>
-  </div>
+<header class="top-header">
+  <h1>UAE Price Hunter</h1>
 </header>
 
-<!-- ================= MAIN ================= -->
-<main>
+<main class="container">
 
-  <!-- SEARCH -->
-  <section class="compact-search-section">
-    <div class="search-box">
-      <h2>Find the Best Price in UAE</h2>
+  <h2>Find the Best Price in UAE</h2>
 
-      <div class="search-input-group">
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Search iPhone, TV, perfume..."
-        />
-        <button class="search-btn btn-primary" onclick="performSearch()">
-          <i class="fas fa-search"></i> Compare
-        </button>
-      </div>
+  <div class="search-box">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search iPhone, Samsung, TV..."
+    />
+    <button onclick="performSearch()">Compare</button>
+  </div>
 
-      <div class="trending-tags">
-        <span class="trending-tag" onclick="quickSearch('iPhone 15')">iPhone 15</span>
-        <span class="trending-tag" onclick="quickSearch('Samsung S24')">Samsung S24</span>
-        <span class="trending-tag" onclick="quickSearch('Arabic Perfume')">Arabic Perfume</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- RESULTS -->
-  <section id="searchResults" class="compact-products-grid">
-    <div class="info-section">
-      <i class="fas fa-search"></i>
-      <h3>Start Comparing Prices</h3>
-      <p>Search for any product to see UAE store prices</p>
-    </div>
+  <section id="searchResults" class="products-grid">
+    <!-- RESULTS HERE -->
   </section>
 
 </main>
 
-<!-- ================= FOOTER ================= -->
 <footer>
-  <p>© 2024 UAE Price Hunter</p>
-  <p>Compare prices across UAE stores</p>
+  © 2024 UAE Price Hunter
 </footer>
 
-<!-- ================= SCRIPTS (CORRECT ORDER) ================= -->
-
-<!-- 1️⃣ REAL DATA SOURCE -->
+<!-- SCRIPTS — CORRECT ORDER -->
 <script src="shopping-source.js"></script>
-
-<!-- 2️⃣ CORE APP LOGIC -->
 <script src="script.js"></script>
-
-<!-- ================= SMALL HELPERS ================= -->
-<script>
-  function quickSearch(text) {
-    document.getElementById("searchInput").value = text;
-    performSearch();
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    if (window.initializeApp) {
-      initializeApp();
-    }
-  });
-</script>
 
 </body>
 </html>
