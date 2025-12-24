@@ -1,100 +1,64 @@
-/* =====================================================
-   UAE PRICE HUNTER – SHOPPING SOURCE (SAFE & STABLE)
-   Uses Cloudflare Worker as Google Shopping proxy
-   ===================================================== */
+// shopping-source.js
+// UAE Price Hunter — unified shopping source
 
-/*
-  IMPORTANT:
-  1. Replace WORKER_URL with your real Cloudflare Worker URL
-  2. This file MUST be loaded before script.js
-*/
+console.log("🛒 shopping-source.js loaded");
 
-const WORKER_URL = "https://uae-price-proxy.ehabmalaeb12.workers.dev";
+// MAIN SEARCH FUNCTION
+async function fetchShoppingResults(query) {
+  console.log("🔍 fetchShoppingResults:", query);
 
-/* -----------------------------------------------------
-   MAIN SEARCH FUNCTION
------------------------------------------------------ */
+  // For now we return REALISTIC structured data
+  // Later this will be replaced with Scrape.do / Cloudflare Workers
 
-async function googleShoppingSearch(query) {
-  try {
-    if (!query || query.length < 2) return [];
+  const q = query.toLowerCase();
 
-    const url = `${WORKER_URL}?q=${encodeURIComponent(query)}`;
+  const results = [];
 
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Accept": "text/html"
+  if (q.includes("iphone")) {
+    results.push(
+      {
+        id: "amz-iphone",
+        title: "iPhone 15 (128GB)",
+        store: "Amazon UAE",
+        price: 999,
+        oldPrice: 1299,
+        rating: 4.5,
+        shipping: "Free Tomorrow",
+        image: "https://m.media-amazon.com/images/I/71TPda7cwUL._AC_SL1500_.jpg",
+        link: "https://www.amazon.ae/"
+      },
+      {
+        id: "noon-iphone",
+        title: "iPhone 15 (128GB)",
+        store: "Noon UAE",
+        price: 1049,
+        oldPrice: 1199,
+        rating: 4.3,
+        shipping: "Same Day",
+        image: "https://cdn.nooncdn.com/products/tr:n-t_240/v165.jpg",
+        link: "https://www.noon.com/"
       }
-    });
-
-    if (!response.ok) {
-      console.warn("Shopping proxy failed:", response.status);
-      return [];
-    }
-
-    const html = await response.text();
-
-    return parseGoogleShoppingHTML(html, query);
-
-  } catch (err) {
-    console.error("googleShoppingSearch error:", err);
-    return [];
+    );
   }
+
+  if (q.includes("samsung")) {
+    results.push(
+      {
+        id: "amz-s24",
+        title: "Samsung Galaxy S24",
+        store: "Amazon UAE",
+        price: 2899,
+        oldPrice: 3199,
+        rating: 4.6,
+        shipping: "Free Tomorrow",
+        image: "https://images.samsung.com/is/image/samsung/p6pim/ae/2401/gallery/ae-galaxy-s24-s921-sm-s921bzkqmea-thumb-539305087",
+        link: "https://www.amazon.ae/"
+      }
+    );
+  }
+
+  return results;
 }
 
-/* -----------------------------------------------------
-   HTML PARSER (DEFENSIVE)
------------------------------------------------------ */
-
-function parseGoogleShoppingHTML(html, query) {
-  const products = [];
-
-  if (!html || html.length < 1000) return products;
-
-  // Create DOM safely
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-
-  const cards = doc.querySelectorAll("img");
-
-  cards.forEach(img => {
-    const src = img.getAttribute("src");
-    if (!src || !src.startsWith("http")) return;
-
-    // Find price near image
-    let parent = img.parentElement;
-    let price = null;
-
-    while (parent && !price) {
-      const text = parent.innerText || "";
-      const match = text.match(/AED\s?([\d,]+)/i);
-      if (match) price = parseInt(match[1].replace(/,/g, ""));
-      parent = parent.parentElement;
-    }
-
-    if (!price) return;
-
-    products.push({
-      id: crypto.randomUUID(),
-      name: query,
-      store: "UAE Store",
-      price: price,
-      currency: "AED",
-      image: src,
-      link: "#",
-      rating: null,
-      shipping: null
-    });
-  });
-
-  return products.slice(0, 20);
-}
-
-/* -----------------------------------------------------
-   PUBLIC EXPORT
------------------------------------------------------ */
-
-window.googleShoppingSearch = googleShoppingSearch;
-
-console.log("✅ shopping-source.js loaded");
+// expose globally
+window.fetchShoppingResults = fetchShoppingResults;
