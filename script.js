@@ -1,63 +1,58 @@
-// UAE PRICE HUNTER — SCRIPT.JS (GROUPED VERSION)
+// script.js — BULLETPROOF UI ENGINE
 
-/* ---------------- STATE ---------------- */
-
-let appState = {
-  basket: [],
-  points: 0
-};
-
-/* ---------------- INIT ---------------- */
-
-function initializeApp() {
-  console.log('✅ App initialized');
-}
-
-/* ---------------- SEARCH ---------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 App ready');
+});
 
 async function performSearch() {
-  const input = document.getElementById('searchInput');
-  const query = input.value.trim();
+  const query = document.getElementById('searchInput').value.trim();
   if (!query) return;
 
   showLoading(true);
 
+  let results = [];
+
   try {
-    const results = await window.simpleSearch(query);
-    renderGroupedResults(results);
-  } catch (err) {
-    console.error(err);
-    alert('Search failed');
+    if (typeof window.simpleSearch === 'function') {
+      results = await window.simpleSearch(query);
+    } else {
+      throw new Error('simpleSearch missing');
+    }
+  } catch (e) {
+    console.error(e);
+    alert('Search engine failed');
   }
 
+  renderResults(results);
   showLoading(false);
 }
 
-/* ---------------- RENDER ---------------- */
-
-function renderGroupedResults(groups) {
+function renderResults(groups) {
   const container = document.getElementById('searchResults');
   container.innerHTML = '';
 
-  if (!groups || groups.length === 0) {
-    container.innerHTML = `<p style="color:white">No results found</p>`;
+  if (!groups.length) {
+    container.innerHTML = `<p style="color:white">No products found</p>`;
     return;
   }
 
-  groups.forEach(group => {
-    const card = document.createElement('div');
-    card.className = 'product-card';
+  groups.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'product-card';
 
-    card.innerHTML = `
-      <img src="${group.image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400'}">
-      <h3>${group.name}</h3>
-      <p class="best">Best price: <strong>${group.bestPrice} AED</strong></p>
-      <p class="store">From: ${group.bestStore}</p>
-      <button onclick="toggleOffers(this)">Compare ${group.offerCount} stores</button>
+    div.innerHTML = `
+      <img src="${p.image}">
+      <h3>${p.name}</h3>
+      <p class="best">Best: ${p.bestPrice} AED</p>
+      <p class="store">${p.bestStore}</p>
+
+      <button onclick="this.nextElementSibling.classList.toggle('hidden')">
+        Compare ${p.offerCount} stores
+      </button>
 
       <div class="offers hidden">
-        ${group.offers.map(o => `
-          <div class="offer-row">
+        ${p.offers.map(o => `
+          <div class="offer">
             <span>${o.store}</span>
             <strong>${o.price} AED</strong>
             <a href="${o.link}" target="_blank">Buy</a>
@@ -66,17 +61,8 @@ function renderGroupedResults(groups) {
       </div>
     `;
 
-    container.appendChild(card);
+    container.appendChild(div);
   });
-
-  container.scrollIntoView({ behavior: 'smooth' });
-}
-
-/* ---------------- UI HELPERS ---------------- */
-
-function toggleOffers(btn) {
-  const offers = btn.nextElementSibling;
-  offers.classList.toggle('hidden');
 }
 
 function showLoading(state) {
@@ -84,9 +70,4 @@ function showLoading(state) {
   if (el) el.style.display = state ? 'flex' : 'none';
 }
 
-/* ---------------- EXPORT ---------------- */
-
 window.performSearch = performSearch;
-window.initializeApp = initializeApp;
-
-console.log('🚀 script.js loaded (GROUPED)');
