@@ -1,143 +1,156 @@
-// script.js
-// UAE Price Hunter — Stable Core Engine (defensive, single-file engine)
+// script.js - Frontend that calls the Cloudflare Worker and renders results
+// Replace WORKER_BASE below if your Worker URL is different.
 
-(function () {
-  console.log("✅ script.js loaded");
+const WORKER_BASE = "https://uae-price-proxy.ehabmalaeb2.workers.dev"; // <-- your Worker endpoint
+const searchInput = document.getElementById("searchInput");
+const searchBtn = document.getElementById("searchBtn");
+const loadingEl = document.getElementById("loading");
+const resultsEl = document.getElementById("searchResults");
+const logEl = document.getElementById("log");
 
-  // DOM
-  const searchInput = document.getElementById("searchInput");
-  const searchBtn = document.getElementById("searchBtn");
-  const loadingEl = document.getElementById("loading");
-  const resultsEl = document.getElementById("searchResults");
-  const diagEl = document.getElementById("diagnostics");
+function log(msg) {
+  const ts = new Date().toLocaleTimeString();
+  logEl.textContent = `${ts} — ${msg}\n` + logEl.textContent;
+}
 
-  // helper to show diag messages (also visible on mobile)
-  function diag(msg, important=false) {
-    try {
-      if (!diagEl) return;
-      diagEl.style.display = 'block';
-      const p = document.createElement('div');
-      p.textContent = `${(new Date()).toLocaleTimeString()} — ${msg}`;
-      if (important) p.style.fontWeight = '700';
-      diagEl.appendChild(p);
-    } catch (e) { console.log("diag error", e); }
+// Map store names to a search URL pattern (used for "Buy" buttons until we can use exact product links)
+function storeSearchLink(store, query) {
+  query = encodeURIComponent(query);
+  switch ((store||"").toLowerCase()) {
+    case "amazon uae":
+    case "amazon.ae":
+    case "amazon":
+      return `https://www.amazon.ae/s?k=${query}`;
+    case "noon":
+    case "noon uae":
+      return `https://www.noon.com/uae-en/search?q=${query}`;
+    case "carrefour":
+    case "carrefour uae":
+      return `https://www.carrefouruae.com/mafuae/en/search?text=${query}`;
+    case "sharaf dg":
+      return `https://www.sharafdg.com/search/?text=${query}`;
+    default:
+      return `https://www.google.com/search?q=${query}+${encodeURIComponent(store)}`;
   }
+}
 
-  // safety: verify DOM
-  if (!searchInput || !searchBtn || !resultsEl) {
-    console.error("❌ Required DOM elements missing");
-    alert("Critical page error: some UI elements are missing. Open console for details.");
-    return;
-  }
+// Safe render fallback when image fails
+function imgOnError(e) {
+  e.target.src = "https://images.unsplash.com/photo-1556656793-08538906a9f8?w=600";
+}
 
-  // safety: verify data loaded
-  if (!window.SHOPPING_SOURCES || !Array.isArray(window.SHOPPING_SOURCES)) {
-    resultsEl.innerHTML = "<p style='color:tomato'>Product data not loaded. Please ensure data.js is present and loaded before script.js</p>";
-    diag("SHOPPING_SOURCES missing or invalid", true);
-    console.error("SHOPPING_SOURCES missing");
-    return;
-  }
+// Normalize product name (basic)
+function normalizeName(name) {
+  return (name || "").toLowerCase().replace(/[\u200B-\u200D\uFEFF]/g, "").replace(/\s+/g, " ").trim();
+}
 
-  diag(`Data loaded from data.js (${window.SHOPPING_SOURCES.length} products).`);
-  if (window.__SHOPPING_SOURCES_LOADED_AT) {
-    diag(`Data timestamp: ${window.__SHOPPING_SOURCES_LOADED_AT}`);
-  }
+// Group results by normalized product name
+function groupProducts(results) {
+  const groups = {};
+  results.forEach(r => {
+    const key = normalizeName(r.name).replace(/[^a-z0-9 ]/g,"").slice(0,60) || r.name;
+    groups[key] = groups[key] || { normalizedName: r.name, items: [] };
+    groups[key].items.push(r);
+  });
+  return Object.values(groups);
+}
 
-  // events
-  searchBtn.addEventListener("click", runSearch);
-  searchInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runSearch(); });
+async function doSearch(query) {
+  if (!query) return;
+  resultsEl.innerHTML = "";
+  loadingEl.style.display = "block";
+  log(`Searching for "${query}"`);
 
-  // main
-  function runSearch() {
-    const query = (searchInput.value || "").trim().toLowerCase();
+  try {
+    const url = `${WORKER_BASE}?q=${encodeURIComponent(query)}`;
+    log(`Calling worker: ${url}`);
+    const resp = await fetch(url, { method: "GET" });
+    if (!resp.ok) {
+      const txt = await resp.text();
+      log(`Worker HTTP ${resp.status}: ${txt}`);
+      resultsEl.innerHTML = `<div class="card">Error calling search service: ${resp.status}</div>`;
+      return;
+    }
+    const data = await resp.json();
+    log(`Raw results: ${JSON.stringify(data).slice(0,1000)}`);
 
-    clearResults();
-    showLoading(true);
-    diag(`Searching for "${query}"`);
-
-    if (!query) {
-      showLoading(false);
-      resultsEl.innerHTML = "<p>Please enter a product name.</p>";
-      diag("Empty query - aborting");
+    if (!data.results || !Array.isArray(data.results) || data.results.length === 0) {
+      resultsEl.innerHTML = `<div class="card">No products returned for "${query}".</div>`;
       return;
     }
 
-    // synchronous, deterministic filter
-    const matches = window.SHOPPING_SOURCES.filter(p => p.name.toLowerCase().includes(query));
+    // Group similar product names
+    const groups = groupProducts(data.results);
 
-    showLoading(false);
-    diag(`Matches found: ${matches.length}`);
-
-    if (matches.length === 0) {
-      resultsEl.innerHTML = "<p>No products found.</p>";
-      return;
-    }
-
-    try {
-      renderResults(matches);
-      // scroll to first result
-      setTimeout(() => {
-        const first = resultsEl.querySelector('.product-card');
-        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 80);
-    } catch (err) {
-      console.error("Render error", err);
-      resultsEl.innerHTML = "<p style='color:tomato'>Display error — check console.</p>";
-      diag("Render error - see console", true);
-    }
-  }
-
-  // helpers
-  function clearResults() {
+    // Render each group
     resultsEl.innerHTML = "";
-  }
-
-  function showLoading(show) {
-    loadingEl.style.display = show ? "block" : "none";
-  }
-
-  function safeImg(src, alt) {
-    // return an <img> HTML string that falls back to a placeholder if the image fails
-    const placeholder = "data:image/svg+xml;utf8," + encodeURIComponent(
-      `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='200'><rect width='100%' height='100%' fill='#111'/><text x='50%' y='50%' fill='#777' dominant-baseline='middle' text-anchor='middle' font-size='16'>No image</text></svg>`
-    );
-    return `<img src="${src}" alt="${escapeHtml(alt||'product')}" onerror="this.onerror=null;this.src='${placeholder}';">`;
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-  }
-
-  // render
-  function renderResults(products) {
-    products.forEach(product => {
-      // determine cheapest store
-      const cheapest = [...product.stores].sort((a,b) => a.price - b.price)[0];
-      const storesHtml = product.stores.map(s => {
-        const buyLink = s.link ? `<a href="${escapeHtml(s.link)}" target="_blank" rel="noopener noreferrer">Buy</a>` : '';
-        return `<li>${escapeHtml(s.store)}: <strong>${s.price} AED</strong> ${buyLink}</li>`;
-      }).join("");
+    groups.forEach(group => {
+      // Determine cheapest item across this group
+      const sorted = group.items.slice().sort((a,b)=> (a.price||999999) - (b.price||999999));
+      const cheapest = sorted[0];
 
       const card = document.createElement("div");
-      card.className = "product-card";
+      card.className = "card";
 
-      card.innerHTML = `
-        <h2 style="margin:0 0 8px 0">${escapeHtml(product.name)}</h2>
-        ${safeImg(product.image, product.name)}
-        <p style="margin:8px 0 6px 0"><strong>Best Price:</strong> ${cheapest.price} AED (${escapeHtml(cheapest.store)})</p>
-        <details style="margin-top:10px">
-          <summary style="cursor:pointer">Available at (${product.stores.length}) stores</summary>
-          <ul>${storesHtml}</ul>
-        </details>
-      `;
+      // Card header
+      const title = document.createElement("h3");
+      title.textContent = group.normalizedName;
+      card.appendChild(title);
+
+      // Image - use cheapest image if available
+      const img = document.createElement("img");
+      img.src = cheapest.image || "";
+      img.alt = group.normalizedName;
+      img.onerror = imgOnError;
+      card.appendChild(img);
+
+      // Best price line
+      const bestLine = document.createElement("div");
+      bestLine.className = "best";
+      bestLine.textContent = `Best Price: ${cheapest.price} AED (${cheapest.store})`;
+      card.appendChild(bestLine);
+
+      // Stores list - show price and buy button
+      const storesWrap = document.createElement("div");
+      storesWrap.className = "stores";
+      group.items.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "store-row";
+
+        const left = document.createElement("div");
+        left.textContent = `${item.store}: ${item.price} AED`;
+        row.appendChild(left);
+
+        const buy = document.createElement("button");
+        buy.className = "buy-btn";
+        buy.textContent = "Buy";
+        buy.onclick = () => {
+          const link = storeSearchLink(item.store, item.name || query);
+          window.open(link, "_blank");
+        };
+        row.appendChild(buy);
+
+        storesWrap.appendChild(row);
+      });
+      card.appendChild(storesWrap);
 
       resultsEl.appendChild(card);
     });
+
+  } catch (err) {
+    log(`Error: ${err.message || err}`);
+    resultsEl.innerHTML = `<div class="card">Search failed: ${err.message || err}</div>`;
+  } finally {
+    loadingEl.style.display = "none";
   }
+}
 
-  // Expose a debug helper on window (optional)
-  window.__UAEP_debugRunSearch = runSearch;
+searchBtn.addEventListener("click", () => doSearch(searchInput.value.trim()));
+searchInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(searchInput.value.trim()); });
 
-  diag('Engine ready.');
-  console.log("🚀 UAE Price Hunter engine ready");
-})();
+// On load, do the default query once
+window.addEventListener("load", () => {
+  log("Client ready");
+  const q = searchInput.value && searchInput.value.trim();
+  if (q) doSearch(q);
+});
