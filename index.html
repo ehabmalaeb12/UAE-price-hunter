@@ -1,113 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>UAE Price Hunter</title>
-
-<style>
-  body {
-    background: #0b1220;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    padding: 20px;
-  }
-  input, button {
-    padding: 10px;
-    font-size: 16px;
-  }
-  button {
-    cursor: pointer;
-  }
-  .card {
-    background: #111827;
-    border-radius: 10px;
-    padding: 15px;
-    margin-top: 20px;
-  }
-  img {
-    max-width: 200px;
-    display: block;
-    margin-bottom: 10px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UAE Price Hunter</title>
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
 
-<h1>UAE Price Hunter</h1>
+  <h1>UAE Price Hunter</h1>
 
-<input id="searchInput" type="text" value="iphone">
-<button id="searchBtn">Search</button>
+  <input id="searchInput" type="text" placeholder="Search product..." value="iphone">
+  <button id="searchBtn">Search</button>
 
-<p id="loading" style="display:none;">Searching UAE stores...</p>
+  <div id="loading" style="display:none;margin-top:20px;">
+    Searching UAE stores...
+  </div>
 
-<div id="results"></div>
+  <div id="searchResults"></div>
 
-<script>
-/* ---------- DATA SOURCE ---------- */
-const PRODUCTS = [
-  {
-    name: "Apple iPhone 15 128GB",
-    image: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-15-blue-select-202309?wid=470&hei=556",
-    stores: [
-      { store: "Noon", price: 3349 },
-      { store: "Amazon UAE", price: 3399 },
-      { store: "Sharaf DG", price: 3449 }
-    ]
-  },
-  {
-    name: "Apple iPhone 14 128GB",
-    image: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-14-purple-select-202209?wid=470&hei=556",
-    stores: [
-      { store: "Noon", price: 2949 },
-      { store: "Amazon UAE", price: 2999 }
-    ]
-  }
-];
-
-/* ---------- SEARCH ENGINE ---------- */
-document.getElementById("searchBtn").onclick = runSearch;
-
-function runSearch() {
-  const q = document.getElementById("searchInput").value.toLowerCase();
-  const results = document.getElementById("results");
-  const loading = document.getElementById("loading");
-
-  results.innerHTML = "";
-  loading.style.display = "block";
-
-  setTimeout(() => {
-    const matches = PRODUCTS.filter(p =>
-      p.name.toLowerCase().includes(q)
-    );
-
-    loading.style.display = "none";
-
-    if (!matches.length) {
-      results.innerHTML = "<p>No products found.</p>";
-      return;
-    }
-
-    matches.forEach(p => {
-      p.stores.sort((a,b)=>a.price-b.price);
-      const best = p.stores[0];
-
-      const div = document.createElement("div");
-      div.className = "card";
-      div.innerHTML = `
-        <h2>${p.name}</h2>
-        <img src="${p.image}">
-        <p><b>Best Price:</b> ${best.price} AED (${best.store})</p>
-        <ul>
-          ${p.stores.map(s=>`<li>${s.store}: ${s.price} AED</li>`).join("")}
-        </ul>
-      `;
-      results.appendChild(div);
-    });
-  }, 400);
-}
-</script>
+  <!-- ORDER IS CRITICAL -->
+  <script src="./data.js"></script>
+  <script src="./script.js"></script>
 
 </body>
 </html>
