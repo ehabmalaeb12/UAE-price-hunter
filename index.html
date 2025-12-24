@@ -2,21 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>UAE Price Hunter - Compare Prices</title>
+  <title>UAE Price Hunter</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- CORE CONFIG & ENGINES -->
-  <script src="config/api-keys.js"></script>
-  <script src="services/product-grouper.js"></script>
-
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+  />
 </head>
+
 <body>
 
-<!-- HEADER -->
+<!-- ================= HEADER ================= -->
 <header class="compact-header">
   <div class="header-inner">
     <div class="compact-logo">
@@ -25,31 +24,33 @@
     </div>
 
     <div class="compact-nav">
-      <a href="deals.html" class="btn btn-outline">
+      <a href="#" class="btn btn-outline">
         <i class="fas fa-fire"></i> Deals
       </a>
-      <a href="basket.html" class="btn btn-outline">
+      <a href="#" class="btn btn-outline">
         <i class="fas fa-shopping-basket"></i>
         <span id="basketCount">0</span>
       </a>
-      <a href="profile.html" class="btn btn-outline">
+      <a href="#" class="btn btn-outline">
         <i class="fas fa-user"></i>
       </a>
     </div>
   </div>
 </header>
 
-<!-- SEARCH -->
+<!-- ================= MAIN ================= -->
 <main>
+
+  <!-- SEARCH -->
   <section class="compact-search-section">
     <div class="search-box">
       <h2>Find the Best Price in UAE</h2>
 
       <div class="search-input-group">
         <input
-          id="searchInput"
           type="text"
-          placeholder="Search iPhone, TV, perfume, gold..."
+          id="searchInput"
+          placeholder="Search iPhone, TV, perfume..."
         />
         <button class="search-btn btn-primary" onclick="performSearch()">
           <i class="fas fa-search"></i> Compare
@@ -67,27 +68,40 @@
   <!-- RESULTS -->
   <section id="searchResults" class="compact-products-grid">
     <div class="info-section">
+      <i class="fas fa-search"></i>
       <h3>Start Comparing Prices</h3>
-      <p>Search for any product to see UAE prices</p>
+      <p>Search for any product to see UAE store prices</p>
     </div>
   </section>
+
 </main>
 
-<!-- FOOTER -->
+<!-- ================= FOOTER ================= -->
 <footer>
   <p>© 2024 UAE Price Hunter</p>
+  <p>Compare prices across UAE stores</p>
 </footer>
 
-<!-- 🔗 SCRIPTS (ORDER IS CRITICAL) -->
-<script src="real-search.js"></script>
-  <script src="shopping-source.js"></script>
+<!-- ================= SCRIPTS (CORRECT ORDER) ================= -->
+
+<!-- 1️⃣ REAL DATA SOURCE -->
+<script src="shopping-source.js"></script>
+
+<!-- 2️⃣ CORE APP LOGIC -->
 <script src="script.js"></script>
 
+<!-- ================= SMALL HELPERS ================= -->
 <script>
-  function quickSearch(q) {
-    document.getElementById("searchInput").value = q;
+  function quickSearch(text) {
+    document.getElementById("searchInput").value = text;
     performSearch();
   }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.initializeApp) {
+      initializeApp();
+    }
+  });
 </script>
 
 </body>
