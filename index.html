@@ -2,50 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UAE Price Hunter</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-
 </head>
-<body onload="initializeApp()">
 
-  <header class="professional-header">
-    <div class="header-content">
-      <div class="compact-logo">
-        <h1>UAE Price Hunter</h1>
-      </div>
-    </div>
+<body>
+
+  <header class="header">
+    <h1>UAE Price Hunter</h1>
   </header>
 
-  <section class="compact-search-section">
-    <div class="compact-search-box">
-      <div class="search-input-group">
-        <input
-          id="searchInput"
-          type="text"
-          placeholder="Search iPhone, TV, Laptop..."
-          onkeypress="if(event.key==='Enter'){performSearch()}"
-        />
-        <button class="search-btn" onclick="performSearch()">
-          Search
-        </button>
-      </div>
-    </div>
-  </section>
+  <main class="container">
 
-  <section class="results-section">
-    <div id="loading" class="loading-state" style="display:none;">
-      <div class="spinner"></div>
-      <p>Searching UAE stores…</p>
+    <input
+      id="searchInput"
+      type="text"
+      placeholder="Search product (e.g. iPhone)"
+    />
+
+    <button onclick="performSearch()">Search</button>
+
+    <!-- 🔥 LOADING -->
+    <div id="loading" class="loading" style="display:none;">
+      Searching UAE stores...
     </div>
 
-    <div id="searchResults" class="container"></div>
-  </section>
+    <!-- 🔥 RESULTS (THIS WAS MISSING / WRONG) -->
+    <div id="searchResults" class="results"></div>
 
-  <!-- SCRIPTS (ORDER MATTERS) -->
+  </main>
+
+  <!-- ORDER IS CRITICAL -->
   <script src="shopping-source.js"></script>
   <script src="script.js"></script>
 
