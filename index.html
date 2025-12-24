@@ -1,28 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>UAE Price Hunter</title>
   <link rel="stylesheet" href="./style.css">
+  <style>
+    /* minimal overrides so product cards display even if style.css is missing */
+    body { font-family: system-ui, -apple-system, Arial; background:#0f172a; color:#fff; padding:20px;}
+    h1 { font-size:28px; margin-bottom:12px; color:#e3c58e;}
+    input[type="text"]{ padding:10px; width:60%; max-width:420px; border-radius:8px; border:1px solid #444; }
+    button{ padding:10px 14px; margin-left:8px; border-radius:8px; background:linear-gradient(90deg,#c5a059,#8e5a31); border:none; color:#fff; cursor:pointer;}
+    #loading{ margin-top:16px; color:#E3C58E; }
+    .product-card{ background:rgba(255,255,255,0.03); border-radius:12px; padding:18px; margin-top:18px; max-width:900px; }
+    .product-card img{ max-width:200px; display:block; margin:12px 0; border-radius:8px; background:#111;}
+    .diagnostics{ margin-top:18px; color:#f0f0f0; font-size:13px; background:rgba(255,255,255,0.03); padding:10px; border-radius:8px;}
+  </style>
 </head>
-
 <body>
-
   <h1>UAE Price Hunter</h1>
 
-  <input id="searchInput" type="text" placeholder="Search product..." value="iphone">
-  <button id="searchBtn">Search</button>
-
-  <div id="loading" style="display:none;margin-top:20px;">
-    Searching UAE stores...
+  <div>
+    <input id="searchInput" type="text" placeholder="Search product..." value="iphone" />
+    <button id="searchBtn">Search</button>
   </div>
 
-  <div id="searchResults"></div>
+  <div id="loading" style="display:none">Searching UAE stores...</div>
 
-  <!-- ORDER IS CRITICAL -->
-  <script src="/UAE-price/data.js"></script>
-<script src="/UAE-price/script.js"></script>
+  <div id="searchResults" aria-live="polite"></div>
 
+  <div id="diagnostics" class="diagnostics" style="display:none"></div>
+
+  <!-- ORDER IS CRITICAL: data (static) first, then engine -->
+  <script src="./data.js"></script>
+  <script src="./script.js"></script>
+  <noscript style="color:#f88; display:block; margin-top:12px">JavaScript is required — please enable JS.</noscript>
 </body>
 </html>
