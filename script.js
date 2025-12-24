@@ -1,56 +1,80 @@
-// script.js — HARD RESET SAFE VERSION
+// script.js
+// UAE Price Hunter — Stable Core Engine
 
 console.log("✅ script.js loaded");
 
+// -----------------------
+// DOM ELEMENTS
+// -----------------------
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
+const loadingEl = document.getElementById("loading");
 const resultsEl = document.getElementById("searchResults");
 
+// -----------------------
+// SAFETY CHECK
+// -----------------------
 if (!window.SHOPPING_SOURCES) {
-  console.error("❌ SHOPPING_SOURCES missing");
+  resultsEl.innerHTML = "<p style='color:red'>Product data not loaded.</p>";
+  throw new Error("SHOPPING_SOURCES missing");
 }
 
+// -----------------------
+// EVENTS
+// -----------------------
 searchBtn.addEventListener("click", runSearch);
 searchInput.addEventListener("keydown", e => {
   if (e.key === "Enter") runSearch();
 });
 
+// -----------------------
+// SEARCH
+// -----------------------
 function runSearch() {
   const query = searchInput.value.trim().toLowerCase();
-  resultsEl.innerHTML = "";
 
-  console.log("🔍 Query:", query);
+  resultsEl.innerHTML = "";
+  loadingEl.style.display = "block";
 
   if (!query) {
-    resultsEl.innerHTML = "<p>Enter a product name</p>";
+    loadingEl.style.display = "none";
+    resultsEl.innerHTML = "<p>Please enter a product name.</p>";
     return;
   }
 
-  const matches = SHOPPING_SOURCES.filter(p =>
+  const matches = window.SHOPPING_SOURCES.filter(p =>
     p.name.toLowerCase().includes(query)
   );
 
-  console.log("📦 Found:", matches.length);
+  loadingEl.style.display = "none";
 
   if (matches.length === 0) {
-    resultsEl.innerHTML = "<p>No results found</p>";
+    resultsEl.innerHTML = "<p>No products found.</p>";
     return;
   }
 
-  matches.forEach(product => {
-    const cheapest = [...product.stores].sort((a,b)=>a.price-b.price)[0];
+  renderResults(matches);
+}
+
+// -----------------------
+// RENDER
+// -----------------------
+function renderResults(products) {
+  products.forEach(product => {
+    const cheapest = [...product.stores].sort((a, b) => a.price - b.price)[0];
 
     const card = document.createElement("div");
-    card.style.border = "1px solid #ccc";
-    card.style.padding = "15px";
-    card.style.marginBottom = "20px";
+    card.className = "product-card";
 
     card.innerHTML = `
       <h2>${product.name}</h2>
-      <img src="${product.image}" style="max-width:200px">
+      <img src="${product.image}" alt="${product.name}">
       <p><strong>Best Price:</strong> ${cheapest.price} AED (${cheapest.store})</p>
+
       <ul>
-        ${product.stores.map(s => `<li>${s.store}: ${s.price} AED</li>`).join("")}
+        ${product.stores.map(s =>
+          `<li>${s.store}: ${s.price} AED</li>`
+        ).join("")}
       </ul>
     `;
 
@@ -58,4 +82,4 @@ function runSearch() {
   });
 }
 
-console.log("🚀 Ready");
+console.log("🚀 UAE Price Hunter engine ready");
