@@ -1,5 +1,5 @@
 // UAE PRICE HUNTER — GROUPED REAL SEARCH
-
+alert("script.js loaded");
 let appState = {
   basket: [],
   points: 0
