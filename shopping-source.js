@@ -1,30 +1,100 @@
-// REAL GOOGLE SHOPPING SOURCE (CLIENT SAFE MVP)
+/* =====================================================
+   UAE PRICE HUNTER – SHOPPING SOURCE (SAFE & STABLE)
+   Uses Cloudflare Worker as Google Shopping proxy
+   ===================================================== */
+
+/*
+  IMPORTANT:
+  1. Replace WORKER_URL with your real Cloudflare Worker URL
+  2. This file MUST be loaded before script.js
+*/
+
+const WORKER_URL = "https://YOUR-WORKER-NAME.workers.dev";
+
+/* -----------------------------------------------------
+   MAIN SEARCH FUNCTION
+----------------------------------------------------- */
 
 async function googleShoppingSearch(query) {
-  const url = `https://r.jina.ai/https://www.google.com/search?tbm=shop&q=${encodeURIComponent(query + " UAE")}`;
+  try {
+    if (!query || query.length < 2) return [];
 
-  const res = await fetch(url);
-  const text = await res.text();
+    const url = `${WORKER_URL}?q=${encodeURIComponent(query)}`;
 
-  const products = [];
-  const regex = /<img[^>]+src="([^"]+)"[^>]*>[\s\S]*?<div[^>]*>(.*?)<\/div>[\s\S]*?<span[^>]*>AED\s?([\d,]+)/gi;
-
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    products.push({
-      name: cleanText(match[2]),
-      price: parseInt(match[3].replace(/,/g, '')),
-      image: match[1],
-      store: 'UAE Store',
-      link: '#'
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Accept": "text/html"
+      }
     });
+
+    if (!response.ok) {
+      console.warn("Shopping proxy failed:", response.status);
+      return [];
+    }
+
+    const html = await response.text();
+
+    return parseGoogleShoppingHTML(html, query);
+
+  } catch (err) {
+    console.error("googleShoppingSearch error:", err);
+    return [];
   }
-
-  return products.slice(0, 25);
 }
 
-function cleanText(str) {
-  return str.replace(/<[^>]*>/g, '').trim();
+/* -----------------------------------------------------
+   HTML PARSER (DEFENSIVE)
+----------------------------------------------------- */
+
+function parseGoogleShoppingHTML(html, query) {
+  const products = [];
+
+  if (!html || html.length < 1000) return products;
+
+  // Create DOM safely
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  const cards = doc.querySelectorAll("img");
+
+  cards.forEach(img => {
+    const src = img.getAttribute("src");
+    if (!src || !src.startsWith("http")) return;
+
+    // Find price near image
+    let parent = img.parentElement;
+    let price = null;
+
+    while (parent && !price) {
+      const text = parent.innerText || "";
+      const match = text.match(/AED\s?([\d,]+)/i);
+      if (match) price = parseInt(match[1].replace(/,/g, ""));
+      parent = parent.parentElement;
+    }
+
+    if (!price) return;
+
+    products.push({
+      id: crypto.randomUUID(),
+      name: query,
+      store: "UAE Store",
+      price: price,
+      currency: "AED",
+      image: src,
+      link: "#",
+      rating: null,
+      shipping: null
+    });
+  });
+
+  return products.slice(0, 20);
 }
+
+/* -----------------------------------------------------
+   PUBLIC EXPORT
+----------------------------------------------------- */
 
 window.googleShoppingSearch = googleShoppingSearch;
+
+console.log("✅ shopping-source.js loaded");
