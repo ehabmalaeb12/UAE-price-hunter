@@ -1,33 +1,89 @@
 // shopping-source.js
-// Demo product source (safe for GitHub Pages)
+// UAE Price Hunter — Structured Product Source (SAFE, DEMO, FUTURE-PROOF)
 
 window.SHOPPING_SOURCES = [
   {
-    id: "iphone-15",
-    name: "Apple iPhone 15 128GB",
+    id: "apple-iphone-15-128",
+    brand: "Apple",
+    model: "iPhone 15",
+    variant: "128GB",
+    category: "Smartphones",
     image: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-15-blue-select-202309?wid=470&hei=556",
+    description: "Apple iPhone 15 with A16 Bionic chip and advanced dual-camera system.",
     stores: [
-      { store: "Amazon UAE", price: 3399, link: "#" },
-      { store: "Noon", price: 3349, link: "#" },
-      { store: "Sharaf DG", price: 3449, link: "#" }
+      {
+        storeId: "amazon",
+        store: "Amazon UAE",
+        price: 3399,
+        link: "#",
+        inStock: true
+      },
+      {
+        storeId: "noon",
+        store: "Noon",
+        price: 3349,
+        link: "#",
+        inStock: true
+      },
+      {
+        storeId: "sharafdg",
+        store: "Sharaf DG",
+        price: 3449,
+        link: "#",
+        inStock: true
+      }
     ]
   },
+
   {
-    id: "iphone-14",
-    name: "Apple iPhone 14 128GB",
+    id: "apple-iphone-14-128",
+    brand: "Apple",
+    model: "iPhone 14",
+    variant: "128GB",
+    category: "Smartphones",
     image: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-14-purple-select-202209?wid=470&hei=556",
+    description: "Apple iPhone 14 with powerful performance and excellent camera quality.",
     stores: [
-      { store: "Amazon UAE", price: 2999, link: "#" },
-      { store: "Noon", price: 2949, link: "#" }
+      {
+        storeId: "amazon",
+        store: "Amazon UAE",
+        price: 2999,
+        link: "#",
+        inStock: true
+      },
+      {
+        storeId: "noon",
+        store: "Noon",
+        price: 2949,
+        link: "#",
+        inStock: true
+      }
     ]
   },
+
   {
-    id: "charger",
-    name: "Apple 20W USB-C Charger",
+    id: "apple-20w-usbc-charger",
+    brand: "Apple",
+    model: "20W USB-C Charger",
+    variant: "Single",
+    category: "Accessories",
     image: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MHJA3?wid=470&hei=556",
+    description: "Fast-charging USB-C power adapter compatible with iPhone and iPad.",
     stores: [
-      { store: "Amazon UAE", price: 79, link: "#" },
-      { store: "Noon", price: 75, link: "#" }
+      {
+        storeId: "amazon",
+        store: "Amazon UAE",
+        price: 79,
+        link: "#",
+        inStock: true
+      },
+      {
+        storeId: "noon",
+        store: "Noon",
+        price: 75,
+        link: "#",
+        inStock: true
+      }
     ]
   }
 ];
