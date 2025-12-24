@@ -1,215 +1,230 @@
-// script.js - frontend with Worker + fallback to local data
-// Replace WORKER_BASE if your worker URL changes.
-const WORKER_BASE = "https://uae-price-proxy.ehabmalaeb2.workers.dev"; // your worker
-const searchInput = document.getElementById("searchInput");
-const searchBtn = document.getElementById("searchBtn");
-const loadingEl = document.getElementById("loading");
-const resultsEl = document.getElementById("searchResults");
-const logEl = document.getElementById("log");
+// script.js
+// UAE Price Hunter — Live-first engine with local fallback
+// Replace existing script.js with this complete file.
 
-function log(msg) {
-  const ts = new Date().toLocaleTimeString();
-  if (logEl) logEl.textContent = `${ts} — ${msg}\n` + logEl.textContent;
-  console.log(msg);
-}
+console.log("✅ script.js (live-first) loaded");
 
-function imgOnError(e) {
-  e.target.src = "https://images.unsplash.com/photo-1556656793-08538906a9f8?w=600";
-}
+// -----------------------
+// CONFIG
+// -----------------------
+const WORKER_URL = 'https://uae-price-proxy.ehabmalaeb2.workers.dev'; // <-- update if needed
+const WORKER_TIMEOUT_MS = 9000; // 9s timeout (safe for mobile)
+const DEBUG_PANEL_ID = 'uae-debug-panel';
 
-function normalizeName(name) {
-  return (name || "").toLowerCase().replace(/\s+/g, " ").trim();
-}
+// -----------------------
+// DOM ELEMENTS
+// -----------------------
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const loadingEl = document.getElementById('loading');
+const resultsEl = document.getElementById('searchResults');
 
-function groupProducts(results) {
-  const groups = {};
-  results.forEach(r => {
-    const key = normalizeName(r.name).replace(/[^a-z0-9 ]/g, "").slice(0, 60) || r.name;
-    groups[key] = groups[key] || { normalizedName: r.name, items: [] };
-    groups[key].items.push(r);
-  });
-  return Object.values(groups);
-}
-
-function storeSearchLink(store, query) {
-  query = encodeURIComponent(query);
-  switch ((store||"").toLowerCase()) {
-    case "amazon uae":
-    case "amazon.ae":
-    case "amazon":
-      return `https://www.amazon.ae/s?k=${query}`;
-    case "noon":
-    case "noon uae":
-      return `https://www.noon.com/uae-en/search?q=${query}`;
-    case "carrefour":
-    case "carrefour uae":
-      return `https://www.carrefouruae.com/mafuae/en/search?text=${query}`;
-    case "sharaf dg":
-      return `https://www.sharafdg.com/search/?text=${query}`;
-    default:
-      return `https://www.google.com/search?q=${query}+${encodeURIComponent(store)}`;
+// create debug panel if not present
+let debugEl = document.getElementById(DEBUG_PANEL_ID);
+if (!debugEl) {
+  debugEl = document.createElement('div');
+  debugEl.id = DEBUG_PANEL_ID;
+  debugEl.style.cssText = 'margin-top:18px;padding:14px;background:rgba(0,0,0,0.25);border-radius:10px;color:#ddd;font-size:13px;max-height:260px;overflow:auto;';
+  if (resultsEl && resultsEl.parentNode) {
+    resultsEl.parentNode.insertBefore(debugEl, resultsEl);
+  } else {
+    document.body.appendChild(debugEl);
   }
 }
 
-function renderGroups(groups, originalQuery, sourceLabel = "Worker") {
-  resultsEl.innerHTML = "";
-  if (!groups || groups.length === 0) {
-    resultsEl.innerHTML = `<div class="card">No products found (source: ${sourceLabel}).</div>`;
+function logDebug(msg) {
+  const t = new Date().toLocaleTimeString();
+  const line = document.createElement('div');
+  line.textContent = `${t} — ${msg}`;
+  debugEl.prepend(line);
+  console.log('[UAE Debug]', msg);
+}
+
+// -----------------------
+// SAFETY CHECKS
+// -----------------------
+if (!searchBtn || !searchInput || !resultsEl) {
+  console.error('❌ Missing main DOM elements (searchInput, searchBtn, searchResults).');
+  // show user message
+  if (resultsEl) resultsEl.innerHTML = '<p style="color:orangered">App DOM not loaded correctly.</p>';
+}
+
+// -----------------------
+// EVENTS
+// -----------------------
+searchBtn?.addEventListener('click', runSearch);
+searchInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') runSearch();
+});
+
+// -----------------------
+// HELPER: fetch with timeout
+// -----------------------
+async function fetchWithTimeout(url, opts = {}, timeout = WORKER_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const res = await fetch(url, { ...opts, signal: controller.signal });
+    clearTimeout(id);
+    return res;
+  } catch (err) {
+    clearTimeout(id);
+    throw err;
+  }
+}
+
+// -----------------------
+// MAIN SEARCH
+// -----------------------
+async function runSearch() {
+  const rawQuery = (searchInput?.value || '').trim();
+  const query = rawQuery.toLowerCase();
+
+  // clear UI
+  resultsEl.innerHTML = '';
+  loadingEl && (loadingEl.style.display = 'block');
+
+  if (!query) {
+    loadingEl && (loadingEl.style.display = 'none');
+    resultsEl.innerHTML = '<p>Please enter a product name.</p>';
     return;
   }
 
-  groups.forEach(group => {
-    const sorted = group.items.slice().sort((a,b)=> (a.price||999999) - (b.price||999999));
-    const cheapest = sorted[0];
+  logDebug(`Searching for "${query}"`);
+  // 1) Try the worker
+  try {
+    const url = `${WORKER_URL}?q=${encodeURIComponent(query)}`;
+    logDebug(`Calling worker: ${url}`);
+    const res = await fetchWithTimeout(url, { method: 'GET' }, WORKER_TIMEOUT_MS);
 
-    const card = document.createElement("div");
-    card.className = "card";
+    if (!res.ok) {
+      logDebug(`Worker returned HTTP ${res.status}. Falling back to local data.`);
+      return useLocalFallback(query, 'worker-failed');
+    }
 
-    const title = document.createElement("h3");
-    title.textContent = group.normalizedName;
-    card.appendChild(title);
-
-    const img = document.createElement("img");
-    img.src = cheapest.image || "";
-    img.alt = group.normalizedName;
-    img.onerror = imgOnError;
-    card.appendChild(img);
-
-    const bestLine = document.createElement("div");
-    bestLine.className = "best";
-    bestLine.textContent = `Best Price: ${cheapest.price} AED (${cheapest.store}) — source: ${sourceLabel}`;
-    card.appendChild(bestLine);
-
-    const storesWrap = document.createElement("div");
-    storesWrap.className = "stores";
-    group.items.forEach(item => {
-      const row = document.createElement("div");
-      row.className = "store-row";
-
-      const left = document.createElement("div");
-      left.textContent = `${item.store}: ${item.price} AED`;
-      row.appendChild(left);
-
-      const buy = document.createElement("button");
-      buy.className = "buy-btn";
-      buy.textContent = "Buy";
-      buy.onclick = () => {
-        const link = item.link || storeSearchLink(item.store, item.name || originalQuery);
-        window.open(link, "_blank");
-      };
-      row.appendChild(buy);
-
-      storesWrap.appendChild(row);
+    const data = await res.json().catch(err => {
+      logDebug('Worker JSON parse failed: ' + err.message);
+      return null;
     });
-    card.appendChild(storesWrap);
+
+    logDebug('Raw results: ' + JSON.stringify(data || {}));
+
+    if (data && Array.isArray(data.results) && data.results.length > 0) {
+      // use live results
+      renderResultsFromSource(data.results, query, 'Live Worker');
+      return;
+    } else {
+      logDebug('Worker returned no results. Falling back to local data.');
+      return useLocalFallback(query, 'worker-empty');
+    }
+  } catch (err) {
+    // network/timeout/error -> fallback
+    logDebug('Worker request error: ' + (err.message || err) + '. Using local fallback.');
+    return useLocalFallback(query, 'worker-error');
+  } finally {
+    loadingEl && (loadingEl.style.display = 'none');
+  }
+}
+
+// -----------------------
+// LOCAL FALLBACK
+// -----------------------
+function useLocalFallback(query, reason = 'fallback') {
+  // Ensure data exists
+  if (!window.SHOPPING_SOURCES || !Array.isArray(window.SHOPPING_SOURCES)) {
+    logDebug(`No local SHOPPING_SOURCES available (${reason}).`);
+    resultsEl.innerHTML = `<div class="empty-results">No products returned for "${query}".</div>`;
+    return;
+  }
+
+  // Filter local dataset
+  const matches = window.SHOPPING_SOURCES.filter(p => (p.name || '').toLowerCase().includes(query));
+  logDebug(`Local fallback used (${reason}). Matches: ${matches.length}`);
+
+  if (!matches || matches.length === 0) {
+    resultsEl.innerHTML = `<div class="empty-results">No products returned for "${query}".</div>`;
+    return;
+  }
+
+  // Render
+  renderResultsFromSource(matches, query, 'Local demo');
+}
+
+// -----------------------
+// RENDER (common)
+// Each item in `items` should be:
+// { id, name, image, stores: [{store, price, link}, ...] }
+// -----------------------
+function renderResultsFromSource(items, query, sourceLabel = 'Local demo') {
+  // Clear
+  resultsEl.innerHTML = '';
+
+  // For each product
+  items.forEach(product => {
+    const cheapest = (Array.isArray(product.stores) && product.stores.length > 0)
+      ? [...product.stores].sort((a,b)=> a.price - b.price)[0]
+      : null;
+
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.style.marginBottom = '20px';
+    card.style.padding = '18px';
+    card.style.borderRadius = '12px';
+    card.style.background = 'rgba(255,255,255,0.03)';
+
+    // build store list HTML
+    const storesHtml = (Array.isArray(product.stores) ? product.stores : []).map(s => {
+      const safeLink = s.link || '#';
+      const priceTxt = typeof s.price === 'number' ? `${s.price} AED` : (s.price || '');
+      return `
+        <div class="store-row" style="display:flex;justify-content:space-between;align-items:center;margin:8px 0;">
+          <div style="flex:1">${escapeHtml(s.store)}: ${escapeHtml(priceTxt)}</div>
+          <div style="margin-left:12px"><a class="btn-buy" href="${safeLink}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:8px 12px;border-radius:8px;background:linear-gradient(90deg,#b8863b,#cfa25a);color:#08121a;text-decoration:none;font-weight:700;">Buy</a></div>
+        </div>
+      `;
+    }).join('');
+
+    card.innerHTML = `
+      <div style="display:flex;gap:18px;align-items:flex-start;">
+        <div style="flex:1">
+          <h2 style="margin:0 0 6px 0">${escapeHtml(product.name || 'Unnamed')}</h2>
+          ${product.image ? `<img src="${product.image}" alt="${escapeHtml(product.name||'')}" style="max-width:240px;border-radius:8px;margin-bottom:10px;">` : ''}
+          <div style="color:#e3c58e;margin-top:6px;font-weight:700;">
+            ${cheapest ? `Best Price: ${cheapest.price} AED (${escapeHtml(cheapest.store)})` : 'Best Price: N/A'}
+            <span style="font-weight:600;color:#c6c6c6;margin-left:8px;font-size:13px;">— source: ${escapeHtml(sourceLabel)}</span>
+          </div>
+          <div style="margin-top:10px;">${storesHtml}</div>
+        </div>
+      </div>
+    `;
+
     resultsEl.appendChild(card);
   });
+
+  // Scroll to first result for UX
+  setTimeout(()=> {
+    const first = resultsEl.querySelector('.product-card');
+    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
 }
 
-// FALLBACK: use local demo if window.SHOPPING_SOURCES exists
-function fallbackToLocal(query) {
-  if (!window.SHOPPING_SOURCES || !Array.isArray(window.SHOPPING_SOURCES)) {
-    log("No local SHOPPING_SOURCES available for fallback.");
-    resultsEl.innerHTML = `<div class="card">No products returned and no local fallback available.</div>`;
-    return;
-  }
-
-  log("Falling back to local SHOPPING_SOURCES (demo data).");
-  // Convert local SHOPPING_SOURCES into same result format expected from worker:
-  // worker results should be array of { name, store, price, image, link }
-  const results = [];
-
-  window.SHOPPING_SOURCES.forEach(prod => {
-    if (!prod || !prod.stores) return;
-    prod.stores.forEach(s => {
-      results.push({
-        id: prod.id || prod.name,
-        name: prod.name,
-        store: s.store,
-        price: s.price,
-        image: prod.image,
-        link: s.link || ""
-      });
-    });
-  });
-
-  // filter by query
-  const filtered = results.filter(r => (r.name || "").toLowerCase().includes((query||"").toLowerCase()));
-  const groups = groupProducts(filtered);
-  renderGroups(groups, query, "Local demo");
-  log(`Local fallback: ${filtered.length} items shown.`);
+// -----------------------
+// SAFE ESCAPE HTML
+// -----------------------
+function escapeHtml(str) {
+  if (!str && str !== 0) return '';
+  return String(str)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#39;');
 }
 
-// MAIN: call worker, parse, fallback
-async function callWorkerOrFallback(query) {
-  if (!query) {
-    resultsEl.innerHTML = "<div class='card'>Please enter a product name.</div>";
-    return;
-  }
+// -----------------------
+// EXPORT for console testing
+// -----------------------
+window.runSearch = runSearch;
+window.logUae = logDebug;
 
-  resultsEl.innerHTML = "";
-  loadingEl.style.display = "block";
-  log(`Searching for "${query}"`);
-
-  const url = `${WORKER_BASE}?q=${encodeURIComponent(query)}`;
-  log(`Calling worker: ${url}`);
-
-  try {
-    // Use timeout using AbortController to avoid long hangups
-    const controller = new AbortController();
-    const timeout = setTimeout(()=> controller.abort(), 15000); // 15s
-
-    const resp = await fetch(url, { method: "GET", signal: controller.signal });
-    clearTimeout(timeout);
-
-    log(`Worker HTTP ${resp.status}`);
-    const text = await resp.text();
-
-    // show raw snippet
-    log(`Raw results: ${text.slice(0,2000)}`);
-
-    let data;
-    try { data = JSON.parse(text); } catch(err) {
-      log("Failed to parse JSON from worker. Falling back to local if available.");
-      fallbackToLocal(query);
-      return;
-    }
-
-    // Worker returned error key?
-    if (data.error) {
-      log(`Worker error: ${data.error}. Falling back to local.`);
-      fallbackToLocal(query);
-      return;
-    }
-
-    // expected shape: { query: "...", results: [ {name, store, price, image, link}, ... ] }
-    if (!data.results || !Array.isArray(data.results) || data.results.length === 0) {
-      log(`Worker returned no results (results length=${(data.results||[]).length}). Falling back to local.`);
-      fallbackToLocal(query);
-      return;
-    }
-
-    // success
-    log(`Worker returned ${data.results.length} results.`);
-    const groups = groupProducts(data.results);
-    renderGroups(groups, query, "Worker");
-  } catch (err) {
-    if (err.name === "AbortError") {
-      log("Worker request timed out. Falling back to local data.");
-    } else {
-      log(`Fetch error: ${err.message || err}. Falling back to local data.`);
-    }
-    fallbackToLocal(query);
-  } finally {
-    loadingEl.style.display = "none";
-  }
-}
-
-searchBtn.addEventListener("click", ()=> callWorkerOrFallback(searchInput.value.trim()));
-searchInput.addEventListener("keydown", e => { if (e.key === "Enter") callWorkerOrFallback(searchInput.value.trim()); });
-
-window.addEventListener("load", () => {
-  log("Client ready");
-  const q = searchInput.value && searchInput.value.trim();
-  if (q) callWorkerOrFallback(q);
-});
+logDebug('Engine ready. Worker: ' + WORKER_URL);
