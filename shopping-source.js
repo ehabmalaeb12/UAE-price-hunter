@@ -9,7 +9,7 @@
   2. This file MUST be loaded before script.js
 */
 
-const WORKER_URL = "https://YOUR-WORKER-NAME.workers.dev";
+const WORKER_URL = "https://uae-price-proxy.ehabmalaeb12.workers.dev";
 
 /* -----------------------------------------------------
    MAIN SEARCH FUNCTION
