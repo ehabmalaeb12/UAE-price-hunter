@@ -1,73 +1,51 @@
-// script.js — BULLETPROOF UI ENGINE
-
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('🚀 App ready');
-});
+// script.js — UI ENGINE
 
 async function performSearch() {
-  const query = document.getElementById('searchInput').value.trim();
+  const query = document.getElementById("searchInput").value.trim();
   if (!query) return;
 
-  showLoading(true);
+  const loading = document.getElementById("loading");
+  const resultsDiv = document.getElementById("searchResults");
+
+  loading.style.display = "block";
+  resultsDiv.innerHTML = "";
 
   let results = [];
 
   try {
-    if (typeof window.simpleSearch === 'function') {
-      results = await window.simpleSearch(query);
-    } else {
-      throw new Error('simpleSearch missing');
-    }
-  } catch (e) {
-    console.error(e);
-    alert('Search engine failed');
+    results = await window.simpleSearch(query);
+  } catch (err) {
+    resultsDiv.innerHTML = "<p>Error loading results</p>";
   }
 
-  renderResults(results);
-  showLoading(false);
-}
+  loading.style.display = "none";
 
-function renderResults(groups) {
-  const container = document.getElementById('searchResults');
-  container.innerHTML = '';
-
-  if (!groups.length) {
-    container.innerHTML = `<p style="color:white">No products found</p>`;
+  if (!results.length) {
+    resultsDiv.innerHTML = "<p>No results found</p>";
     return;
   }
 
-  groups.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'product-card';
+  results.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "product-card";
 
-    div.innerHTML = `
+    card.innerHTML = `
       <img src="${p.image}">
       <h3>${p.name}</h3>
-      <p class="best">Best: ${p.bestPrice} AED</p>
-      <p class="store">${p.bestStore}</p>
+      <p><strong>Best:</strong> ${p.bestPrice} AED</p>
+      <p>${p.bestStore}</p>
 
-      <button onclick="this.nextElementSibling.classList.toggle('hidden')">
-        Compare ${p.offerCount} stores
-      </button>
-
-      <div class="offers hidden">
+      <details>
+        <summary>Compare stores</summary>
         ${p.offers.map(o => `
           <div class="offer">
-            <span>${o.store}</span>
-            <strong>${o.price} AED</strong>
+            ${o.store} — ${o.price} AED
             <a href="${o.link}" target="_blank">Buy</a>
           </div>
-        `).join('')}
-      </div>
+        `).join("")}
+      </details>
     `;
 
-    container.appendChild(div);
+    resultsDiv.appendChild(card);
   });
 }
-
-function showLoading(state) {
-  const el = document.getElementById('loading');
-  if (el) el.style.display = state ? 'flex' : 'none';
-}
-
-window.performSearch = performSearch;
