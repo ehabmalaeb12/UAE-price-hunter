@@ -1,113 +1,53 @@
-// UAE PRICE HUNTER — REAL DATA (GROUPED)
-
-const APP_CONFIG = {
-  LS_BASKET: 'uae_price_hunter_basket'
-};
-
-let appState = {
-  basket: []
-};
-
-/* ---------------- INIT ---------------- */
-
-function initializeApp() {
-  appState.basket = JSON.parse(localStorage.getItem(APP_CONFIG.LS_BASKET) || '[]');
-  updateUI();
-}
-
-/* ---------------- SEARCH ---------------- */
+// script.js
+console.log("🚀 script.js loaded");
 
 async function performSearch() {
-  const q = document.getElementById('searchInput').value.trim();
-  if (!q) return alert('Enter product name');
+  const input = document.getElementById("searchInput");
+  const query = input.value.trim();
 
-  showLoading(true);
+  const container = document.getElementById("searchResults");
+  container.innerHTML = "";
 
-  const raw = await window.googleShoppingSearch(q);
-  const grouped = groupProducts(raw);
+  if (!query) {
+    container.innerHTML = "<p>Please enter a product name.</p>";
+    return;
+  }
 
-  displayGroupedResults(grouped);
+  try {
+    const products = await fetchShoppingResults(query);
 
-  showLoading(false);
+    if (!products.length) {
+      container.innerHTML = "<p>No results found.</p>";
+      return;
+    }
+
+    displayResults(products);
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "<p>Error loading results.</p>";
+  }
 }
 
-/* ---------------- GROUPING ---------------- */
-
-function normalizeName(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9 ]/g, '')
-    .replace(/\b(uae|amazon|noon|online|store)\b/g, '')
-    .trim();
-}
-
-function groupProducts(products) {
-  const map = {};
+function displayResults(products) {
+  const container = document.getElementById("searchResults");
+  container.innerHTML = "";
 
   products.forEach(p => {
-    const key = normalizeName(p.name).split(' ').slice(0, 5).join(' ');
-    if (!map[key]) map[key] = [];
-    map[key].push(p);
-  });
-
-  return Object.entries(map).map(([key, items]) => {
-    items.sort((a, b) => a.price - b.price);
-    return {
-      title: items[0].name,
-      image: items[0].image,
-      offers: items
-    };
-  });
-}
-
-/* ---------------- DISPLAY ---------------- */
-
-function displayGroupedResults(groups) {
-  const c = document.getElementById('searchResults');
-  c.innerHTML = '';
-
-  groups.forEach(g => {
-    const card = document.createElement('div');
-    card.className = 'product-card';
+    const card = document.createElement("div");
+    card.className = "product-card";
 
     card.innerHTML = `
-      <img src="${g.image}" onerror="this.src='https://via.placeholder.com/300'">
-      <h3>${g.title}</h3>
-      <strong>From ${g.offers[0].price} AED</strong>
-      <div class="offers">
-        ${g.offers.map(o => `
-          <div class="offer">
-            <span>${o.price} AED</span>
-            <button onclick='addToBasket(${JSON.stringify(o).replace(/"/g, '&quot;')})'>Add</button>
-          </div>
-        `).join('')}
+      <img src="${p.image}" alt="${p.title}">
+      <span class="store">${p.store}</span>
+      <h3>${p.title}</h3>
+      <div class="price">${p.price} AED</div>
+      ${p.oldPrice ? `<div class="old-price">${p.oldPrice} AED</div>` : ""}
+      <div class="meta">⭐ ${p.rating} · ${p.shipping}</div>
+      <div class="actions">
+        <a href="${p.link}" target="_blank">Buy</a>
       </div>
     `;
 
-    c.appendChild(card);
+    container.appendChild(card);
   });
 }
-
-/* ---------------- BASKET ---------------- */
-
-function addToBasket(p) {
-  appState.basket.push(p);
-  localStorage.setItem(APP_CONFIG.LS_BASKET, JSON.stringify(appState.basket));
-  updateUI();
-}
-
-function updateUI() {
-  const el = document.getElementById('basketCount');
-  if (el) el.textContent = appState.basket.length;
-}
-
-function showLoading(s) {
-  const l = document.getElementById('loading');
-  if (l) l.style.display = s ? 'flex' : 'none';
-}
-
-/* ---------------- EXPORT ---------------- */
-
-window.initializeApp = initializeApp;
-window.performSearch = performSearch;
-window.addToBasket = addToBasket;
