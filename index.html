@@ -5,43 +5,49 @@
   <title>UAE Price Hunter</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- STYLES -->
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 
 </head>
-<body>
+<body onload="initializeApp()">
 
-<header class="top-header">
-  <h1>UAE Price Hunter</h1>
-</header>
+  <header class="professional-header">
+    <div class="header-content">
+      <div class="compact-logo">
+        <h1>UAE Price Hunter</h1>
+      </div>
+    </div>
+  </header>
 
-<main class="container">
-
-  <h2>Find the Best Price in UAE</h2>
-
-  <div class="search-box">
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search iPhone, Samsung, TV..."
-    />
-    <button onclick="performSearch()">Compare</button>
-  </div>
-
-  <section id="searchResults" class="products-grid">
-    <!-- RESULTS HERE -->
+  <section class="compact-search-section">
+    <div class="compact-search-box">
+      <div class="search-input-group">
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Search iPhone, TV, Laptop..."
+          onkeypress="if(event.key==='Enter'){performSearch()}"
+        />
+        <button class="search-btn" onclick="performSearch()">
+          Search
+        </button>
+      </div>
+    </div>
   </section>
 
-</main>
+  <section class="results-section">
+    <div id="loading" class="loading-state" style="display:none;">
+      <div class="spinner"></div>
+      <p>Searching UAE stores…</p>
+    </div>
 
-<footer>
-  © 2024 UAE Price Hunter
-</footer>
+    <div id="searchResults" class="container"></div>
+  </section>
 
-<!-- SCRIPTS — CORRECT ORDER -->
-<script src="shopping-source.js"></script>
-<script src="script.js"></script>
+  <!-- SCRIPTS (ORDER MATTERS) -->
+  <script src="shopping-source.js"></script>
+  <script src="script.js"></script>
 
 </body>
 </html>
