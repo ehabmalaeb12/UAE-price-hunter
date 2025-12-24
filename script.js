@@ -1,60 +1,97 @@
-// ---------------- script.js ----------------
+// script.js
+// UAE Price Hunter — FINAL STABLE SEARCH ENGINE (GitHub Pages Safe)
+
 console.log("✅ script.js loaded");
 
-// Main search function
-async function performSearch() {
-  const input = document.getElementById("searchInput");
-  const query = input?.value.trim();
+// -----------------------
+// DOM ELEMENTS
+// -----------------------
+const searchInput = document.getElementById("searchInput");
+const searchBtn = document.getElementById("searchBtn");
+const loadingEl = document.getElementById("loading");
+const resultsEl = document.getElementById("searchResults");
 
-  if (!query) {
-    alert("Please enter a product name");
-    return;
-  }
-
-  const resultsContainer = document.getElementById("searchResults");
-  resultsContainer.innerHTML = `
-    <div class="loading-box">
-      <div class="loader"></div>
-      <p>Searching UAE stores...</p>
-    </div>
-  `;
-
-  try {
-    const results = await window.deepSearchProducts(query);
-    renderResults(results);
-  } catch (err) {
-    console.error(err);
-    resultsContainer.innerHTML = `<p class='error'>Failed to fetch results.</p>`;
-  }
+// -----------------------
+// SAFETY CHECKS
+// -----------------------
+if (!window.SHOPPING_SOURCES) {
+  console.error("❌ SHOPPING_SOURCES not found");
+  resultsEl.innerHTML = "<p style='color:red'>Data source failed to load.</p>";
 }
 
-// Render results
-function renderResults(products) {
-  const container = document.getElementById("searchResults");
-  container.innerHTML = "";
+if (!searchBtn || !searchInput || !resultsEl) {
+  console.error("❌ Missing DOM elements");
+}
 
-  if (!products || products.length === 0) {
-    container.innerHTML = `<p>No products found.</p>`;
+// -----------------------
+// EVENT LISTENER
+// -----------------------
+searchBtn.addEventListener("click", runSearch);
+searchInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") runSearch();
+});
+
+// -----------------------
+// MAIN SEARCH FUNCTION
+// -----------------------
+function runSearch() {
+  const query = searchInput.value.trim().toLowerCase();
+
+  resultsEl.innerHTML = "";
+  loadingEl.style.display = "block";
+
+  console.log("🔍 Searching for:", query);
+
+  if (!query) {
+    loadingEl.style.display = "none";
+    resultsEl.innerHTML = "<p>Please enter a product name.</p>";
     return;
   }
 
-  products.forEach((p) => {
+  // HARD GUARANTEE: synchronous, no promises, no hangs
+  const matches = window.SHOPPING_SOURCES.filter(product =>
+    product.name.toLowerCase().includes(query)
+  );
+
+  console.log("📦 Matches found:", matches.length);
+
+  loadingEl.style.display = "none";
+
+  if (matches.length === 0) {
+    resultsEl.innerHTML = "<p>No products found.</p>";
+    return;
+  }
+
+  renderResults(matches);
+}
+
+// -----------------------
+// RENDER RESULTS
+// -----------------------
+function renderResults(products) {
+  products.forEach(product => {
     const card = document.createElement("div");
-    card.className = "product-card";
+    card.style.border = "1px solid #ccc";
+    card.style.padding = "15px";
+    card.style.marginBottom = "20px";
+    card.style.borderRadius = "8px";
+
+    const cheapest = [...product.stores].sort((a, b) => a.price - b.price)[0];
+
     card.innerHTML = `
-      <img src="${p.image}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200'">
-      <div class="product-info">
-        <h3>${p.name}</h3>
-        <p class="store">${p.store}</p>
-        <p class="price">
-          <strong>${p.price} AED</strong>
-          <span class="old">${p.originalPrice} AED</span>
-        </p>
-        <a href="${p.link}" class="deal-btn" target="_blank">View Deal</a>
-      </div>
+      <h2>${product.name}</h2>
+      <img src="${product.image}" style="max-width:200px;display:block;margin-bottom:10px;">
+      <p><strong>Best Price:</strong> ${cheapest.price} AED (${cheapest.store})</p>
+      <h4>Available Stores:</h4>
+      <ul>
+        ${product.stores.map(s =>
+          `<li>${s.store}: ${s.price} AED</li>`
+        ).join("")}
+      </ul>
     `;
-    container.appendChild(card);
+
+    resultsEl.appendChild(card);
   });
 }
 
-window.performSearch = performSearch;
+console.log("🚀 UAE Price Hunter ready");
