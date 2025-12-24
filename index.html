@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -6,34 +6,47 @@
   <title>UAE Price Hunter</title>
   <link rel="stylesheet" href="./style.css">
   <style>
-    /* minimal overrides so product cards display even if style.css is missing */
-    body { font-family: system-ui, -apple-system, Arial; background:#0f172a; color:#fff; padding:20px;}
-    h1 { font-size:28px; margin-bottom:12px; color:#e3c58e;}
-    input[type="text"]{ padding:10px; width:60%; max-width:420px; border-radius:8px; border:1px solid #444; }
-    button{ padding:10px 14px; margin-left:8px; border-radius:8px; background:linear-gradient(90deg,#c5a059,#8e5a31); border:none; color:#fff; cursor:pointer;}
-    #loading{ margin-top:16px; color:#E3C58E; }
-    .product-card{ background:rgba(255,255,255,0.03); border-radius:12px; padding:18px; margin-top:18px; max-width:900px; }
-    .product-card img{ max-width:200px; display:block; margin:12px 0; border-radius:8px; background:#111;}
-    .diagnostics{ margin-top:18px; color:#f0f0f0; font-size:13px; background:rgba(255,255,255,0.03); padding:10px; border-radius:8px;}
+    /* Minimal inline tweaks so the page looks OK while testing */
+    body { font-family: Inter, system-ui, Arial; background:#0f1724; color:#f4f4f7; margin:0; padding:2rem; }
+    .container{ max-width:1100px; margin:0 auto; }
+    h1{ font-size:2rem; color:#caa85b; margin-bottom:1rem; }
+    .search-row{ display:flex; gap:.6rem; margin-bottom:1rem; }
+    input[type="text"]{ flex:1; padding:.9rem 1rem; border-radius:28px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.03); color:inherit }
+    button { padding:.7rem 1.1rem; border-radius:12px; background: linear-gradient(90deg,#caa85b,#8e5a31); color:#fff; border:none; cursor:pointer; font-weight:700 }
+    #loading{ margin:1rem 0; color:#e3c58e; }
+    .results { margin-top:1.2rem; display:grid; grid-template-columns: repeat(auto-fill,minmax(320px,1fr)); gap:1rem; }
+    .card { background: rgba(26,22,18,0.7); border-radius:12px; padding:1.1rem; border:1px solid rgba(197,160,89,0.06); }
+    .card img{ width:100%; height:180px; object-fit:cover; border-radius:8px; background:#111; display:block }
+    .card h3{ margin:.6rem 0 .3rem 0; font-size:1.05rem; color:#fff}
+    .best { color:#c5a059; font-weight:800; margin-bottom:.5rem }
+    .stores{ margin-top:.6rem }
+    .store-row{ display:flex; justify-content:space-between; align-items:center; gap:.6rem; margin: .35rem 0; }
+    .buy-btn{ padding:.45rem .7rem; border-radius:8px; background:linear-gradient(90deg,#8e5a31,#caa85b); color:#111; border:none; cursor:pointer; font-weight:700 }
+    .logbox{ margin-top:1rem; background:rgba(255,255,255,0.03); padding:1rem; border-radius:10px; color:#dce3ea; font-size:13px; white-space:pre-wrap; max-height:280px; overflow:auto; }
+    .small{ font-size:13px; color:#94a3b8 }
+    @media (max-width:520px) { .results{ grid-template-columns:1fr } }
   </style>
 </head>
 <body>
-  <h1>UAE Price Hunter</h1>
+  <div class="container">
+    <h1>UAE Price Hunter</h1>
 
-  <div>
-    <input id="searchInput" type="text" placeholder="Search product..." value="iphone" />
-    <button id="searchBtn">Search</button>
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="Search product (e.g. iPhone 15)" value="iphone">
+      <button id="searchBtn">Search</button>
+    </div>
+
+    <div id="loading" style="display:none">Searching UAE stores...</div>
+
+    <div id="searchResults" class="results" aria-live="polite"></div>
+
+    <div class="small" style="margin-top:.6rem">Tip: This page calls your Cloudflare Worker to fetch live search results.</div>
+
+    <h4 style="margin-top:1.2rem;color:#E3C58E">Debug / Logs</h4>
+    <div id="log" class="logbox">Ready.</div>
   </div>
 
-  <div id="loading" style="display:none">Searching UAE stores...</div>
-
-  <div id="searchResults" aria-live="polite"></div>
-
-  <div id="diagnostics" class="diagnostics" style="display:none"></div>
-
-  <!-- ORDER IS CRITICAL: data (static) first, then engine -->
-  <script src="./data.js"></script>
+  <!-- IMPORTANT: script.js below must be the file you replace in repo -->
   <script src="./script.js"></script>
-  <noscript style="color:#f88; display:block; margin-top:12px">JavaScript is required — please enable JS.</noscript>
 </body>
 </html>
