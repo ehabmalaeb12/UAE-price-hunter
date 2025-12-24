@@ -4,39 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UAE Price Hunter</title>
-
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
 
-  <header class="header">
-    <h1>UAE Price Hunter</h1>
-  </header>
+  <h1>UAE Price Hunter</h1>
 
-  <main class="container">
+  <input id="searchInput" type="text" value="iphone">
+  <button id="searchBtn">Search</button>
 
-    <input
-      id="searchInput"
-      type="text"
-      placeholder="Search product (e.g. iPhone)"
-    />
+  <div id="loading" style="display:none;margin-top:20px;">
+    Searching UAE stores...
+  </div>
 
-    <button onclick="performSearch()">Search</button>
+  <div id="searchResults"></div>
 
-    <!-- 🔥 LOADING -->
-    <div id="loading" class="loading" style="display:none;">
-      Searching UAE stores...
-    </div>
-
-    <!-- 🔥 RESULTS (THIS WAS MISSING / WRONG) -->
-    <div id="searchResults" class="results"></div>
-
-  </main>
-
-  <!-- ORDER IS CRITICAL -->
-  <script src="shopping-source.js"></script>
-  <script src="script.js"></script>
+  <!-- 🔥 FORCE CORRECT PATH -->
+  <script src="./shopping-source.js"></script>
+  <script src="./script.js"></script>
 
 </body>
 </html>
