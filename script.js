@@ -1,5 +1,5 @@
 // script.js
-// UAE Price Hunter — FINAL STABLE SEARCH ENGINE (GitHub Pages Safe)
+// UAE Price Hunter — STABLE CORE ENGINE (GitHub Pages Safe)
 
 console.log("✅ script.js loaded");
 
@@ -8,28 +8,35 @@ console.log("✅ script.js loaded");
 // -----------------------
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
-const loadingEl = document.getElementById("loading");
 const resultsEl = document.getElementById("searchResults");
+const loadingEl = document.getElementById("loading"); // may be null
 
 // -----------------------
 // SAFETY CHECKS
 // -----------------------
 if (!window.SHOPPING_SOURCES) {
   console.error("❌ SHOPPING_SOURCES not found");
-  resultsEl.innerHTML = "<p style='color:red'>Data source failed to load.</p>";
+  if (resultsEl) {
+    resultsEl.innerHTML = "<p style='color:red'>Data source failed to load.</p>";
+  }
 }
 
 if (!searchBtn || !searchInput || !resultsEl) {
-  console.error("❌ Missing DOM elements");
+  console.error("❌ Missing critical DOM elements");
 }
 
 // -----------------------
-// EVENT LISTENER
+// EVENT LISTENERS
 // -----------------------
-searchBtn.addEventListener("click", runSearch);
-searchInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") runSearch();
-});
+if (searchBtn) {
+  searchBtn.addEventListener("click", runSearch);
+}
+
+if (searchInput) {
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") runSearch();
+  });
+}
 
 // -----------------------
 // MAIN SEARCH FUNCTION
@@ -38,24 +45,24 @@ function runSearch() {
   const query = searchInput.value.trim().toLowerCase();
 
   resultsEl.innerHTML = "";
-  loadingEl.style.display = "block";
+
+  if (loadingEl) loadingEl.style.display = "block";
 
   console.log("🔍 Searching for:", query);
 
   if (!query) {
-    loadingEl.style.display = "none";
+    if (loadingEl) loadingEl.style.display = "none";
     resultsEl.innerHTML = "<p>Please enter a product name.</p>";
     return;
   }
 
-  // HARD GUARANTEE: synchronous, no promises, no hangs
   const matches = window.SHOPPING_SOURCES.filter(product =>
     product.name.toLowerCase().includes(query)
   );
 
   console.log("📦 Matches found:", matches.length);
 
-  loadingEl.style.display = "none";
+  if (loadingEl) loadingEl.style.display = "none";
 
   if (matches.length === 0) {
     resultsEl.innerHTML = "<p>No products found.</p>";
