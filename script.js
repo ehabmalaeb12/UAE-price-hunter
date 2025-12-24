@@ -1,76 +1,92 @@
-// UAE PRICE HUNTER — GROUPED REAL SEARCH
-alert("script.js loaded");
+// UAE PRICE HUNTER — SCRIPT.JS (GROUPED VERSION)
+
+/* ---------------- STATE ---------------- */
+
 let appState = {
   basket: [],
   points: 0
 };
 
+/* ---------------- INIT ---------------- */
+
 function initializeApp() {
-  console.log("App ready");
+  console.log('✅ App initialized');
 }
 
-async function performSearch() {
-  const input = document.getElementById("searchInput");
-  const query = input.value.trim();
+/* ---------------- SEARCH ---------------- */
 
-  if (!query) {
-    alert("Enter a product name");
-    return;
-  }
+async function performSearch() {
+  const input = document.getElementById('searchInput');
+  const query = input.value.trim();
+  if (!query) return;
 
   showLoading(true);
 
-  const products = await window.shoppingSearch(query);
-
-  renderGrouped(products);
+  try {
+    const results = await window.simpleSearch(query);
+    renderGroupedResults(results);
+  } catch (err) {
+    console.error(err);
+    alert('Search failed');
+  }
 
   showLoading(false);
 }
 
-function renderGrouped(products) {
-  const container = document.getElementById("searchResults");
-  container.innerHTML = "";
+/* ---------------- RENDER ---------------- */
 
-  if (!products.length) {
-    container.innerHTML = "<p>No results found</p>";
+function renderGroupedResults(groups) {
+  const container = document.getElementById('searchResults');
+  container.innerHTML = '';
+
+  if (!groups || groups.length === 0) {
+    container.innerHTML = `<p style="color:white">No results found</p>`;
     return;
   }
 
-  const groups = {};
+  groups.forEach(group => {
+    const card = document.createElement('div');
+    card.className = 'product-card';
 
-  products.forEach(p => {
-    if (!groups[p.groupKey]) groups[p.groupKey] = [];
-    groups[p.groupKey].push(p);
-  });
+    card.innerHTML = `
+      <img src="${group.image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400'}">
+      <h3>${group.name}</h3>
+      <p class="best">Best price: <strong>${group.bestPrice} AED</strong></p>
+      <p class="store">From: ${group.bestStore}</p>
+      <button onclick="toggleOffers(this)">Compare ${group.offerCount} stores</button>
 
-  Object.values(groups).forEach(group => {
-    group.sort((a, b) => a.price - b.price);
-    const best = group[0];
-
-    const groupDiv = document.createElement("div");
-    groupDiv.className = "comparison-group";
-
-    groupDiv.innerHTML = `
-      <div class="group-header">
-        <h3>${best.title}</h3>
-        <strong>Best: ${best.price} AED</strong>
-      </div>
-      <div class="comparison-content">
-        ${group.map(p => `
-          <div class="product-card ${p === best ? 'best-price' : ''}">
-            <img class="product-image" src="${p.image}">
-            <h4>${p.store}</h4>
-            <p>${p.price} AED</p>
+      <div class="offers hidden">
+        ${group.offers.map(o => `
+          <div class="offer-row">
+            <span>${o.store}</span>
+            <strong>${o.price} AED</strong>
+            <a href="${o.link}" target="_blank">Buy</a>
           </div>
-        `).join("")}
+        `).join('')}
       </div>
     `;
 
-    container.appendChild(groupDiv);
+    container.appendChild(card);
   });
+
+  container.scrollIntoView({ behavior: 'smooth' });
+}
+
+/* ---------------- UI HELPERS ---------------- */
+
+function toggleOffers(btn) {
+  const offers = btn.nextElementSibling;
+  offers.classList.toggle('hidden');
 }
 
 function showLoading(state) {
-  document.getElementById("loading").style.display =
-    state ? "block" : "none";
+  const el = document.getElementById('loading');
+  if (el) el.style.display = state ? 'flex' : 'none';
 }
+
+/* ---------------- EXPORT ---------------- */
+
+window.performSearch = performSearch;
+window.initializeApp = initializeApp;
+
+console.log('🚀 script.js loaded (GROUPED)');
