@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UAE Price Hunter — Test Client</title>
+  <style>
+    body { font-family: Inter, system-ui, Arial; padding: 18px; background:#0f172a;color:#fff; }
+    input, button { padding:8px 12px; font-size:16px; }
+    .card { background:rgba(255,255,255,0.04); padding:12px; border-radius:10px; margin:10px 0; }
+    img { max-width:120px; border-radius:8px; }
+    .grid { display:flex; gap:12px; align-items:center; }
+  </style>
+</head>
+<body>
+  <h2>UAE Price Hunter — Test</h2>
+
+  <div>
+    <input id="q" placeholder="Query (e.g. iphone)" value="iphone" />
+    <button id="go">Search</button>
+  </div>
+
+  <div id="info" style="margin-top:12px;color:#E3C58E"></div>
+  <div id="results"></div>
+
+  <script>
+    // REPLACE this with your real worker subdomain:
+    const WORKER_BASE = 'https://uae-price-proxy.ehabmalaeb2.workers.dev'; // <--- CHANGE if needed
+
+    document.getElementById('go').addEventListener('click', run);
+    document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+
+    async function run() {
+      const q = document.getElementById('q').value.trim();
+      if (!q) return alert('Enter query');
+      const info = document.getElementById('info');
+      const resultsEl = document.getElementById('results');
+      resultsEl.innerHTML = '';
+      info.textContent = 'Searching...';
+
+      try {
+        const url = `${WORKER_BASE}/search?q=${encodeURIComponent(q)}`;
+        const r = await fetch(url);
+        const j = await r.json();
+
+        if (j.error) {
+          info.textContent = 'Error: ' + (j.message || j.error);
+          console.error(j);
+          return;
+        }
+
+        info.textContent = `${j.count} products — (${j.debug?.asinsFound || 0} asins scanned) — fetched ${j.debug?.fetch_time_ms || 'n/a'}ms`;
+
+        if (!j.results || j.results.length === 0) {
+          resultsEl.innerHTML = `<div style="padding:12px">No results</div>`;
+          return;
+        }
+
+        // show best price card and list
+        const best = j.results[0];
+        const bestHtml = `
+          <div class="card">
+            <h3>Best price: ${best.title}</h3>
+            <div class="grid">
+              <img src="${best.image || ''}" alt="">
+              <div>
+                <div style="font-weight:700">${best.price} ${best.currency}</div>
+                <div><a href="${best.link}" target="_blank">Open on ${best.store}</a></div>
+              </div>
+            </div>
+          </div>`;
+        resultsEl.insertAdjacentHTML('beforeend', bestHtml);
+
+        // list others
+        j.results.forEach(p => {
+          resultsEl.insertAdjacentHTML('beforeend', `
+            <div class="card">
+              <div style="display:flex;gap:12px;align-items:center;">
+                <img src="${p.image || ''}" style="width:80px;height:auto" />
+                <div>
+                  <div style="font-weight:700">${p.title}</div>
+                  <div>${p.price} ${p.currency} — <a href="${p.link}" target="_blank">Buy</a></div>
+                </div>
+              </div>
+            </div>
+          `);
+        });
+
+      } catch (err) {
+        info.textContent = 'Fetch error: ' + err.message;
+        console.error(err);
+      }
+    }
+
+    // auto-run
+    run();
+  </script>
+</body>
+</html>
